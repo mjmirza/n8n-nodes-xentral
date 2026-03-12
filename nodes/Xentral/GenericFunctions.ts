@@ -22,7 +22,7 @@ export async function xentralApiRequest(
 ): Promise<IDataObject> {
 	const credentials = await this.getCredentials('xentralApi');
 	const instanceUrl = (credentials.instanceUrl as string).replace(/\/$/, '');
-	const version = apiVersion || (credentials.apiVersion as string) || 'v1';
+	const version = apiVersion || 'v1';
 
 	const options: IHttpRequestOptions = {
 		method,

@@ -5,6 +5,23 @@ export const customerFields: INodeProperties[] = [
 	//         customer:create
 	// ----------------------------------
 	{
+		displayName: 'Customer Type',
+		name: 'customerType',
+		type: 'options',
+		options: [
+			{ name: 'Company', value: 'company' },
+			{ name: 'Individual', value: 'individual' },
+		],
+		default: 'company',
+		displayOptions: {
+			show: {
+				resource: ['customer'],
+				operation: ['create'],
+			},
+		},
+		description: 'Whether the customer is a company or individual',
+	},
+	{
 		displayName: 'Company Name',
 		name: 'companyName',
 		type: 'string',
@@ -16,7 +33,7 @@ export const customerFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The company name of the customer',
+		description: 'The company name or full name of the customer',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -44,6 +61,17 @@ export const customerFields: INodeProperties[] = [
 				default: '',
 			},
 			{
+				displayName: 'Honorific',
+				name: 'honorific',
+				type: 'options',
+				options: [
+					{ name: 'Herr', value: 'herr' },
+					{ name: 'Frau', value: 'frau' },
+				],
+				default: 'herr',
+				description: 'Salutation / honorific',
+			},
+			{
 				displayName: 'Email',
 				name: 'email',
 				type: 'string',
@@ -53,6 +81,18 @@ export const customerFields: INodeProperties[] = [
 			{
 				displayName: 'Phone',
 				name: 'phone',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Fax',
+				name: 'fax',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Mobile',
+				name: 'mobile',
 				type: 'string',
 				default: '',
 			},
@@ -73,6 +113,13 @@ export const customerFields: INodeProperties[] = [
 				name: 'city',
 				type: 'string',
 				default: '',
+			},
+			{
+				displayName: 'State',
+				name: 'state',
+				type: 'string',
+				default: '',
+				description: 'State/province code (e.g. BW, BY, NRW)',
 			},
 			{
 				displayName: 'Country',
@@ -196,6 +243,17 @@ export const customerFields: INodeProperties[] = [
 		},
 		options: [
 			{
+				displayName: 'Customer Type',
+				name: 'customerType',
+				type: 'options',
+				options: [
+					{ name: 'Company', value: 'company' },
+					{ name: 'Individual', value: 'individual' },
+				],
+				default: 'company',
+				description: 'Change the customer type',
+			},
+			{
 				displayName: 'Company Name',
 				name: 'companyName',
 				type: 'string',
@@ -214,6 +272,17 @@ export const customerFields: INodeProperties[] = [
 				default: '',
 			},
 			{
+				displayName: 'Honorific',
+				name: 'honorific',
+				type: 'options',
+				options: [
+					{ name: 'Herr', value: 'herr' },
+					{ name: 'Frau', value: 'frau' },
+				],
+				default: 'herr',
+				description: 'Salutation / honorific',
+			},
+			{
 				displayName: 'Email',
 				name: 'email',
 				type: 'string',
@@ -223,6 +292,18 @@ export const customerFields: INodeProperties[] = [
 			{
 				displayName: 'Phone',
 				name: 'phone',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Fax',
+				name: 'fax',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Mobile',
+				name: 'mobile',
 				type: 'string',
 				default: '',
 			},
@@ -245,10 +326,24 @@ export const customerFields: INodeProperties[] = [
 				default: '',
 			},
 			{
+				displayName: 'State',
+				name: 'state',
+				type: 'string',
+				default: '',
+				description: 'State/province code (e.g. BW, BY, NRW)',
+			},
+			{
 				displayName: 'Country',
 				name: 'country',
 				type: 'string',
 				default: '',
+			},
+			{
+				displayName: 'VAT ID',
+				name: 'vatId',
+				type: 'string',
+				default: '',
+				description: 'VAT identification number',
 			},
 		],
 	},
