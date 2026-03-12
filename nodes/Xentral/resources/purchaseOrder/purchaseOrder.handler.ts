@@ -57,5 +57,15 @@ export async function handlePurchaseOrder(
 		return xentralV1CursorGetAll.call(this, 'purchaseOrders', { 'filter[name]': searchTerm }, limit);
 	}
 
+	if (operation === 'cancel') {
+		const purchaseOrderId = this.getNodeParameter('purchaseOrderId', itemIndex) as string;
+		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}/cancel`, {} as IDataObject, {}, 'v1');
+	}
+
+	if (operation === 'release') {
+		const purchaseOrderId = this.getNodeParameter('purchaseOrderId', itemIndex) as string;
+		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}/release`, {} as IDataObject, {}, 'v1');
+	}
+
 	throw new Error(`Unknown purchaseOrder operation: ${operation}`);
 }

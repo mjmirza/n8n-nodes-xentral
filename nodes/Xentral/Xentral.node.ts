@@ -26,6 +26,20 @@ import { projectOperations } from './resources/project/project.operations';
 import { paymentMethodOperations } from './resources/paymentMethod/paymentMethod.operations';
 import { shippingMethodOperations } from './resources/shippingMethod/shippingMethod.operations';
 import { webhookOperations } from './resources/webhook/webhook.operations';
+import { storageLocationOperations } from './resources/storageLocation/storageLocation.operations';
+import { proformaInvoiceOperations } from './resources/proformaInvoice/proformaInvoice.operations';
+import { liabilityOperations } from './resources/liability/liability.operations';
+import { shipmentOperations } from './resources/shipment/shipment.operations';
+import { paymentTermsGroupOperations } from './resources/paymentTermsGroup/paymentTermsGroup.operations';
+import { goodsReceiptOperations } from './resources/goodsReceipt/goodsReceipt.operations';
+import { productCategoryOperations } from './resources/productCategory/productCategory.operations';
+import { salesPriceOperations } from './resources/salesPrice/salesPrice.operations';
+import { purchasePriceOperations } from './resources/purchasePrice/purchasePrice.operations';
+import { taxRateOperations } from './resources/taxRate/taxRate.operations';
+import { deliveryTermsOperations } from './resources/deliveryTerms/deliveryTerms.operations';
+import { employeeOperations } from './resources/employee/employee.operations';
+import { tagOperations } from './resources/tag/tag.operations';
+import { salesChannelOperations } from './resources/salesChannel/salesChannel.operations';
 
 // --- Resource imports: fields ---
 import { customerFields } from './resources/customer/customer.fields';
@@ -46,6 +60,20 @@ import { projectFields } from './resources/project/project.fields';
 import { paymentMethodFields } from './resources/paymentMethod/paymentMethod.fields';
 import { shippingMethodFields } from './resources/shippingMethod/shippingMethod.fields';
 import { webhookFields } from './resources/webhook/webhook.fields';
+import { storageLocationFields } from './resources/storageLocation/storageLocation.fields';
+import { proformaInvoiceFields } from './resources/proformaInvoice/proformaInvoice.fields';
+import { liabilityFields } from './resources/liability/liability.fields';
+import { shipmentFields } from './resources/shipment/shipment.fields';
+import { paymentTermsGroupFields } from './resources/paymentTermsGroup/paymentTermsGroup.fields';
+import { goodsReceiptFields } from './resources/goodsReceipt/goodsReceipt.fields';
+import { productCategoryFields } from './resources/productCategory/productCategory.fields';
+import { salesPriceFields } from './resources/salesPrice/salesPrice.fields';
+import { purchasePriceFields } from './resources/purchasePrice/purchasePrice.fields';
+import { taxRateFields } from './resources/taxRate/taxRate.fields';
+import { deliveryTermsFields } from './resources/deliveryTerms/deliveryTerms.fields';
+import { employeeFields } from './resources/employee/employee.fields';
+import { tagFields } from './resources/tag/tag.fields';
+import { salesChannelFields } from './resources/salesChannel/salesChannel.fields';
 
 // --- Resource imports: handlers ---
 import { handleCustomer } from './resources/customer/customer.handler';
@@ -66,6 +94,20 @@ import { handleProject } from './resources/project/project.handler';
 import { handlePaymentMethod } from './resources/paymentMethod/paymentMethod.handler';
 import { handleShippingMethod } from './resources/shippingMethod/shippingMethod.handler';
 import { handleWebhook } from './resources/webhook/webhook.handler';
+import { handleStorageLocation } from './resources/storageLocation/storageLocation.handler';
+import { handleProformaInvoice } from './resources/proformaInvoice/proformaInvoice.handler';
+import { handleLiability } from './resources/liability/liability.handler';
+import { handleShipment } from './resources/shipment/shipment.handler';
+import { handlePaymentTermsGroup } from './resources/paymentTermsGroup/paymentTermsGroup.handler';
+import { handleGoodsReceipt } from './resources/goodsReceipt/goodsReceipt.handler';
+import { handleProductCategory } from './resources/productCategory/productCategory.handler';
+import { handleSalesPrice } from './resources/salesPrice/salesPrice.handler';
+import { handlePurchasePrice } from './resources/purchasePrice/purchasePrice.handler';
+import { handleTaxRate } from './resources/taxRate/taxRate.handler';
+import { handleDeliveryTerms } from './resources/deliveryTerms/deliveryTerms.handler';
+import { handleEmployee } from './resources/employee/employee.handler';
+import { handleTag } from './resources/tag/tag.handler';
+import { handleSalesChannel } from './resources/salesChannel/salesChannel.handler';
 
 const resourceHandlers: Record<string, (this: IExecuteFunctions, op: string, i: number) => Promise<IDataObject | IDataObject[]>> = {
 	customer: handleCustomer,
@@ -86,6 +128,20 @@ const resourceHandlers: Record<string, (this: IExecuteFunctions, op: string, i: 
 	paymentMethod: handlePaymentMethod,
 	shippingMethod: handleShippingMethod,
 	webhook: handleWebhook,
+	storageLocation: handleStorageLocation,
+	proformaInvoice: handleProformaInvoice,
+	liability: handleLiability,
+	shipment: handleShipment,
+	paymentTermsGroup: handlePaymentTermsGroup,
+	goodsReceipt: handleGoodsReceipt,
+	productCategory: handleProductCategory,
+	salesPrice: handleSalesPrice,
+	purchasePrice: handlePurchasePrice,
+	taxRate: handleTaxRate,
+	deliveryTerms: handleDeliveryTerms,
+	employee: handleEmployee,
+	tag: handleTag,
+	salesChannel: handleSalesChannel,
 };
 
 export class Xentral implements INodeType {
@@ -121,17 +177,31 @@ export class Xentral implements INodeType {
 					{ name: 'Credit Note', value: 'creditNote' },
 					{ name: 'Customer', value: 'customer' },
 					{ name: 'Delivery Note', value: 'deliveryNote' },
+					{ name: 'Delivery Terms', value: 'deliveryTerms' },
+					{ name: 'Employee', value: 'employee' },
+					{ name: 'Goods Receipt', value: 'goodsReceipt' },
 					{ name: 'Invoice', value: 'invoice' },
+					{ name: 'Liability', value: 'liability' },
 					{ name: 'Offer', value: 'offer' },
 					{ name: 'Payment Method', value: 'paymentMethod' },
+					{ name: 'Payment Terms Group', value: 'paymentTermsGroup' },
 					{ name: 'Production', value: 'production' },
 					{ name: 'Product', value: 'product' },
+					{ name: 'Product Category', value: 'productCategory' },
+					{ name: 'Proforma Invoice', value: 'proformaInvoice' },
 					{ name: 'Project', value: 'project' },
 					{ name: 'Purchase Order', value: 'purchaseOrder' },
+					{ name: 'Purchase Price', value: 'purchasePrice' },
 					{ name: 'Return', value: 'return' },
+					{ name: 'Sales Channel', value: 'salesChannel' },
 					{ name: 'Sales Order', value: 'salesOrder' },
+					{ name: 'Sales Price', value: 'salesPrice' },
+					{ name: 'Shipment', value: 'shipment' },
 					{ name: 'Shipping Method', value: 'shippingMethod' },
+					{ name: 'Storage Location', value: 'storageLocation' },
 					{ name: 'Supplier', value: 'supplier' },
+					{ name: 'Tag', value: 'tag' },
+					{ name: 'Tax Rate', value: 'taxRate' },
 					{ name: 'Warehouse', value: 'warehouse' },
 					{ name: 'Webhook', value: 'webhook' },
 				],
@@ -156,6 +226,20 @@ export class Xentral implements INodeType {
 			...supplierOperations,
 			...warehouseOperations,
 			...webhookOperations,
+			...storageLocationOperations,
+			...proformaInvoiceOperations,
+			...liabilityOperations,
+			...shipmentOperations,
+			...paymentTermsGroupOperations,
+			...goodsReceiptOperations,
+			...productCategoryOperations,
+			...salesPriceOperations,
+			...purchasePriceOperations,
+			...taxRateOperations,
+			...deliveryTermsOperations,
+			...employeeOperations,
+			...tagOperations,
+			...salesChannelOperations,
 			// Fields
 			...addressFields,
 			...contactFields,
@@ -175,6 +259,20 @@ export class Xentral implements INodeType {
 			...supplierFields,
 			...warehouseFields,
 			...webhookFields,
+			...storageLocationFields,
+			...proformaInvoiceFields,
+			...liabilityFields,
+			...shipmentFields,
+			...paymentTermsGroupFields,
+			...goodsReceiptFields,
+			...productCategoryFields,
+			...salesPriceFields,
+			...purchasePriceFields,
+			...taxRateFields,
+			...deliveryTermsFields,
+			...employeeFields,
+			...tagFields,
+			...salesChannelFields,
 		],
 	};
 

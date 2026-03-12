@@ -95,7 +95,7 @@ export const salesOrderFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['salesOrder'],
-				operation: ['get', 'update', 'delete'],
+				operation: ['get', 'update', 'delete', 'cancel', 'dispatch'],
 			},
 		},
 		description: 'The ID of the sales order',

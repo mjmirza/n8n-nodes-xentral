@@ -22,38 +22,33 @@ export async function handleProduction(
 		if (additionalFields.internalNote) body.internalNote = additionalFields.internalNote;
 		if (additionalFields.status) body.status = additionalFields.status;
 
-		return xentralRequest.call(this, 'POST', 'productions', body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', 'productions', body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'get') {
 		const productionId = this.getNodeParameter('productionId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `productions/${productionId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'GET', `production/${productionId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'productions', {}, limit);
-	}
-
-	if (operation === 'update') {
-		const productionId = this.getNodeParameter('productionId', itemIndex) as string;
-		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-
-		const body: IDataObject = {};
-		if (updateFields.quantity) body.quantity = updateFields.quantity;
-		if (updateFields.startDate) body.startDate = updateFields.startDate;
-		if (updateFields.endDate) body.endDate = updateFields.endDate;
-		if (updateFields.warehouse) body.warehouse = updateFields.warehouse;
-		if (updateFields.internalNote) body.internalNote = updateFields.internalNote;
-		if (updateFields.status) body.status = updateFields.status;
-
-		return xentralRequest.call(this, 'PATCH', `productions/${productionId}`, body as IDataObject, {}, 'v1');
+		return xentralV1PageGetAll.call(this, 'production', {}, limit);
 	}
 
 	if (operation === 'delete') {
 		const productionId = this.getNodeParameter('productionId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `productions/${productionId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'DELETE', `productions/${productionId}`, {}, {}, 'v3');
+	}
+
+	if (operation === 'release') {
+		const productionId = this.getNodeParameter('productionId', itemIndex) as string;
+		return xentralRequest.call(this, 'PATCH', `productions/${productionId}/actions/release`, {} as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'start') {
+		const productionId = this.getNodeParameter('productionId', itemIndex) as string;
+		return xentralRequest.call(this, 'PATCH', `productions/${productionId}/actions/start`, {} as IDataObject, {}, 'v3');
 	}
 
 	throw new Error(`Unknown production operation: ${operation}`);

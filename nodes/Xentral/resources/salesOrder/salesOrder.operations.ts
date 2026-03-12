@@ -48,6 +48,18 @@ export const salesOrderOperations: INodeProperties[] = [
 				description: 'Search sales orders',
 				action: 'Search sales orders',
 			},
+			{
+				name: 'Cancel',
+				value: 'cancel',
+				description: 'Cancel a sales order',
+				action: 'Cancel a sales order',
+			},
+			{
+				name: 'Dispatch',
+				value: 'dispatch',
+				description: 'Dispatch a sales order',
+				action: 'Dispatch a sales order',
+			},
 		],
 		default: 'getAll',
 	},

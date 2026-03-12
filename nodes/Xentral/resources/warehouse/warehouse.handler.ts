@@ -25,18 +25,18 @@ export async function handleWarehouse(
 			if (body[key] === undefined) delete body[key];
 		});
 
-		return xentralRequest.call(this, 'POST', 'warehouses', body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', 'warehouse', body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'get') {
 		const warehouseId = this.getNodeParameter('warehouseId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `warehouses/${warehouseId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'GET', `warehouse/${warehouseId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'warehouses', {}, limit);
+		return xentralV1PageGetAll.call(this, 'warehouse', {}, limit);
 	}
 
 	if (operation === 'update') {
@@ -52,12 +52,12 @@ export async function handleWarehouse(
 		if (updateFields.country) body.country = updateFields.country;
 		if (updateFields.isDefault !== undefined) body.isDefault = updateFields.isDefault;
 
-		return xentralRequest.call(this, 'PATCH', `warehouses/${warehouseId}`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'PATCH', `warehouse/${warehouseId}`, body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'delete') {
 		const warehouseId = this.getNodeParameter('warehouseId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `warehouses/${warehouseId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'DELETE', `warehouse/${warehouseId}`, {}, {}, 'v1');
 	}
 
 	throw new Error(`Unknown warehouse operation: ${operation}`);

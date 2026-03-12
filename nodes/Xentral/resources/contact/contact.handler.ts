@@ -27,18 +27,18 @@ export async function handleContact(
 			if (body[key] === undefined) delete body[key];
 		});
 
-		return xentralRequest.call(this, 'POST', `customers/${customerId}/contacts`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', `customer/${customerId}/contact-person`, body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'get') {
 		const contactId = this.getNodeParameter('contactId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `customers/${customerId}/contacts/${contactId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'GET', `customer/${customerId}/contact-person/${contactId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, `customers/${customerId}/contacts`, {}, limit);
+		return xentralV1PageGetAll.call(this, `customer/${customerId}/contact-persons`, {}, limit);
 	}
 
 	if (operation === 'update') {
@@ -53,12 +53,12 @@ export async function handleContact(
 		if (updateFields.position) body.position = updateFields.position;
 		if (updateFields.department) body.department = updateFields.department;
 
-		return xentralRequest.call(this, 'PATCH', `customers/${customerId}/contacts/${contactId}`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'PATCH', `customer/${customerId}/contact-person/${contactId}`, body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'delete') {
 		const contactId = this.getNodeParameter('contactId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `customers/${customerId}/contacts/${contactId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'DELETE', `customer/${customerId}/contact-person/${contactId}`, {}, {}, 'v1');
 	}
 
 	throw new Error(`Unknown contact operation: ${operation}`);
