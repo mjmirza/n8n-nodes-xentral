@@ -72,7 +72,7 @@ export const returnFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['return'],
-				operation: ['get', 'update', 'delete'],
+				operation: ['get', 'update', 'delete', 'release'],
 			},
 		},
 		description: 'The ID of the return',

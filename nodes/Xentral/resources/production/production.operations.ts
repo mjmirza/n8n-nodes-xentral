@@ -31,16 +31,22 @@ export const productionOperations: INodeProperties[] = [
 				action: 'Get many production orders',
 			},
 			{
-				name: 'Update',
-				value: 'update',
-				description: 'Update a production order',
-				action: 'Update a production order',
-			},
-			{
 				name: 'Delete',
 				value: 'delete',
 				description: 'Delete a production order',
 				action: 'Delete a production order',
+			},
+			{
+				name: 'Release',
+				value: 'release',
+				description: 'Release a production order',
+				action: 'Release a production order',
+			},
+			{
+				name: 'Start',
+				value: 'start',
+				description: 'Start a production order',
+				action: 'Start a production order',
 			},
 		],
 		default: 'getAll',

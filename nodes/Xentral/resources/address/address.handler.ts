@@ -6,9 +6,8 @@ export async function handleAddress(
 	operation: string,
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
-	const customerId = this.getNodeParameter('customerId', itemIndex) as string;
-
 	if (operation === 'create') {
+		const customerId = this.getNodeParameter('customerId', itemIndex, '') as string;
 		const type = this.getNodeParameter('addressType', itemIndex) as string;
 		const street = this.getNodeParameter('street', itemIndex) as string;
 		const zip = this.getNodeParameter('zipCode', itemIndex) as string;
@@ -28,23 +27,32 @@ export async function handleAddress(
 			state: additionalFields.state || undefined,
 		};
 
+		if (customerId) {
+			body.customerId = customerId;
+		}
+
 		// Clean undefined values
 		Object.keys(body).forEach((key) => {
 			if (body[key] === undefined) delete body[key];
 		});
 
-		return xentralRequest.call(this, 'POST', `customers/${customerId}/addresses`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', 'customer-address', body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'get') {
 		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `customers/${customerId}/addresses/${addressId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'GET', `customer-address/${addressId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, `customers/${customerId}/addresses`, {}, limit);
+		const query: IDataObject = {};
+		const customerId = this.getNodeParameter('customerId', itemIndex, '') as string;
+		if (customerId) {
+			query['filter[customerId]'] = customerId;
+		}
+		return xentralV1PageGetAll.call(this, 'customer-address', query, limit);
 	}
 
 	if (operation === 'update') {
@@ -62,12 +70,12 @@ export async function handleAddress(
 		if (updateFields.state) body.state = updateFields.state;
 		if (updateFields.country) body.country = updateFields.country;
 
-		return xentralRequest.call(this, 'PATCH', `customers/${customerId}/addresses/${addressId}`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'PATCH', `customer-address/${addressId}`, body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'delete') {
 		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `customers/${customerId}/addresses/${addressId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'DELETE', `customer-address/${addressId}`, {}, {}, 'v1');
 	}
 
 	throw new Error(`Unknown address operation: ${operation}`);

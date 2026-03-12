@@ -22,12 +22,12 @@ export async function handleCreditNote(
 		if (additionalFields.footerText) body.footerText = additionalFields.footerText;
 		if (additionalFields.internalNote) body.internalNote = additionalFields.internalNote;
 
-		return xentralRequest.call(this, 'POST', 'creditNotes', body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', 'creditnotes', body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'get') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `creditNotes/${creditNoteId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'GET', `creditnotes/${creditNoteId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'getAll') {
@@ -37,18 +37,18 @@ export async function handleCreditNote(
 		const query: IDataObject = {};
 		if (filters.status) query['filter[status]'] = filters.status;
 		if (filters.customerId) query['filter[customerId]'] = filters.customerId;
-		return xentralV3GetAll.call(this, 'creditNotes', query, limit);
+		return xentralV3GetAll.call(this, 'creditnotes', query, limit);
 	}
 
 	if (operation === 'update') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}`, updateFields as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'delete') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `creditNotes/${creditNoteId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'DELETE', `creditnotes/${creditNoteId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'addLineItem') {
@@ -67,62 +67,62 @@ export async function handleCreditNote(
 		if (lineItemOptions.description) body.description = lineItemOptions.description;
 		if (lineItemOptions.position) body.position = lineItemOptions.position;
 
-		return xentralRequest.call(this, 'POST', `creditNotes/${creditNoteId}/lineitems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `creditnotes/${creditNoteId}/lineitems`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'getLineItems') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `creditNotes/${creditNoteId}/lineitems`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'GET', `creditnotes/${creditNoteId}/lineitems`, {}, {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/lineitems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/lineitems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `creditNotes/${creditNoteId}/lineitems/${lineItemId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'DELETE', `creditnotes/${creditNoteId}/lineitems/${lineItemId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'release') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/actions/release`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/release`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'cancel') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/actions/cancel`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/cancel`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'send') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/actions/send`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/send`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'logActivity') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		const body = this.getNodeParameter('activityData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/actions/logactivity`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/logactivity`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'setWriteProtection') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/actions/setwriteprotection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/setwriteprotection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'removeWriteProtection') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/actions/removewriteprotection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/removewriteprotection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'attachFile') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		const body = this.getNodeParameter('fileData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'POST', `creditNotes/${creditNoteId}/files`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `creditnotes/${creditNoteId}/files`, body as IDataObject, {}, 'v3');
 	}
 
 	throw new Error(`Unknown creditNote operation: ${operation}`);

@@ -48,6 +48,18 @@ export const purchaseOrderOperations: INodeProperties[] = [
 				description: 'Delete a purchase order',
 				action: 'Delete a purchase order',
 			},
+			{
+				name: 'Cancel',
+				value: 'cancel',
+				description: 'Cancel a purchase order',
+				action: 'Cancel a purchase order',
+			},
+			{
+				name: 'Release',
+				value: 'release',
+				description: 'Release a purchase order',
+				action: 'Release a purchase order',
+			},
 		],
 		default: 'getAll',
 	},

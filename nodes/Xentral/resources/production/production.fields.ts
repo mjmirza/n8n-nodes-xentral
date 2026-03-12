@@ -91,7 +91,7 @@ export const productionFields: INodeProperties[] = [
 	},
 
 	// ----------------------------------
-	//         production:get / update / delete
+	//         production:get / delete / release / start
 	// ----------------------------------
 	{
 		displayName: 'Production ID',
@@ -102,7 +102,7 @@ export const productionFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['production'],
-				operation: ['get', 'update', 'delete'],
+				operation: ['get', 'delete', 'release', 'start'],
 			},
 		},
 		description: 'The ID of the production order',
@@ -140,65 +140,4 @@ export const productionFields: INodeProperties[] = [
 		description: 'Max number of results to return',
 	},
 
-	// ----------------------------------
-	//         production:update
-	// ----------------------------------
-	{
-		displayName: 'Update Fields',
-		name: 'updateFields',
-		type: 'collection',
-		placeholder: 'Add Field',
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ['production'],
-				operation: ['update'],
-			},
-		},
-		options: [
-			{
-				displayName: 'Quantity',
-				name: 'quantity',
-				type: 'number',
-				default: 1,
-				typeOptions: { minValue: 1 },
-			},
-			{
-				displayName: 'Start Date',
-				name: 'startDate',
-				type: 'dateTime',
-				default: '',
-			},
-			{
-				displayName: 'End Date',
-				name: 'endDate',
-				type: 'dateTime',
-				default: '',
-			},
-			{
-				displayName: 'Warehouse',
-				name: 'warehouse',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Internal Note',
-				name: 'internalNote',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Status',
-				name: 'status',
-				type: 'options',
-				options: [
-					{ name: 'Planned', value: 'planned' },
-					{ name: 'In Progress', value: 'in_progress' },
-					{ name: 'Completed', value: 'completed' },
-					{ name: 'Cancelled', value: 'cancelled' },
-				],
-				default: 'planned',
-			},
-		],
-	},
 ];

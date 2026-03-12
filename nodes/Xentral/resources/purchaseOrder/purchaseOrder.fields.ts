@@ -74,7 +74,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['purchaseOrder'],
-				operation: ['get', 'update', 'delete'],
+				operation: ['get', 'update', 'delete', 'cancel', 'release'],
 			},
 		},
 		description: 'The ID of the purchase order',

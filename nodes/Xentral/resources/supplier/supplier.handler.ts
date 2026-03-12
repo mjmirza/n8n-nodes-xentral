@@ -41,18 +41,18 @@ export async function handleSupplier(
 		});
 		if (Object.keys(address).length === 0) delete general.address;
 
-		return xentralRequest.call(this, 'POST', 'suppliers', body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', 'suppliers', body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'get') {
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `suppliers/${supplierId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'GET', `supplier/${supplierId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1CursorGetAll.call(this, 'suppliers', {}, limit);
+		return xentralV1CursorGetAll.call(this, 'supplier', {}, limit);
 	}
 
 	if (operation === 'update') {
@@ -79,18 +79,18 @@ export async function handleSupplier(
 		if (Object.keys(general).length > 0) body.general = general;
 		if (updateFields.supplierType) body.type = updateFields.supplierType;
 
-		return xentralRequest.call(this, 'PATCH', `suppliers/${supplierId}`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'PATCH', `suppliers/${supplierId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'delete') {
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `suppliers/${supplierId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'DELETE', `supplier/${supplierId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'search') {
 		const searchTerm = this.getNodeParameter('searchTerm', itemIndex) as string;
 		const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
-		return xentralV1CursorGetAll.call(this, 'suppliers', { 'filter[name]': searchTerm }, limit);
+		return xentralV1CursorGetAll.call(this, 'supplier', { 'filter[name]': searchTerm }, limit);
 	}
 
 	throw new Error(`Unknown supplier operation: ${operation}`);

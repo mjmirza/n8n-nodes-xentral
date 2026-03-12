@@ -53,5 +53,15 @@ export async function handleSalesOrder(
 		return xentralV1CursorGetAll.call(this, 'salesOrders', { 'filter[name]': searchTerm }, limit);
 	}
 
+	if (operation === 'cancel') {
+		const salesOrderId = this.getNodeParameter('salesOrderId', itemIndex) as string;
+		return xentralRequest.call(this, 'POST', `salesOrders/${salesOrderId}/cancel`, {} as IDataObject, {}, 'v1');
+	}
+
+	if (operation === 'dispatch') {
+		const salesOrderId = this.getNodeParameter('salesOrderId', itemIndex) as string;
+		return xentralRequest.call(this, 'POST', `salesOrders/${salesOrderId}/dispatch`, {} as IDataObject, {}, 'v1');
+	}
+
 	throw new Error(`Unknown salesOrder operation: ${operation}`);
 }

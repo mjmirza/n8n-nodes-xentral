@@ -48,5 +48,14 @@ export async function handleReturn(
 		return xentralRequest.call(this, 'DELETE', `returns/${returnId}`, {}, {}, 'v1');
 	}
 
+	if (operation === 'release') {
+		const returnId = this.getNodeParameter('returnId', itemIndex) as string;
+		return xentralRequest.call(this, 'POST', `returns/${returnId}/release`, {} as IDataObject, {}, 'v1');
+	}
+
+	if (operation === 'getReasons') {
+		return xentralRequest.call(this, 'GET', 'returns/reasons', {}, {}, 'v1');
+	}
+
 	throw new Error(`Unknown return operation: ${operation}`);
 }

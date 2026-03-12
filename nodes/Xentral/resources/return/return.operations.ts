@@ -42,6 +42,18 @@ export const returnOperations: INodeProperties[] = [
 				description: 'Delete a return',
 				action: 'Delete a return',
 			},
+			{
+				name: 'Release',
+				value: 'release',
+				description: 'Release a return',
+				action: 'Release a return',
+			},
+			{
+				name: 'Get Reasons',
+				value: 'getReasons',
+				description: 'List all available return reasons',
+				action: 'Get return reasons',
+			},
 		],
 		default: 'getAll',
 	},
