@@ -1,23 +1,92 @@
-import {
+import type {
 	IExecuteFunctions,
-	IDataObject,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
+	IDataObject,
 } from 'n8n-workflow';
+import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
-import {
-	xentralApiRequest,
-	xentralApiRequestAllItems,
-	xentralApiRequestV3,
-} from './GenericFunctions';
-
+// --- Resource imports: operations ---
 import { customerOperations } from './resources/customer/customer.operations';
-import { customerFields } from './resources/customer/customer.fields';
 import { productOperations } from './resources/product/product.operations';
-import { productFields } from './resources/product/product.fields';
 import { offerOperations } from './resources/offer/offer.operations';
+import { salesOrderOperations } from './resources/salesOrder/salesOrder.operations';
+import { invoiceOperations } from './resources/invoice/invoice.operations';
+import { creditNoteOperations } from './resources/creditNote/creditNote.operations';
+import { deliveryNoteOperations } from './resources/deliveryNote/deliveryNote.operations';
+import { purchaseOrderOperations } from './resources/purchaseOrder/purchaseOrder.operations';
+import { returnOperations } from './resources/return/return.operations';
+import { productionOperations } from './resources/production/production.operations';
+import { supplierOperations } from './resources/supplier/supplier.operations';
+import { warehouseOperations } from './resources/warehouse/warehouse.operations';
+import { addressOperations } from './resources/address/address.operations';
+import { contactOperations } from './resources/contact/contact.operations';
+import { projectOperations } from './resources/project/project.operations';
+import { paymentMethodOperations } from './resources/paymentMethod/paymentMethod.operations';
+import { shippingMethodOperations } from './resources/shippingMethod/shippingMethod.operations';
+import { webhookOperations } from './resources/webhook/webhook.operations';
+
+// --- Resource imports: fields ---
+import { customerFields } from './resources/customer/customer.fields';
+import { productFields } from './resources/product/product.fields';
 import { offerFields } from './resources/offer/offer.fields';
+import { salesOrderFields } from './resources/salesOrder/salesOrder.fields';
+import { invoiceFields } from './resources/invoice/invoice.fields';
+import { creditNoteFields } from './resources/creditNote/creditNote.fields';
+import { deliveryNoteFields } from './resources/deliveryNote/deliveryNote.fields';
+import { purchaseOrderFields } from './resources/purchaseOrder/purchaseOrder.fields';
+import { returnFields } from './resources/return/return.fields';
+import { productionFields } from './resources/production/production.fields';
+import { supplierFields } from './resources/supplier/supplier.fields';
+import { warehouseFields } from './resources/warehouse/warehouse.fields';
+import { addressFields } from './resources/address/address.fields';
+import { contactFields } from './resources/contact/contact.fields';
+import { projectFields } from './resources/project/project.fields';
+import { paymentMethodFields } from './resources/paymentMethod/paymentMethod.fields';
+import { shippingMethodFields } from './resources/shippingMethod/shippingMethod.fields';
+import { webhookFields } from './resources/webhook/webhook.fields';
+
+// --- Resource imports: handlers ---
+import { handleCustomer } from './resources/customer/customer.handler';
+import { handleProduct } from './resources/product/product.handler';
+import { handleOffer } from './resources/offer/offer.handler';
+import { handleSalesOrder } from './resources/salesOrder/salesOrder.handler';
+import { handleInvoice } from './resources/invoice/invoice.handler';
+import { handleCreditNote } from './resources/creditNote/creditNote.handler';
+import { handleDeliveryNote } from './resources/deliveryNote/deliveryNote.handler';
+import { handlePurchaseOrder } from './resources/purchaseOrder/purchaseOrder.handler';
+import { handleReturn } from './resources/return/return.handler';
+import { handleProduction } from './resources/production/production.handler';
+import { handleSupplier } from './resources/supplier/supplier.handler';
+import { handleWarehouse } from './resources/warehouse/warehouse.handler';
+import { handleAddress } from './resources/address/address.handler';
+import { handleContact } from './resources/contact/contact.handler';
+import { handleProject } from './resources/project/project.handler';
+import { handlePaymentMethod } from './resources/paymentMethod/paymentMethod.handler';
+import { handleShippingMethod } from './resources/shippingMethod/shippingMethod.handler';
+import { handleWebhook } from './resources/webhook/webhook.handler';
+
+const resourceHandlers: Record<string, (this: IExecuteFunctions, op: string, i: number) => Promise<IDataObject | IDataObject[]>> = {
+	customer: handleCustomer,
+	product: handleProduct,
+	offer: handleOffer,
+	salesOrder: handleSalesOrder,
+	invoice: handleInvoice,
+	creditNote: handleCreditNote,
+	deliveryNote: handleDeliveryNote,
+	purchaseOrder: handlePurchaseOrder,
+	return: handleReturn,
+	production: handleProduction,
+	supplier: handleSupplier,
+	warehouse: handleWarehouse,
+	address: handleAddress,
+	contact: handleContact,
+	project: handleProject,
+	paymentMethod: handlePaymentMethod,
+	shippingMethod: handleShippingMethod,
+	webhook: handleWebhook,
+};
 
 export class Xentral implements INodeType {
 	description: INodeTypeDescription = {
@@ -31,8 +100,9 @@ export class Xentral implements INodeType {
 		defaults: {
 			name: 'Xentral',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		usableAsTool: true,
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'xentralApi',
@@ -46,30 +116,65 @@ export class Xentral implements INodeType {
 				type: 'options',
 				noDataExpression: true,
 				options: [
-					{
-						name: 'Customer',
-						value: 'customer',
-					},
-					{
-						name: 'Offer (Angebot)',
-						value: 'offer',
-					},
-					{
-						name: 'Product',
-						value: 'product',
-					},
+					{ name: 'Address', value: 'address' },
+					{ name: 'Contact', value: 'contact' },
+					{ name: 'Credit Note', value: 'creditNote' },
+					{ name: 'Customer', value: 'customer' },
+					{ name: 'Delivery Note', value: 'deliveryNote' },
+					{ name: 'Invoice', value: 'invoice' },
+					{ name: 'Offer', value: 'offer' },
+					{ name: 'Payment Method', value: 'paymentMethod' },
+					{ name: 'Production', value: 'production' },
+					{ name: 'Product', value: 'product' },
+					{ name: 'Project', value: 'project' },
+					{ name: 'Purchase Order', value: 'purchaseOrder' },
+					{ name: 'Return', value: 'return' },
+					{ name: 'Sales Order', value: 'salesOrder' },
+					{ name: 'Shipping Method', value: 'shippingMethod' },
+					{ name: 'Supplier', value: 'supplier' },
+					{ name: 'Warehouse', value: 'warehouse' },
+					{ name: 'Webhook', value: 'webhook' },
 				],
-				default: 'offer',
+				default: 'customer',
 			},
-			// Customer
+			// Operations
+			...addressOperations,
+			...contactOperations,
+			...creditNoteOperations,
 			...customerOperations,
-			...customerFields,
-			// Product
-			...productOperations,
-			...productFields,
-			// Offer
+			...deliveryNoteOperations,
+			...invoiceOperations,
 			...offerOperations,
+			...paymentMethodOperations,
+			...productionOperations,
+			...productOperations,
+			...projectOperations,
+			...purchaseOrderOperations,
+			...returnOperations,
+			...salesOrderOperations,
+			...shippingMethodOperations,
+			...supplierOperations,
+			...warehouseOperations,
+			...webhookOperations,
+			// Fields
+			...addressFields,
+			...contactFields,
+			...creditNoteFields,
+			...customerFields,
+			...deliveryNoteFields,
+			...invoiceFields,
 			...offerFields,
+			...paymentMethodFields,
+			...productionFields,
+			...productFields,
+			...projectFields,
+			...purchaseOrderFields,
+			...returnFields,
+			...salesOrderFields,
+			...shippingMethodFields,
+			...supplierFields,
+			...warehouseFields,
+			...webhookFields,
 		],
 	};
 
@@ -77,226 +182,33 @@ export class Xentral implements INodeType {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 		const resource = this.getNodeParameter('resource', 0) as string;
-		const operation = this.getNodeParameter('operation', 0) as string;
+
+		const handler = resourceHandlers[resource];
+		if (!handler) {
+			throw new NodeOperationError(this.getNode(), `Unknown resource: ${resource}`);
+		}
 
 		for (let i = 0; i < items.length; i++) {
 			try {
-				let responseData: IDataObject | IDataObject[] = {};
+				const operation = this.getNodeParameter('operation', i) as string;
+				const result = await handler.call(this, operation, i);
 
-				// ==========================================
-				//              CUSTOMER
-				// ==========================================
-				if (resource === 'customer') {
-					if (operation === 'create') {
-						const companyName = this.getNodeParameter('companyName', i) as string;
-						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
-
-						// Xentral V1 customer schema: {type, general: {name, address: {...}}}
-						const body: IDataObject = {
-							type: 'company',
-							general: {
-								name: companyName,
-								address: {
-									street: additionalFields.street || '',
-									zip: additionalFields.zipCode || '',
-									city: additionalFields.city || '',
-									country: additionalFields.country || 'DE',
-								},
-							},
-						};
-
-						responseData = await xentralApiRequest.call(this, 'POST', '/customers', body);
-
-					} else if (operation === 'get') {
-						const customerId = this.getNodeParameter('customerId', i) as string;
-						responseData = await xentralApiRequest.call(this, 'GET', `/customer/${customerId}`);
-
-					} else if (operation === 'getAll') {
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-
-						if (returnAll) {
-							const items = await xentralApiRequestAllItems.call(this, 'GET', '/customers');
-							responseData = items;
-						} else {
-							const limit = this.getNodeParameter('limit', i) as number;
-							responseData = await xentralApiRequest.call(
-								this, 'GET', '/customers', {}, { per_page: limit },
-							);
-						}
-
-					} else if (operation === 'search') {
-						const searchTerm = this.getNodeParameter('searchTerm', i) as string;
-						responseData = await xentralApiRequest.call(
-							this, 'GET', '/customers', {}, { 'filter[name]': searchTerm },
-						);
-
-					} else if (operation === 'update') {
-						const customerId = this.getNodeParameter('customerId', i) as string;
-						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
-						responseData = await xentralApiRequest.call(
-							this, 'PATCH', `/customer/${customerId}`, updateFields,
-						);
-
-					} else if (operation === 'delete') {
-						const customerId = this.getNodeParameter('customerId', i) as string;
-						responseData = await xentralApiRequest.call(this, 'DELETE', `/customer/${customerId}`);
+				if (Array.isArray(result)) {
+					returnData.push(...result.map((item) => ({ json: item })));
+				} else {
+					const data = result.data !== undefined ? result.data : result;
+					if (Array.isArray(data)) {
+						returnData.push(...(data as IDataObject[]).map((item: IDataObject) => ({ json: item })));
+					} else {
+						returnData.push({ json: data as IDataObject });
 					}
 				}
-
-				// ==========================================
-				//              PRODUCT
-				// ==========================================
-				else if (resource === 'product') {
-					if (operation === 'create') {
-						const productName = this.getNodeParameter('productName', i) as string;
-						const articleNumber = this.getNodeParameter('articleNumber', i) as string;
-						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
-
-						const body: IDataObject = {
-							name: productName,
-							...(articleNumber && { articleNumber }),
-							...additionalFields,
-						};
-
-						responseData = await xentralApiRequest.call(this, 'POST', '/products', body);
-
-					} else if (operation === 'get') {
-						const productId = this.getNodeParameter('productId', i) as string;
-						responseData = await xentralApiRequest.call(this, 'GET', `/product/${productId}`);
-
-					} else if (operation === 'getAll') {
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-
-						if (returnAll) {
-							const items = await xentralApiRequestAllItems.call(this, 'GET', '/products');
-							responseData = items;
-						} else {
-							const limit = this.getNodeParameter('limit', i) as number;
-							responseData = await xentralApiRequest.call(
-								this, 'GET', '/products', {}, { per_page: limit },
-							);
-						}
-
-					} else if (operation === 'search') {
-						const searchTerm = this.getNodeParameter('searchTerm', i) as string;
-						responseData = await xentralApiRequest.call(
-							this, 'GET', '/products', {}, { 'filter[name]': searchTerm },
-						);
-
-					} else if (operation === 'update') {
-						const productId = this.getNodeParameter('productId', i) as string;
-						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
-						responseData = await xentralApiRequest.call(
-							this, 'PATCH', `/product/${productId}`, updateFields,
-						);
-
-					} else if (operation === 'delete') {
-						const productId = this.getNodeParameter('productId', i) as string;
-						responseData = await xentralApiRequest.call(this, 'DELETE', `/product/${productId}`);
-
-					} else if (operation === 'getStock') {
-						const productId = this.getNodeParameter('productId', i) as string;
-						responseData = await xentralApiRequest.call(this, 'GET', `/product/${productId}/stock`);
-					}
-				}
-
-				// ==========================================
-				//              OFFER (Angebot) - V3 API
-				// ==========================================
-				else if (resource === 'offer') {
-					if (operation === 'create') {
-						const customerId = this.getNodeParameter('customerId', i) as string;
-						const language = this.getNodeParameter('language', i) as string;
-						const additionalFields = this.getNodeParameter('additionalFields', i) as IDataObject;
-
-						const body: IDataObject = {
-							address: { id: customerId },
-							language,
-							...additionalFields,
-						};
-
-						responseData = await xentralApiRequestV3.call(this, 'POST', '/offers', body);
-
-					} else if (operation === 'get') {
-						const offerId = this.getNodeParameter('offerId', i) as string;
-						responseData = await xentralApiRequestV3.call(this, 'GET', `/offers/${offerId}`);
-
-					} else if (operation === 'getAll') {
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-						const filters = this.getNodeParameter('filters', i, {}) as IDataObject;
-						const query: IDataObject = { ...filters };
-
-						if (returnAll) {
-							const items = await xentralApiRequestAllItems.call(
-								this, 'GET', '/offers', {}, query, 'v3',
-							);
-							responseData = items;
-						} else {
-							const limit = this.getNodeParameter('limit', i) as number;
-							query.per_page = limit;
-							responseData = await xentralApiRequestV3.call(this, 'GET', '/offers', {}, query);
-						}
-
-					} else if (operation === 'update') {
-						const offerId = this.getNodeParameter('offerId', i) as string;
-						const updateFields = this.getNodeParameter('updateFields', i) as IDataObject;
-						responseData = await xentralApiRequestV3.call(
-							this, 'PATCH', `/offers/${offerId}`, updateFields,
-						);
-
-					} else if (operation === 'delete') {
-						const offerId = this.getNodeParameter('offerId', i) as string;
-						responseData = await xentralApiRequestV3.call(this, 'DELETE', `/offers/${offerId}`);
-
-					} else if (operation === 'addLineItem') {
-						const offerId = this.getNodeParameter('offerId', i) as string;
-						const productId = this.getNodeParameter('productId', i) as string;
-						const quantity = this.getNodeParameter('quantity', i) as number;
-						const lineItemOptions = this.getNodeParameter('lineItemOptions', i, {}) as IDataObject;
-
-						const body: IDataObject = {
-							product: { id: productId },
-							quantity,
-							...lineItemOptions,
-						};
-
-						responseData = await xentralApiRequestV3.call(
-							this, 'POST', `/offers/${offerId}/lineitems`, body,
-						);
-
-					} else if (operation === 'release') {
-						const offerId = this.getNodeParameter('offerId', i) as string;
-						responseData = await xentralApiRequestV3.call(
-							this, 'POST', `/offers/${offerId}/actions/release`, {},
-						);
-
-					} else if (operation === 'send') {
-						const offerId = this.getNodeParameter('offerId', i) as string;
-						responseData = await xentralApiRequestV3.call(
-							this, 'POST', `/offers/${offerId}/actions/send`, {},
-						);
-
-					} else if (operation === 'cancel') {
-						const offerId = this.getNodeParameter('offerId', i) as string;
-						responseData = await xentralApiRequestV3.call(
-							this, 'POST', `/offers/${offerId}/actions/cancel`, {},
-						);
-					}
-				}
-
-				// Format output
-				const executionData = Array.isArray(responseData)
-					? responseData.map((item) => ({ json: item }))
-					: [{ json: responseData as IDataObject }];
-
-				returnData.push(...executionData);
-
 			} catch (error) {
 				if (this.continueOnFail()) {
-					returnData.push({ json: { error: (error as Error).message } });
-					continue;
+					returnData.push({ json: { error: (error as Error).message }, pairedItem: { item: i } });
+				} else {
+					throw error;
 				}
-				throw error;
 			}
 		}
 

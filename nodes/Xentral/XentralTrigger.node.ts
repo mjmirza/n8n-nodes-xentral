@@ -1,4 +1,4 @@
-import {
+import type {
 	IHookFunctions,
 	IWebhookFunctions,
 	IDataObject,
@@ -6,8 +6,9 @@ import {
 	INodeTypeDescription,
 	IWebhookResponseData,
 } from 'n8n-workflow';
+import { NodeConnectionTypes } from 'n8n-workflow';
 
-import { xentralApiRequest } from './GenericFunctions';
+import { xentralRequest } from './transport';
 
 export class XentralTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -22,7 +23,7 @@ export class XentralTrigger implements INodeType {
 			name: 'Xentral Trigger',
 		},
 		inputs: [],
-		outputs: ['main'],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'xentralApi',
@@ -90,7 +91,7 @@ export class XentralTrigger implements INodeType {
 				const event = this.getNodeParameter('event') as string;
 
 				try {
-					const response = await xentralApiRequest.call(this, 'GET', '/webhook');
+					const response = await xentralRequest.call(this, 'GET', 'webhooks', {}, {}, 'v1');
 					const webhooks = (response.data as IDataObject[]) || [];
 
 					for (const webhook of webhooks) {
@@ -118,7 +119,7 @@ export class XentralTrigger implements INodeType {
 				};
 
 				try {
-					const response = await xentralApiRequest.call(this, 'POST', '/webhook', body);
+					const response = await xentralRequest.call(this, 'POST', 'webhooks', body, {}, 'v1');
 					const webhookData = this.getWorkflowStaticData('node');
 					webhookData.webhookId = (response.data as IDataObject)?.id || response.id;
 					return true;
@@ -133,7 +134,7 @@ export class XentralTrigger implements INodeType {
 
 				if (webhookId) {
 					try {
-						await xentralApiRequest.call(this, 'DELETE', `/webhook/${webhookId}`);
+						await xentralRequest.call(this, 'DELETE', `webhooks/${webhookId}`, {}, {}, 'v1');
 					} catch {
 						// Ignore deletion errors
 					}

@@ -158,7 +158,7 @@ export const offerFields: INodeProperties[] = [
 	},
 
 	// ----------------------------------
-	//         offer:get / update / delete / release / send / cancel
+	//         offer:get / update / delete / release / send / cancel / getLineItems / logActivity / setWriteProtection / removeWriteProtection / attachFile
 	// ----------------------------------
 	{
 		displayName: 'Offer ID',
@@ -169,7 +169,11 @@ export const offerFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['offer'],
-				operation: ['get', 'update', 'delete', 'release', 'send', 'cancel'],
+				operation: [
+					'get', 'update', 'delete', 'release', 'send', 'cancel',
+					'getLineItems', 'updateLineItem', 'deleteLineItem',
+					'logActivity', 'setWriteProtection', 'removeWriteProtection', 'attachFile',
+				],
 			},
 		},
 		description: 'The ID of the offer',
@@ -399,6 +403,146 @@ export const offerFields: INodeProperties[] = [
 				name: 'footerText',
 				type: 'string',
 				default: '',
+			},
+		],
+	},
+
+	// ----------------------------------
+	//         offer:updateLineItem
+	// ----------------------------------
+	{
+		displayName: 'Line Item ID',
+		name: 'lineItemId',
+		type: 'string',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['offer'],
+				operation: ['updateLineItem', 'deleteLineItem'],
+			},
+		},
+		description: 'The ID of the line item',
+	},
+	{
+		displayName: 'Update Fields',
+		name: 'updateFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['offer'],
+				operation: ['updateLineItem'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Quantity',
+				name: 'quantity',
+				type: 'number',
+				default: 1,
+				typeOptions: { minValue: 1 },
+			},
+			{
+				displayName: 'Unit Price',
+				name: 'unitPrice',
+				type: 'number',
+				default: 0,
+				typeOptions: { numberPrecision: 2 },
+			},
+			{
+				displayName: 'Discount (%)',
+				name: 'discount',
+				type: 'number',
+				default: 0,
+				typeOptions: { numberPrecision: 2 },
+			},
+			{
+				displayName: 'Description',
+				name: 'description',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Position Number',
+				name: 'position',
+				type: 'number',
+				default: 0,
+			},
+		],
+	},
+
+	// ----------------------------------
+	//         offer:logActivity
+	// ----------------------------------
+	{
+		displayName: 'Activity Data',
+		name: 'activityData',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['offer'],
+				operation: ['logActivity'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Type',
+				name: 'type',
+				type: 'string',
+				default: '',
+				description: 'The type of the activity',
+			},
+			{
+				displayName: 'Note',
+				name: 'note',
+				type: 'string',
+				typeOptions: { rows: 3 },
+				default: '',
+				description: 'A note for the activity',
+			},
+		],
+	},
+
+	// ----------------------------------
+	//         offer:attachFile
+	// ----------------------------------
+	{
+		displayName: 'File Data',
+		name: 'fileData',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['offer'],
+				operation: ['attachFile'],
+			},
+		},
+		options: [
+			{
+				displayName: 'File Name',
+				name: 'fileName',
+				type: 'string',
+				default: '',
+				description: 'Name of the file to attach',
+			},
+			{
+				displayName: 'File Content (Base64)',
+				name: 'content',
+				type: 'string',
+				default: '',
+				description: 'Base64-encoded file content',
+			},
+			{
+				displayName: 'MIME Type',
+				name: 'mimeType',
+				type: 'string',
+				default: 'application/pdf',
+				description: 'MIME type of the file',
 			},
 		],
 	},
