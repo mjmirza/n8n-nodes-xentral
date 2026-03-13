@@ -66,7 +66,7 @@ export const offerOperations: INodeProperties[] = [
 				description: 'Cancel an offer',
 				action: 'Cancel an offer',
 			},
-	{
+			{
 				name: 'Update Line Item',
 				value: 'updateLineItem',
 				description: 'Update a line item of an offer',

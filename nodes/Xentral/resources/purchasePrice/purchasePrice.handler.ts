@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 
 export async function handlePurchasePrice(
 	this: IExecuteFunctions,
@@ -11,8 +11,8 @@ export async function handlePurchasePrice(
 		assertSafeId(productId, 'productId');
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
 		assertSafeId(supplierId, 'supplierId');
-		const validFrom = this.getNodeParameter('validFrom', itemIndex) as string;
-		const expiresAt = this.getNodeParameter('expiresAt', itemIndex) as string;
+		const validFrom = assertNonEmpty(this.getNodeParameter('validFrom', itemIndex) as string, 'Valid From');
+		const expiresAt = assertNonEmpty(this.getNodeParameter('expiresAt', itemIndex) as string, 'Expires At');
 		const fromQuantity = this.getNodeParameter('fromQuantity', itemIndex, 1) as number;
 		const packageAmount = this.getNodeParameter('packageAmount', itemIndex, 1) as number;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;

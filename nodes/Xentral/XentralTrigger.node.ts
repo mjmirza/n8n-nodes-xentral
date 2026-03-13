@@ -110,13 +110,13 @@ export class XentralTrigger implements INodeType {
 					{ name: 'Delivery Note - Released', value: 'deliveryNote.released' },
 					{ name: 'Delivery Note - Sent', value: 'deliveryNote.sent' },
 					{ name: 'Delivery Note - Archived', value: 'deliveryNote.archived' },
-					// Invoice events (unconfirmed - may need verification)
-					{ name: 'Invoice - Created', value: 'invoice.created' },
-					{ name: 'Invoice - Updated', value: 'invoice.updated' },
-					{ name: 'Invoice - Sent', value: 'invoice.sent' },
-					// Credit Note events (unconfirmed - may need verification)
-					{ name: 'Credit Note - Created', value: 'creditNote.created' },
-					{ name: 'Credit Note - Updated', value: 'creditNote.updated' },
+					// Invoice events (unverified - may not be supported by all Xentral instances)
+					{ name: 'Invoice - Created (unverified)', value: 'invoice.created' },
+					{ name: 'Invoice - Updated (unverified)', value: 'invoice.updated' },
+					{ name: 'Invoice - Sent (unverified)', value: 'invoice.sent' },
+					// Credit Note events (unverified - may not be supported by all Xentral instances)
+					{ name: 'Credit Note - Created (unverified)', value: 'creditNote.created' },
+					{ name: 'Credit Note - Updated (unverified)', value: 'creditNote.updated' },
 				],
 				description: 'The Xentral event to listen for',
 			},
