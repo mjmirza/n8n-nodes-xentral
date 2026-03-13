@@ -1,5 +1,8 @@
 import type {
+	ICredentialTestFunctions,
+	ICredentialsDecrypted,
 	IExecuteFunctions,
+	INodeCredentialTestResult,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
@@ -32,14 +35,12 @@ import { liabilityOperations } from './resources/liability/liability.operations'
 import { shipmentOperations } from './resources/shipment/shipment.operations';
 import { paymentTermsGroupOperations } from './resources/paymentTermsGroup/paymentTermsGroup.operations';
 import { goodsReceiptOperations } from './resources/goodsReceipt/goodsReceipt.operations';
-import { productCategoryOperations } from './resources/productCategory/productCategory.operations';
 import { salesPriceOperations } from './resources/salesPrice/salesPrice.operations';
 import { purchasePriceOperations } from './resources/purchasePrice/purchasePrice.operations';
-import { taxRateOperations } from './resources/taxRate/taxRate.operations';
 import { deliveryTermsOperations } from './resources/deliveryTerms/deliveryTerms.operations';
 import { employeeOperations } from './resources/employee/employee.operations';
-import { tagOperations } from './resources/tag/tag.operations';
 import { salesChannelOperations } from './resources/salesChannel/salesChannel.operations';
+import { tagOperations } from './resources/tag/tag.operations';
 
 // --- Resource imports: fields ---
 import { customerFields } from './resources/customer/customer.fields';
@@ -66,14 +67,12 @@ import { liabilityFields } from './resources/liability/liability.fields';
 import { shipmentFields } from './resources/shipment/shipment.fields';
 import { paymentTermsGroupFields } from './resources/paymentTermsGroup/paymentTermsGroup.fields';
 import { goodsReceiptFields } from './resources/goodsReceipt/goodsReceipt.fields';
-import { productCategoryFields } from './resources/productCategory/productCategory.fields';
 import { salesPriceFields } from './resources/salesPrice/salesPrice.fields';
 import { purchasePriceFields } from './resources/purchasePrice/purchasePrice.fields';
-import { taxRateFields } from './resources/taxRate/taxRate.fields';
 import { deliveryTermsFields } from './resources/deliveryTerms/deliveryTerms.fields';
 import { employeeFields } from './resources/employee/employee.fields';
-import { tagFields } from './resources/tag/tag.fields';
 import { salesChannelFields } from './resources/salesChannel/salesChannel.fields';
+import { tagFields } from './resources/tag/tag.fields';
 
 // --- Resource imports: handlers ---
 import { handleCustomer } from './resources/customer/customer.handler';
@@ -100,14 +99,12 @@ import { handleLiability } from './resources/liability/liability.handler';
 import { handleShipment } from './resources/shipment/shipment.handler';
 import { handlePaymentTermsGroup } from './resources/paymentTermsGroup/paymentTermsGroup.handler';
 import { handleGoodsReceipt } from './resources/goodsReceipt/goodsReceipt.handler';
-import { handleProductCategory } from './resources/productCategory/productCategory.handler';
 import { handleSalesPrice } from './resources/salesPrice/salesPrice.handler';
 import { handlePurchasePrice } from './resources/purchasePrice/purchasePrice.handler';
-import { handleTaxRate } from './resources/taxRate/taxRate.handler';
 import { handleDeliveryTerms } from './resources/deliveryTerms/deliveryTerms.handler';
 import { handleEmployee } from './resources/employee/employee.handler';
-import { handleTag } from './resources/tag/tag.handler';
 import { handleSalesChannel } from './resources/salesChannel/salesChannel.handler';
+import { handleTag } from './resources/tag/tag.handler';
 
 const resourceHandlers: Record<string, (this: IExecuteFunctions, op: string, i: number) => Promise<IDataObject | IDataObject[]>> = {
 	customer: handleCustomer,
@@ -134,14 +131,12 @@ const resourceHandlers: Record<string, (this: IExecuteFunctions, op: string, i: 
 	shipment: handleShipment,
 	paymentTermsGroup: handlePaymentTermsGroup,
 	goodsReceipt: handleGoodsReceipt,
-	productCategory: handleProductCategory,
 	salesPrice: handleSalesPrice,
 	purchasePrice: handlePurchasePrice,
-	taxRate: handleTaxRate,
 	deliveryTerms: handleDeliveryTerms,
 	employee: handleEmployee,
-	tag: handleTag,
 	salesChannel: handleSalesChannel,
+	tag: handleTag,
 };
 
 export class Xentral implements INodeType {
@@ -163,6 +158,7 @@ export class Xentral implements INodeType {
 			{
 				name: 'xentralApi',
 				required: true,
+				testedBy: 'xentralApiTest',
 			},
 		],
 		properties: [
@@ -187,7 +183,6 @@ export class Xentral implements INodeType {
 					{ name: 'Payment Terms Group', value: 'paymentTermsGroup' },
 					{ name: 'Production', value: 'production' },
 					{ name: 'Product', value: 'product' },
-					{ name: 'Product Category', value: 'productCategory' },
 					{ name: 'Proforma Invoice', value: 'proformaInvoice' },
 					{ name: 'Project', value: 'project' },
 					{ name: 'Purchase Order', value: 'purchaseOrder' },
@@ -201,7 +196,6 @@ export class Xentral implements INodeType {
 					{ name: 'Storage Location', value: 'storageLocation' },
 					{ name: 'Supplier', value: 'supplier' },
 					{ name: 'Tag', value: 'tag' },
-					{ name: 'Tax Rate', value: 'taxRate' },
 					{ name: 'Warehouse', value: 'warehouse' },
 					{ name: 'Webhook', value: 'webhook' },
 				],
@@ -232,14 +226,12 @@ export class Xentral implements INodeType {
 			...shipmentOperations,
 			...paymentTermsGroupOperations,
 			...goodsReceiptOperations,
-			...productCategoryOperations,
 			...salesPriceOperations,
 			...purchasePriceOperations,
-			...taxRateOperations,
 			...deliveryTermsOperations,
 			...employeeOperations,
-			...tagOperations,
 			...salesChannelOperations,
+			...tagOperations,
 			// Fields
 			...addressFields,
 			...contactFields,
@@ -265,15 +257,79 @@ export class Xentral implements INodeType {
 			...shipmentFields,
 			...paymentTermsGroupFields,
 			...goodsReceiptFields,
-			...productCategoryFields,
 			...salesPriceFields,
 			...purchasePriceFields,
-			...taxRateFields,
 			...deliveryTermsFields,
 			...employeeFields,
-			...tagFields,
 			...salesChannelFields,
+			...tagFields,
 		],
+	};
+
+	methods = {
+		credentialTest: {
+			async xentralApiTest(
+				this: ICredentialTestFunctions,
+				credential: ICredentialsDecrypted,
+			): Promise<INodeCredentialTestResult> {
+				const { instanceUrl, accessToken } = (credential.data || {}) as {
+					instanceUrl: string;
+					accessToken: string;
+				};
+
+				let url = (instanceUrl || '').trim().replace(/\/+$/, '');
+				if (/^http:\/\//i.test(url)) {
+					return { status: 'Error', message: 'HTTP is not allowed, use HTTPS' };
+				}
+				if (!/^https:\/\//i.test(url)) {
+					url = 'https://' + url;
+				}
+
+				// SSRF protection
+				try {
+					const parsed = new URL(url);
+					const hostname = parsed.hostname.toLowerCase();
+					if (
+						hostname === 'localhost' ||
+						hostname === '0.0.0.0' ||
+						hostname === '0' ||
+						/^127\./.test(hostname) ||
+						/^10\./.test(hostname) ||
+						/^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
+						/^192\.168\./.test(hostname) ||
+						/^169\.254\./.test(hostname) ||
+						hostname === '::1' ||
+						hostname.startsWith('[')
+					) {
+						return { status: 'Error', message: 'Connections to internal network addresses are not allowed' };
+					}
+				} catch {
+					return { status: 'Error', message: 'Invalid Xentral instance URL' };
+				}
+
+				const token = (accessToken || '').replace(/\s/g, '');
+				if (!token) {
+					return { status: 'Error', message: 'Access Token is required' };
+				}
+
+				try {
+					await this.helpers.request({
+						method: 'GET',
+						url: `${url}/api/v1/customers`,
+						headers: {
+							Authorization: `Bearer ${token}`,
+							Accept: 'application/json',
+							'Content-Type': 'application/json',
+						},
+						json: true,
+					});
+					return { status: 'OK', message: 'Connection successful' };
+				} catch (error: any) {
+					const msg = error.message || 'Unknown error';
+					return { status: 'Error', message: `Connection failed: ${msg}` };
+				}
+			},
+		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
@@ -291,7 +347,9 @@ export class Xentral implements INodeType {
 				const operation = this.getNodeParameter('operation', i) as string;
 				const result = await handler.call(this, operation, i);
 
-				if (Array.isArray(result)) {
+				if (result == null || (result as unknown) === '' || typeof result !== 'object') {
+					returnData.push({ json: { success: true } });
+				} else if (Array.isArray(result)) {
 					returnData.push(...result.map((item) => ({ json: item })));
 				} else {
 					const data = result.data !== undefined ? result.data : result;

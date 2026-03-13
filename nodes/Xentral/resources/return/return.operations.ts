@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const returnOperations: INodeProperties[] = [
 	{
@@ -31,12 +31,6 @@ export const returnOperations: INodeProperties[] = [
 				action: 'Get many returns',
 			},
 			{
-				name: 'Update',
-				value: 'update',
-				description: 'Update a return',
-				action: 'Update a return',
-			},
-			{
 				name: 'Delete',
 				value: 'delete',
 				description: 'Delete a return',
@@ -47,12 +41,6 @@ export const returnOperations: INodeProperties[] = [
 				value: 'release',
 				description: 'Release a return',
 				action: 'Release a return',
-			},
-			{
-				name: 'Get Reasons',
-				value: 'getReasons',
-				description: 'List all available return reasons',
-				action: 'Get return reasons',
 			},
 		],
 		default: 'getAll',

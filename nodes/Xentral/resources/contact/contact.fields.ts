@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const contactFields: INodeProperties[] = [
 	// ----------------------------------
@@ -23,8 +23,8 @@ export const contactFields: INodeProperties[] = [
 	//         contact:create
 	// ----------------------------------
 	{
-		displayName: 'First Name',
-		name: 'firstName',
+		displayName: 'Name',
+		name: 'contactName',
 		type: 'string',
 		default: '',
 		required: true,
@@ -34,21 +34,7 @@ export const contactFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The first name of the contact',
-	},
-	{
-		displayName: 'Last Name',
-		name: 'lastName',
-		type: 'string',
-		default: '',
-		required: true,
-		displayOptions: {
-			show: {
-				resource: ['contact'],
-				operation: ['create'],
-			},
-		},
-		description: 'The last name of the contact',
+		description: 'The name of the contact person',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -159,14 +145,8 @@ export const contactFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'First Name',
-				name: 'firstName',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Last Name',
-				name: 'lastName',
+				displayName: 'Name',
+				name: 'contactName',
 				type: 'string',
 				default: '',
 			},

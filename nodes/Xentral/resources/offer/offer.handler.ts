@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload } from '../../transport';
 
 export async function handleOffer(
 	this: IExecuteFunctions,
@@ -16,13 +16,19 @@ export async function handleOffer(
 			language,
 		};
 
-		if (additionalFields.documentDate) body.documentDate = additionalFields.documentDate;
-		if (additionalFields.deliveryTime) body.deliveryTime = additionalFields.deliveryTime;
-		if (additionalFields.paymentTerm) body.paymentTerm = additionalFields.paymentTerm;
-		if (additionalFields.shippingMethod) body.shippingMethod = additionalFields.shippingMethod;
-		if (additionalFields.internalNote) body.internalNote = additionalFields.internalNote;
-		if (additionalFields.headerText) body.headerText = additionalFields.headerText;
-		if (additionalFields.footerText) body.footerText = additionalFields.footerText;
+		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
+		if (additionalFields.deliveryTime !== undefined) body.deliveryTime = additionalFields.deliveryTime;
+		if (additionalFields.paymentTerm !== undefined) body.paymentTerm = additionalFields.paymentTerm;
+		if (additionalFields.shippingMethod !== undefined) body.shippingMethod = additionalFields.shippingMethod;
+		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
+		if (additionalFields.shippingCost !== undefined) body.shippingCost = additionalFields.shippingCost;
+		if (additionalFields.headerText !== undefined) body.headerText = additionalFields.headerText;
+		if (additionalFields.footerText !== undefined) body.footerText = additionalFields.footerText;
+		if (additionalFields.validityDays !== undefined) body.validityDays = additionalFields.validityDays;
+		if (additionalFields.deliveryAddress !== undefined) {
+			const addr = (additionalFields.deliveryAddress as IDataObject).address as IDataObject;
+			if (addr !== undefined) body.deliveryAddress = addr;
+		}
 
 		return xentralRequest.call(this, 'POST', 'offers', body as IDataObject, {}, 'v3');
 	}
@@ -37,8 +43,9 @@ export async function handleOffer(
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
 		const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 		const query: IDataObject = {};
-		if (filters.status) query['filter[status]'] = filters.status;
-		if (filters.customerId) query['filter[customerId]'] = filters.customerId;
+		if (filters.status !== undefined) query['filter[status]'] = filters.status;
+		if (filters.customerId !== undefined) query['filter[customerId]'] = filters.customerId;
+		if (filters.createdAfter !== undefined) query['filter[createdAfter]'] = filters.createdAfter;
 		return xentralV3GetAll.call(this, 'offers', query, limit);
 	}
 
@@ -64,30 +71,25 @@ export async function handleOffer(
 			quantity,
 		};
 
-		if (lineItemOptions.unitPrice) body.unitPrice = lineItemOptions.unitPrice;
-		if (lineItemOptions.discount) body.discount = lineItemOptions.discount;
-		if (lineItemOptions.description) body.description = lineItemOptions.description;
-		if (lineItemOptions.position) body.position = lineItemOptions.position;
+		if (lineItemOptions.unitPrice !== undefined) body.unitPrice = lineItemOptions.unitPrice;
+		if (lineItemOptions.discount !== undefined) body.discount = lineItemOptions.discount;
+		if (lineItemOptions.description !== undefined) body.description = lineItemOptions.description;
+		if (lineItemOptions.position !== undefined) body.position = lineItemOptions.position;
 
-		return xentralRequest.call(this, 'POST', `offers/${offerId}/lineitems`, body as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'getLineItems') {
-		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `offers/${offerId}/lineitems`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `offers/${offerId}/lineItems`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/lineitems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `offers/${offerId}/lineitems/${lineItemId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'DELETE', `offers/${offerId}/lineItems/${lineItemId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'release') {
@@ -108,23 +110,23 @@ export async function handleOffer(
 	if (operation === 'logActivity') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
 		const body = this.getNodeParameter('activityData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/logactivity`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/log-activity`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'setWriteProtection') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/setwriteprotection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/set-write-protection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'removeWriteProtection') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/removewriteprotection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/remove-write-protection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'attachFile') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
-		const body = this.getNodeParameter('fileData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'POST', `offers/${offerId}/files`, body as IDataObject, {}, 'v3');
+		const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex, 'data') as string;
+		return xentralFileUpload.call(this, `offers/${offerId}/files`, binaryPropertyName, itemIndex);
 	}
 
 	throw new Error(`Unknown offer operation: ${operation}`);

@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const warehouseFields: INodeProperties[] = [
 	// ----------------------------------
@@ -73,7 +73,7 @@ export const warehouseFields: INodeProperties[] = [
 	},
 
 	// ----------------------------------
-	//         warehouse:get
+	//         warehouse:update / delete
 	// ----------------------------------
 	{
 		displayName: 'Warehouse ID',
@@ -84,7 +84,7 @@ export const warehouseFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['warehouse'],
-				operation: ['get', 'update', 'delete'],
+				operation: ['update', 'delete'],
 			},
 		},
 		description: 'The ID of the warehouse',

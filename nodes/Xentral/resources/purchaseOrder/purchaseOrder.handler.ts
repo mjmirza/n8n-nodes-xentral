@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1CursorGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll } from '../../transport';
 
 export async function handlePurchaseOrder(
 	this: IExecuteFunctions,
@@ -14,10 +14,10 @@ export async function handlePurchaseOrder(
 			supplier: { id: supplierId },
 		};
 
-		if (additionalFields.documentDate) body.documentDate = additionalFields.documentDate;
-		if (additionalFields.deliveryDate) body.deliveryDate = additionalFields.deliveryDate;
-		if (additionalFields.internalNote) body.internalNote = additionalFields.internalNote;
-		if (additionalFields.project) body.project = additionalFields.project;
+		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
+		if (additionalFields.deliveryDate !== undefined) body.deliveryDate = additionalFields.deliveryDate;
+		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
+		if (additionalFields.project !== undefined) body.project = additionalFields.project;
 
 		return xentralRequest.call(this, 'POST', 'purchaseOrders', body as IDataObject, {}, 'v1');
 	}
@@ -30,7 +30,7 @@ export async function handlePurchaseOrder(
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1CursorGetAll.call(this, 'purchaseOrders', {}, limit);
+		return xentralV1PageGetAll.call(this, 'purchaseOrders', {}, limit);
 	}
 
 	if (operation === 'update') {
@@ -38,10 +38,10 @@ export async function handlePurchaseOrder(
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
-		if (updateFields.documentDate) body.documentDate = updateFields.documentDate;
-		if (updateFields.deliveryDate) body.deliveryDate = updateFields.deliveryDate;
-		if (updateFields.internalNote) body.internalNote = updateFields.internalNote;
-		if (updateFields.project) body.project = updateFields.project;
+		if (updateFields.documentDate !== undefined) body.documentDate = updateFields.documentDate;
+		if (updateFields.deliveryDate !== undefined) body.deliveryDate = updateFields.deliveryDate;
+		if (updateFields.internalNote !== undefined) body.internalNote = updateFields.internalNote;
+		if (updateFields.project !== undefined) body.project = updateFields.project;
 
 		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}`, body as IDataObject, {}, 'v1');
 	}
@@ -54,17 +54,17 @@ export async function handlePurchaseOrder(
 	if (operation === 'search') {
 		const searchTerm = this.getNodeParameter('searchTerm', itemIndex) as string;
 		const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
-		return xentralV1CursorGetAll.call(this, 'purchaseOrders', { 'filter[name]': searchTerm }, limit);
+		return xentralV1PageGetAll.call(this, 'purchaseOrders', { 'filter[name]': searchTerm }, limit);
 	}
 
 	if (operation === 'cancel') {
 		const purchaseOrderId = this.getNodeParameter('purchaseOrderId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}/cancel`, {} as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/actions/cancel`, {} as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'release') {
 		const purchaseOrderId = this.getNodeParameter('purchaseOrderId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}/release`, {} as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/actions/release`, {} as IDataObject, {}, 'v1');
 	}
 
 	throw new Error(`Unknown purchaseOrder operation: ${operation}`);

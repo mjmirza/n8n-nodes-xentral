@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const liabilityFields: INodeProperties[] = [
 	// ----------------------------------
@@ -19,21 +19,6 @@ export const liabilityFields: INodeProperties[] = [
 		description: 'The ID of the supplier for this liability',
 	},
 	{
-		displayName: 'Amount',
-		name: 'amount',
-		type: 'number',
-		default: 0,
-		required: true,
-		typeOptions: { numberPrecision: 2 },
-		displayOptions: {
-			show: {
-				resource: ['liability'],
-				operation: ['create'],
-			},
-		},
-		description: 'The amount of the liability',
-	},
-	{
 		displayName: 'Additional Fields',
 		name: 'additionalFields',
 		type: 'collection',
@@ -46,6 +31,14 @@ export const liabilityFields: INodeProperties[] = [
 			},
 		},
 		options: [
+			{
+				displayName: 'Gross Amount',
+				name: 'grossAmount',
+				type: 'number',
+				default: 0,
+				typeOptions: { numberPrecision: 2 },
+				description: 'The gross amount of the liability',
+			},
 			{
 				displayName: 'Due Date',
 				name: 'dueDate',

@@ -11,15 +11,15 @@ export async function handleGoodsReceipt(
 		const receivedItems = this.getNodeParameter('receivedItems', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
-		if (receivedItems.items) body.items = receivedItems.items;
+		if (receivedItems.items !== undefined) body.items = receivedItems.items;
 
-		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/goods-receipt`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/goodsReceipts`, body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'createForReturn') {
 		const returnId = this.getNodeParameter('returnId', itemIndex) as string;
 
-		return xentralRequest.call(this, 'POST', `returns/${returnId}/goods-receipt`, {} as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', `returns/${returnId}/goodsReceipts`, {} as IDataObject, {}, 'v1');
 	}
 
 	throw new Error(`Unknown goodsReceipt operation: ${operation}`);

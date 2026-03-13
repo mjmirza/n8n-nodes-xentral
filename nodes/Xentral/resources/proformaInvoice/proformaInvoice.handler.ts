@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload } from '../../transport';
 
 export async function handleProformaInvoice(
 	this: IExecuteFunctions,
@@ -16,13 +16,14 @@ export async function handleProformaInvoice(
 			language,
 		};
 
-		if (additionalFields.documentDate) body.documentDate = additionalFields.documentDate;
-		if (additionalFields.deliveryTime) body.deliveryTime = additionalFields.deliveryTime;
-		if (additionalFields.paymentTerm) body.paymentTerm = additionalFields.paymentTerm;
-		if (additionalFields.shippingMethod) body.shippingMethod = additionalFields.shippingMethod;
-		if (additionalFields.internalNote) body.internalNote = additionalFields.internalNote;
-		if (additionalFields.headerText) body.headerText = additionalFields.headerText;
-		if (additionalFields.footerText) body.footerText = additionalFields.footerText;
+		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
+		if (additionalFields.deliveryTime !== undefined) body.deliveryTime = additionalFields.deliveryTime;
+		if (additionalFields.paymentTerm !== undefined) body.paymentTerm = additionalFields.paymentTerm;
+		if (additionalFields.shippingMethod !== undefined) body.shippingMethod = additionalFields.shippingMethod;
+		if (additionalFields.shippingCost !== undefined) body.shippingCost = additionalFields.shippingCost;
+		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
+		if (additionalFields.headerText !== undefined) body.headerText = additionalFields.headerText;
+		if (additionalFields.footerText !== undefined) body.footerText = additionalFields.footerText;
 
 		return xentralRequest.call(this, 'POST', 'proformainvoices', body as IDataObject, {}, 'v3');
 	}
@@ -37,8 +38,8 @@ export async function handleProformaInvoice(
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
 		const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 		const query: IDataObject = {};
-		if (filters.status) query['filter[status]'] = filters.status;
-		if (filters.customerId) query['filter[customerId]'] = filters.customerId;
+		if (filters.status !== undefined) query['filter[status]'] = filters.status;
+		if (filters.customerId !== undefined) query['filter[customerId]'] = filters.customerId;
 		return xentralV3GetAll.call(this, 'proformainvoices', query, limit);
 	}
 
@@ -64,30 +65,25 @@ export async function handleProformaInvoice(
 			quantity,
 		};
 
-		if (lineItemOptions.unitPrice) body.unitPrice = lineItemOptions.unitPrice;
-		if (lineItemOptions.discount) body.discount = lineItemOptions.discount;
-		if (lineItemOptions.description) body.description = lineItemOptions.description;
-		if (lineItemOptions.position) body.position = lineItemOptions.position;
+		if (lineItemOptions.unitPrice !== undefined) body.unitPrice = lineItemOptions.unitPrice;
+		if (lineItemOptions.discount !== undefined) body.discount = lineItemOptions.discount;
+		if (lineItemOptions.description !== undefined) body.description = lineItemOptions.description;
+		if (lineItemOptions.position !== undefined) body.position = lineItemOptions.position;
 
-		return xentralRequest.call(this, 'POST', `proformainvoices/${proformaInvoiceId}/lineitems`, body as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'getLineItems') {
-		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `proformainvoices/${proformaInvoiceId}/lineitems`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `proformainvoices/${proformaInvoiceId}/lineItems`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/lineitems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `proformainvoices/${proformaInvoiceId}/lineitems/${lineItemId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'DELETE', `proformainvoices/${proformaInvoiceId}/lineItems/${lineItemId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'release') {
@@ -108,23 +104,23 @@ export async function handleProformaInvoice(
 	if (operation === 'logActivity') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		const body = this.getNodeParameter('activityData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/logactivity`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/log-activity`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'setWriteProtection') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/setwriteprotection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/set-write-protection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'removeWriteProtection') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/removewriteprotection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/remove-write-protection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'attachFile') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
-		const body = this.getNodeParameter('fileData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'POST', `proformainvoices/${proformaInvoiceId}/files`, body as IDataObject, {}, 'v3');
+		const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex, 'data') as string;
+		return xentralFileUpload.call(this, `proformainvoices/${proformaInvoiceId}/files`, binaryPropertyName, itemIndex);
 	}
 
 	throw new Error(`Unknown proformaInvoice operation: ${operation}`);

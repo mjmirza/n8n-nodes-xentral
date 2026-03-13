@@ -1,12 +1,12 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const salesOrderFields: INodeProperties[] = [
 	// ----------------------------------
 	//         salesOrder:create
 	// ----------------------------------
 	{
-		displayName: 'Customer ID',
-		name: 'customerId',
+		displayName: 'Customer Name',
+		name: 'customerName',
 		type: 'string',
 		default: '',
 		required: true,
@@ -16,7 +16,21 @@ export const salesOrderFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The ID of the customer for this sales order',
+		description: 'The name of the customer for this sales order',
+	},
+	{
+		displayName: 'Project',
+		name: 'project',
+		type: 'string',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['salesOrder'],
+				operation: ['create'],
+			},
+		},
+		description: 'The project associated with this sales order',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -31,6 +45,13 @@ export const salesOrderFields: INodeProperties[] = [
 			},
 		},
 		options: [
+			{
+				displayName: 'Customer ID',
+				name: 'customerId',
+				type: 'string',
+				default: '',
+				description: 'The ID of the customer (if known, overrides name-based lookup)',
+			},
 			{
 				displayName: 'Document Date',
 				name: 'documentDate',
@@ -72,13 +93,6 @@ export const salesOrderFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'External note (visible to customer)',
-			},
-			{
-				displayName: 'Project',
-				name: 'project',
-				type: 'string',
-				default: '',
-				description: 'Project associated with this sales order',
 			},
 		],
 	},

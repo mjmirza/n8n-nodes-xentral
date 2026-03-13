@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const productFields: INodeProperties[] = [
 	// ----------------------------------
@@ -13,7 +13,7 @@ export const productFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['product'],
-				operation: ['get', 'update', 'delete', 'getStock'],
+				operation: ['get', 'update', 'delete'],
 			},
 		},
 		description: 'The ID of the product',
@@ -35,6 +35,20 @@ export const productFields: INodeProperties[] = [
 			},
 		},
 		description: 'The name of the product',
+	},
+	{
+		displayName: 'Project',
+		name: 'project',
+		type: 'string',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['create'],
+			},
+		},
+		description: 'The project this product belongs to',
 	},
 	{
 		displayName: 'Article Number',

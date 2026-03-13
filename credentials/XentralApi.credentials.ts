@@ -1,6 +1,4 @@
 import type {
-	IAuthenticateGeneric,
-	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
@@ -17,7 +15,7 @@ export class XentralApi implements ICredentialType {
 			default: '',
 			placeholder: 'https://yourcompany.xentral.com',
 			required: true,
-			description: 'The URL of your Xentral instance',
+			description: 'The URL of your Xentral instance (e.g. https://yourcompany.xentral.com)',
 		},
 		{
 			displayName: 'Access Token',
@@ -29,23 +27,4 @@ export class XentralApi implements ICredentialType {
 			description: 'Personal Access Token from Xentral (Administration > Developer Settings)',
 		},
 	];
-
-	authenticate: IAuthenticateGeneric = {
-		type: 'generic',
-		properties: {
-			headers: {
-				Authorization: '={{"Bearer " + $credentials.accessToken}}',
-				'Content-Type': 'application/json',
-				Accept: 'application/json',
-			},
-		},
-	};
-
-	test: ICredentialTestRequest = {
-		request: {
-			baseURL: '={{$credentials.instanceUrl.replace(/\\/+$/, "")}}',
-			url: '/api/v1/customers?cursor[size]=10',
-			method: 'GET',
-		},
-	};
 }

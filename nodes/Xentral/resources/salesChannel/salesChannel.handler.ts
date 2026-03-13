@@ -9,7 +9,7 @@ export async function handleSalesChannel(
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'sales-channel-v2', {}, limit);
+		return xentralV1PageGetAll.call(this, 'salesChannels', {}, limit);
 	}
 
 	throw new Error(`Unknown salesChannel operation: ${operation}`);

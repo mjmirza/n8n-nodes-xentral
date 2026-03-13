@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const paymentTermsGroupFields: INodeProperties[] = [
 	// ----------------------------------
@@ -17,6 +17,20 @@ export const paymentTermsGroupFields: INodeProperties[] = [
 			},
 		},
 		description: 'The name of the payment terms group',
+	},
+	{
+		displayName: 'Key',
+		name: 'paymentTermsGroupKey',
+		type: 'string',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['paymentTermsGroup'],
+				operation: ['create'],
+			},
+		},
+		description: 'A unique key identifier for this payment terms group',
 	},
 	{
 		displayName: 'Additional Fields',

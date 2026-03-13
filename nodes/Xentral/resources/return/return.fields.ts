@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const returnFields: INodeProperties[] = [
 	// ----------------------------------
@@ -72,7 +72,7 @@ export const returnFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['return'],
-				operation: ['get', 'update', 'delete', 'release'],
+				operation: ['get', 'delete', 'release'],
 			},
 		},
 		description: 'The ID of the return',
@@ -108,36 +108,5 @@ export const returnFields: INodeProperties[] = [
 			},
 		},
 		description: 'Max number of results to return',
-	},
-
-	// ----------------------------------
-	//         return:update
-	// ----------------------------------
-	{
-		displayName: 'Update Fields',
-		name: 'updateFields',
-		type: 'collection',
-		placeholder: 'Add Field',
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ['return'],
-				operation: ['update'],
-			},
-		},
-		options: [
-			{
-				displayName: 'Reason',
-				name: 'reason',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Internal Note',
-				name: 'internalNote',
-				type: 'string',
-				default: '',
-			},
-		],
 	},
 ];

@@ -1,12 +1,12 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const productionFields: INodeProperties[] = [
 	// ----------------------------------
 	//         production:create
 	// ----------------------------------
 	{
-		displayName: 'Product ID',
-		name: 'productId',
+		displayName: 'Address ID',
+		name: 'addressId',
 		type: 'string',
 		default: '',
 		required: true,
@@ -16,22 +16,21 @@ export const productionFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The ID of the product to produce',
+		description: 'The ID of the address for the production order',
 	},
 	{
-		displayName: 'Quantity',
-		name: 'quantity',
-		type: 'number',
-		default: 1,
+		displayName: 'Language',
+		name: 'language',
+		type: 'string',
+		default: 'de',
 		required: true,
-		typeOptions: { minValue: 1 },
 		displayOptions: {
 			show: {
 				resource: ['production'],
 				operation: ['create'],
 			},
 		},
-		description: 'The quantity to produce',
+		description: 'Language code for the production order (e.g. de, en)',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -61,31 +60,11 @@ export const productionFields: INodeProperties[] = [
 				description: 'The planned end date of the production',
 			},
 			{
-				displayName: 'Warehouse',
-				name: 'warehouse',
-				type: 'string',
-				default: '',
-				description: 'The warehouse for this production order',
-			},
-			{
 				displayName: 'Internal Note',
 				name: 'internalNote',
 				type: 'string',
 				default: '',
 				description: 'Internal note for this production order',
-			},
-			{
-				displayName: 'Status',
-				name: 'status',
-				type: 'options',
-				options: [
-					{ name: 'Planned', value: 'planned' },
-					{ name: 'In Progress', value: 'in_progress' },
-					{ name: 'Completed', value: 'completed' },
-					{ name: 'Cancelled', value: 'cancelled' },
-				],
-				default: 'planned',
-				description: 'The initial status of the production order',
 			},
 		],
 	},
@@ -139,5 +118,4 @@ export const productionFields: INodeProperties[] = [
 		},
 		description: 'Max number of results to return',
 	},
-
 ];

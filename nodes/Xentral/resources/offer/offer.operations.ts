@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const offerOperations: INodeProperties[] = [
 	{
@@ -66,13 +66,7 @@ export const offerOperations: INodeProperties[] = [
 				description: 'Cancel an offer',
 				action: 'Cancel an offer',
 			},
-			{
-				name: 'Get Line Items',
-				value: 'getLineItems',
-				description: 'Get all line items of an offer',
-				action: 'Get line items of offer',
-			},
-			{
+	{
 				name: 'Update Line Item',
 				value: 'updateLineItem',
 				description: 'Update a line item of an offer',

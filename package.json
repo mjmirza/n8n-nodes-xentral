@@ -1,18 +1,25 @@
 {
-	"name": "n8n-nodes-xentral",
-	"version": "0.3.0",
-	"description": "n8n community node for Xentral ERP integration",
+	"name": "n8n-nodes-xentralx",
+	"version": "0.8.0",
+	"description": "The most comprehensive n8n community node for Xentral ERP - 30 resources, 163 operations, 58 webhook events. Full API audit verified. Built by next8n.",
 	"keywords": [
 		"n8n-community-node-package",
 		"n8n",
 		"xentral",
 		"erp",
 		"workflow",
-		"automation"
+		"automation",
+		"xentral-erp",
+		"next8n",
+		"crm",
+		"invoicing",
+		"warehouse",
+		"e-commerce"
 	],
-	"license": "MIT",
+	"license": "SEE LICENSE IN LICENSE",
 	"author": {
-		"name": "Mirza Iqbal"
+		"name": "Mirza Iqbal / next8n",
+		"url": "https://next8n.com"
 	},
 	"repository": {
 		"type": "git",
@@ -24,7 +31,8 @@
 		"dev": "tsc --watch",
 		"format": "prettier nodes credentials --write",
 		"lint": "eslint nodes credentials --ext .ts",
-		"prepublishOnly": "npm run build"
+		"prepublishOnly": "cp README.md README.dev.md && cp README.npm.md README.md && npm run build",
+		"postpublish": "mv README.dev.md README.md"
 	},
 	"files": [
 		"dist"

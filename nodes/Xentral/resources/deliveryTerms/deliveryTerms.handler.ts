@@ -9,7 +9,7 @@ export async function handleDeliveryTerms(
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'delivery-terms', {}, limit);
+		return xentralV1PageGetAll.call(this, 'deliveryTerms', {}, limit);
 	}
 
 	throw new Error(`Unknown deliveryTerms operation: ${operation}`);

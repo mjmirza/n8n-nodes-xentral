@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const salesPriceFields: INodeProperties[] = [
 	// ----------------------------------
@@ -19,8 +19,8 @@ export const salesPriceFields: INodeProperties[] = [
 		description: 'The ID of the product',
 	},
 	{
-		displayName: 'Price',
-		name: 'price',
+		displayName: 'Amount',
+		name: 'amount',
 		type: 'number',
 		default: 0,
 		required: true,
@@ -31,7 +31,7 @@ export const salesPriceFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The sales price',
+		description: 'The sales price amount',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -68,16 +68,16 @@ export const salesPriceFields: INodeProperties[] = [
 			{
 				displayName: 'Valid From',
 				name: 'validFrom',
-				type: 'string',
+				type: 'dateTime',
 				default: '',
-				description: 'Start date (YYYY-MM-DD)',
+				description: 'Start date',
 			},
 			{
 				displayName: 'Valid To',
 				name: 'validTo',
-				type: 'string',
+				type: 'dateTime',
 				default: '',
-				description: 'End date (YYYY-MM-DD)',
+				description: 'End date',
 			},
 		],
 	},
@@ -155,8 +155,8 @@ export const salesPriceFields: INodeProperties[] = [
 				default: '',
 			},
 			{
-				displayName: 'Price',
-				name: 'price',
+				displayName: 'Amount',
+				name: 'amount',
 				type: 'number',
 				default: 0,
 				typeOptions: { numberPrecision: 2 },

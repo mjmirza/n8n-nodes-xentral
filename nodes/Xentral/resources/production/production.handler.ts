@@ -7,33 +7,31 @@ export async function handleProduction(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const productId = this.getNodeParameter('productId', itemIndex) as string;
-		const quantity = this.getNodeParameter('quantity', itemIndex) as number;
+		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
+		const language = this.getNodeParameter('language', itemIndex, 'de') as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
-			productId,
-			quantity,
+			address: { id: addressId },
+			language,
 		};
 
-		if (additionalFields.startDate) body.startDate = additionalFields.startDate;
-		if (additionalFields.endDate) body.endDate = additionalFields.endDate;
-		if (additionalFields.warehouse) body.warehouse = additionalFields.warehouse;
-		if (additionalFields.internalNote) body.internalNote = additionalFields.internalNote;
-		if (additionalFields.status) body.status = additionalFields.status;
+		if (additionalFields.startDate !== undefined) body.startDate = additionalFields.startDate;
+		if (additionalFields.endDate !== undefined) body.endDate = additionalFields.endDate;
+		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
 
 		return xentralRequest.call(this, 'POST', 'productions', body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'get') {
 		const productionId = this.getNodeParameter('productionId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `production/${productionId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'GET', `productions/${productionId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'production', {}, limit);
+		return xentralV1PageGetAll.call(this, 'productions', {}, limit);
 	}
 
 	if (operation === 'delete') {

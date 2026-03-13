@@ -1,12 +1,12 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const shipmentFields: INodeProperties[] = [
 	// ----------------------------------
 	//         shipment:create
 	// ----------------------------------
 	{
-		displayName: 'Sales Order ID',
-		name: 'salesOrderId',
+		displayName: 'Shipment Type',
+		name: 'shipmentType',
 		type: 'string',
 		default: '',
 		required: true,
@@ -16,7 +16,7 @@ export const shipmentFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The ID of the sales order to create a shipment for',
+		description: 'The shipment type (must match a type configured in your Xentral instance)',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -32,6 +32,13 @@ export const shipmentFields: INodeProperties[] = [
 		},
 		options: [
 			{
+				displayName: 'Sales Order ID',
+				name: 'salesOrderId',
+				type: 'string',
+				default: '',
+				description: 'The ID of the related sales order',
+			},
+			{
 				displayName: 'Carrier',
 				name: 'carrier',
 				type: 'string',
@@ -43,7 +50,6 @@ export const shipmentFields: INodeProperties[] = [
 				name: 'trackingNumber',
 				type: 'string',
 				default: '',
-				description: 'The tracking number for this shipment',
 			},
 			{
 				displayName: 'Weight',
@@ -51,14 +57,7 @@ export const shipmentFields: INodeProperties[] = [
 				type: 'number',
 				default: 0,
 				typeOptions: { numberPrecision: 2 },
-				description: 'The weight of the shipment in kg',
-			},
-			{
-				displayName: 'Delivery Note ID',
-				name: 'deliveryNoteId',
-				type: 'string',
-				default: '',
-				description: 'The ID of an associated delivery note',
+				description: 'The weight in kg',
 			},
 		],
 	},

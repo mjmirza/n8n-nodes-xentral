@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest } from '../../transport';
 
 export async function handleEmployee(
 	this: IExecuteFunctions,
@@ -9,7 +9,9 @@ export async function handleEmployee(
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'employee', {}, limit);
+		const response = await xentralRequest.call(this, 'GET', 'employees', {}, {}, 'v1');
+		const items = (response.data || []) as IDataObject[];
+		return limit ? items.slice(0, limit) : items;
 	}
 
 	throw new Error(`Unknown employee operation: ${operation}`);

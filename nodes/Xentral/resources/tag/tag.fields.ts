@@ -1,12 +1,12 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const tagFields: INodeProperties[] = [
 	// ----------------------------------
 	//         tag:create
 	// ----------------------------------
 	{
-		displayName: 'Name',
-		name: 'name',
+		displayName: 'Tag Name',
+		name: 'tagName',
 		type: 'string',
 		default: '',
 		required: true,
@@ -16,47 +16,7 @@ export const tagFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The name of the tag',
-	},
-	{
-		displayName: 'Additional Fields',
-		name: 'additionalFields',
-		type: 'collection',
-		placeholder: 'Add Field',
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ['tag'],
-				operation: ['create'],
-			},
-		},
-		options: [
-			{
-				displayName: 'Type',
-				name: 'type',
-				type: 'string',
-				default: '',
-				description: 'The type of the tag',
-			},
-		],
-	},
-
-	// ----------------------------------
-	//         tag:delete
-	// ----------------------------------
-	{
-		displayName: 'Tag ID',
-		name: 'tagId',
-		type: 'string',
-		default: '',
-		required: true,
-		displayOptions: {
-			show: {
-				resource: ['tag'],
-				operation: ['delete'],
-			},
-		},
-		description: 'The ID of the tag to delete',
+		description: 'The name/slug of the tag',
 	},
 
 	// ----------------------------------

@@ -1,6 +1,6 @@
-# Xentral n8n Node — Step-by-Step Implementation Plan
+# Xentral n8n Node - Step-by-Step Implementation Plan
 
-This document is the execution roadmap. Each step is atomic and testable. We implement in strict order — no skipping ahead.
+This document is the execution roadmap. Each step is atomic and testable. We implement in strict order - no skipping ahead.
 
 ---
 
@@ -55,18 +55,18 @@ Everything in this phase must be completed before writing any resource code. Thi
 ### Step 0.3: Rewrite Transport Layer
 **Goal:** Correct pagination, proper error handling, rate-limit retry
 
-- [ ] Create `nodes/Xentral/transport/index.ts` — main export
+- [ ] Create `nodes/Xentral/transport/index.ts` - main export
 - [ ] Create `nodes/Xentral/transport/v1.ts`:
-  - `xentralV1Request(method, endpoint, body?, query?)` — single request
-  - `xentralV1RequestAllItems(endpoint, query?)` — cursor-based pagination
+  - `xentralV1Request(method, endpoint, body?, query?)` - single request
+  - `xentralV1RequestAllItems(endpoint, query?)` - cursor-based pagination
     - Uses `cursor[size]=250` and `cursor[nextCursor]` from response `extra.cursor.nextCursor`
     - Stops when no `nextCursor` returned
     - Safety: max 100 iterations
   - Error handling: parse RFC 9457 response, extract `violations` and `messages`
   - Rate limit: retry on 429 with exponential backoff (3 attempts)
 - [ ] Create `nodes/Xentral/transport/v3.ts`:
-  - `xentralV3Request(method, endpoint, body?, query?)` — single request
-  - `xentralV3RequestAllItems(endpoint, query?)` — page-based pagination
+  - `xentralV3Request(method, endpoint, body?, query?)` - single request
+  - `xentralV3RequestAllItems(endpoint, query?)` - page-based pagination
     - Uses `page=1&perPage=50`, increments page
     - Reads `meta.currentPage`, `meta.lastPage` or `links.next`
     - Stops when `currentPage >= lastPage` or no `links.next`
@@ -98,9 +98,9 @@ Everything in this phase must be completed before writing any resource code. Thi
   interface XentralError { type: string; title: string; status: number; detail?: string; violations?: Array<{ propertyPath: string; message: string }>; messages?: string[] }
   ```
 - [ ] Create `nodes/Xentral/methods/listSearch.ts`:
-  - `getCustomers(filter?, paginationToken?)` — search customers by name
-  - `getProducts(filter?, paginationToken?)` — search products by name/number
-  - `getProjects(filter?, paginationToken?)` — list projects
+  - `getCustomers(filter?, paginationToken?)` - search customers by name
+  - `getProducts(filter?, paginationToken?)` - search products by name/number
+  - `getProjects(filter?, paginationToken?)` - list projects
 - [ ] Verify: compile succeeds
 
 ### Step 0.6: Restructure Main Node
@@ -139,55 +139,55 @@ Everything in this phase must be completed before writing any resource code. Thi
 
 ---
 
-## Phase 1: Core MVP (P0 — ~40 Operations)
+## Phase 1: Core MVP (P0 - ~40 Operations)
 
 ### Step 1.1: Customer Resource (Rewrite)
 **Operations:** Create, Get, Get Many, Update, Delete, Search
 
-- [ ] `resources/customer/index.ts` — operation definitions with routing metadata
-- [ ] `resources/customer/create.ts` — fields: type (company/individual), name, all additionalFields mapped to nested V1 body structure
-- [ ] `resources/customer/get.ts` — field: customerId (with `listSearch` dropdown)
-- [ ] `resources/customer/getAll.ts` — returnAll + limit, proper cursor pagination
-- [ ] `resources/customer/update.ts` — all fields mappable, nested body construction
-- [ ] `resources/customer/delete.ts` — customerId field
-- [ ] `resources/customer/search.ts` — searchTerm, mapped to V1 filter params
-- [ ] `resources/customer/handler.ts` — execute switch with V1 transport calls
+- [ ] `resources/customer/index.ts` - operation definitions with routing metadata
+- [ ] `resources/customer/create.ts` - fields: type (company/individual), name, all additionalFields mapped to nested V1 body structure
+- [ ] `resources/customer/get.ts` - field: customerId (with `listSearch` dropdown)
+- [ ] `resources/customer/getAll.ts` - returnAll + limit, proper cursor pagination
+- [ ] `resources/customer/update.ts` - all fields mappable, nested body construction
+- [ ] `resources/customer/delete.ts` - customerId field
+- [ ] `resources/customer/search.ts` - searchTerm, mapped to V1 filter params
+- [ ] `resources/customer/handler.ts` - execute switch with V1 transport calls
 - [ ] **Test:** Create customer → Get → Update → Search by name → Delete
 
 ### Step 1.2: Product Resource (Rewrite)
 **Operations:** Create, Get, Get Many, Update, Search, Get Stock
 
 - [ ] `resources/product/index.ts`
-- [ ] `resources/product/create.ts` — name, articleNumber, project (required by API!), all additional fields
-- [ ] `resources/product/get.ts` — productId with `listSearch`
-- [ ] `resources/product/getAll.ts` — cursor pagination
-- [ ] `resources/product/update.ts` — all fields from create as optional
+- [ ] `resources/product/create.ts` - name, articleNumber, project (required by API!), all additional fields
+- [ ] `resources/product/get.ts` - productId with `listSearch`
+- [ ] `resources/product/getAll.ts` - cursor pagination
+- [ ] `resources/product/update.ts` - all fields from create as optional
 - [ ] `resources/product/search.ts`
-- [ ] `resources/product/getStock.ts` — productId
+- [ ] `resources/product/getStock.ts` - productId
 - [ ] `resources/product/handler.ts`
 - [ ] **Test:** Create product → Get → Update → Search → Get Stock → Delete
 
-### Step 1.3: Offer Resource (Rewrite — V3)
+### Step 1.3: Offer Resource (Rewrite - V3)
 **Operations:** Create, Get, Get Many, Update, Add Line Item, Get Line Items, Release
 
 - [ ] `resources/offer/index.ts`
-- [ ] `resources/offer/create.ts` — customerId (listSearch), language, all additional fields
-- [ ] `resources/offer/get.ts` — offerId
-- [ ] `resources/offer/getAll.ts` — V3 page pagination, filters (status, customerId, createdAfter)
+- [ ] `resources/offer/create.ts` - customerId (listSearch), language, all additional fields
+- [ ] `resources/offer/get.ts` - offerId
+- [ ] `resources/offer/getAll.ts` - V3 page pagination, filters (status, customerId, createdAfter)
 - [ ] `resources/offer/update.ts`
-- [ ] `resources/offer/addLineItem.ts` — offerId, productId (listSearch), quantity, unitPrice, discount, description, position
-- [ ] `resources/offer/getLineItems.ts` — offerId
-- [ ] `resources/offer/release.ts` — offerId
-- [ ] `resources/offer/handler.ts` — uses V3 transport
+- [ ] `resources/offer/addLineItem.ts` - offerId, productId (listSearch), quantity, unitPrice, discount, description, position
+- [ ] `resources/offer/getLineItems.ts` - offerId
+- [ ] `resources/offer/release.ts` - offerId
+- [ ] `resources/offer/handler.ts` - uses V3 transport
 - [ ] **Test:** Create offer → Add 3 line items → Get line items → Release → Verify status
 
 ### Step 1.4: Sales Order Resource (New)
 **Operations:** Import/Create, Get, Get Many, Update
 
 - [ ] `resources/salesOrder/index.ts`
-- [ ] `resources/salesOrder/create.ts` — import endpoint with customer, positions, shipping, payment
+- [ ] `resources/salesOrder/create.ts` - import endpoint with customer, positions, shipping, payment
 - [ ] `resources/salesOrder/get.ts`
-- [ ] `resources/salesOrder/getAll.ts` — cursor pagination, status filters
+- [ ] `resources/salesOrder/getAll.ts` - cursor pagination, status filters
 - [ ] `resources/salesOrder/update.ts`
 - [ ] `resources/salesOrder/handler.ts`
 - [ ] **Test:** Create order → Get → Update → Get Many with filter
@@ -202,7 +202,7 @@ Everything in this phase must be completed before writing any resource code. Thi
 ### Step 1.6: Xentral Trigger (Rewrite)
 **Goal:** Fix webhook lifecycle, add signature validation, expand events, add polling mode
 
-- [ ] Fix webhook endpoint path (verify: `/api/v1/webhooks` — use `GET /webhook/event-types` to discover all available events)
+- [ ] Fix webhook endpoint path (verify: `/api/v1/webhooks` - use `GET /webhook/event-types` to discover all available events)
 - [ ] Add all P0 events to trigger options
 - [ ] Add HMAC signature validation (if Xentral supports it)
 - [ ] Improve error reporting (don't swallow webhook creation errors)
@@ -221,7 +221,7 @@ Everything in this phase must be completed before writing any resource code. Thi
 
 ---
 
-## Phase 2: Essential Features (P1 — ~60 Operations)
+## Phase 2: Essential Features (P1 - ~60 Operations)
 
 ### Step 2.1: Customer Address
 - [ ] Full CRUD (5 operations)
@@ -243,10 +243,10 @@ Everything in this phase must be completed before writing any resource code. Thi
 - [ ] CRUD for both (12 operations total)
 - [ ] Test: Set price for product, update, list all prices
 
-### Step 2.6: Offer — Extended Operations
+### Step 2.6: Offer - Extended Operations
 - [ ] Delete, Update Line Item, Delete Line Item, Cancel, Send (5 operations)
 
-### Step 2.7: Sales Order — Extended Operations
+### Step 2.7: Sales Order - Extended Operations
 - [ ] Delete, Cancel, Dispatch, Get Documents (4 operations)
 
 ### Step 2.8: Invoice
@@ -279,7 +279,7 @@ Everything in this phase must be completed before writing any resource code. Thi
 ### Step 2.14: Tags
 - [ ] Create, Get Many (2 operations)
 
-### Step 2.15: Trigger — P1 Events
+### Step 2.15: Trigger - P1 Events
 - [ ] Add all P1 events to XentralTrigger
 
 ### Step 2.16: Integration Test All P1
@@ -288,7 +288,7 @@ Everything in this phase must be completed before writing any resource code. Thi
 
 ---
 
-## Phase 3: Extended Features (P2 — ~80 Operations)
+## Phase 3: Extended Features (P2 - ~80 Operations)
 
 ### Step 3.1-3.15: (Each sub-resource from checklist)
 - Product Media, Properties, Free Fields, Parts, Variants, External References
@@ -309,7 +309,7 @@ Everything in this phase must be completed before writing any resource code. Thi
 
 ---
 
-## Phase 4: Complete Coverage (P3 — ~30 Operations)
+## Phase 4: Complete Coverage (P3 - ~30 Operations)
 
 ### All remaining operations
 - Employee, Merchandise Group, Sales Channel Settings, Product Labels
@@ -326,8 +326,8 @@ Each phase must pass before moving to the next:
 
 | Gate | Criteria |
 |------|----------|
-| **Compile** | `npm run build` — zero errors |
-| **Lint** | `npm run lint` — zero warnings |
+| **Compile** | `npm run build` - zero errors |
+| **Lint** | `npm run lint` - zero warnings |
 | **Unit** | All field definitions valid (no missing defaults, no broken displayOptions) |
 | **Integration** | All operations tested against real Xentral instance |
 | **Documentation** | README checklist updated, all new operations documented |

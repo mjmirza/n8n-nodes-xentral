@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const proformaInvoiceOperations: INodeProperties[] = [
 	{
@@ -66,13 +66,7 @@ export const proformaInvoiceOperations: INodeProperties[] = [
 				description: 'Cancel a proforma invoice',
 				action: 'Cancel a proforma invoice',
 			},
-			{
-				name: 'Get Line Items',
-				value: 'getLineItems',
-				description: 'Get all line items of a proforma invoice',
-				action: 'Get line items of proforma invoice',
-			},
-			{
+	{
 				name: 'Update Line Item',
 				value: 'updateLineItem',
 				description: 'Update a line item of a proforma invoice',
