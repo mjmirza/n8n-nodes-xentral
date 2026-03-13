@@ -8,6 +8,7 @@ export async function handleProformaInvoice(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
+		assertSafeId(customerId, 'customerId');
 		const language = this.getNodeParameter('language', itemIndex, 'de') as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 

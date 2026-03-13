@@ -8,6 +8,7 @@ export async function handlePurchaseOrder(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
+		assertSafeId(supplierId, 'supplierId');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const date = this.getNodeParameter('date', itemIndex) as string;

@@ -8,6 +8,7 @@ export async function handleProduction(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
 		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
+		assertSafeId(addressId, 'addressId');
 		const language = this.getNodeParameter('language', itemIndex, 'de') as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
