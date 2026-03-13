@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV3GetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 export async function handleDeliveryNote(
 	this: IExecuteFunctions,
@@ -59,6 +59,7 @@ export async function handleDeliveryNote(
 		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
 		assertSafeId(deliveryNoteId, 'deliveryNoteId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
+		assertNonEmptyBody(updateFields as IDataObject, 'delivery note update');
 		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
@@ -95,6 +96,7 @@ export async function handleDeliveryNote(
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		assertSafeId(lineItemId, 'lineItemId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
+		assertNonEmptyBody(updateFields as IDataObject, 'delivery note line item update');
 		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
 	}
 

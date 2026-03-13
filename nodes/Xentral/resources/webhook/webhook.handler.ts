@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 export async function handleWebhook(
 	this: IExecuteFunctions,
@@ -45,6 +45,7 @@ export async function handleWebhook(
 		if (updateFields.events !== undefined) body.events = updateFields.events;
 		if (updateFields.signatureKey !== undefined) body.signatureKey = updateFields.signatureKey;
 
+		assertNonEmptyBody(body, 'webhook update');
 		return xentralRequest.call(this, 'PATCH', `webhooks/${webhookId}`, body, {}, 'v1');
 	}
 

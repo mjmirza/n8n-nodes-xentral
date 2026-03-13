@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 
 export async function handlePurchaseOrder(
 	this: IExecuteFunctions,
@@ -11,7 +11,7 @@ export async function handlePurchaseOrder(
 		assertSafeId(supplierId, 'supplierId');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const date = this.getNodeParameter('date', itemIndex) as string;
+		const date = assertNonEmpty(this.getNodeParameter('date', itemIndex) as string, 'Date');
 
 		const body: IDataObject = {
 			supplier: { id: supplierId },
@@ -50,6 +50,7 @@ export async function handlePurchaseOrder(
 		if (updateFields.internalNote !== undefined) body.internalNote = updateFields.internalNote;
 		if (updateFields.project !== undefined) body.project = updateFields.project;
 
+		assertNonEmptyBody(body, 'purchase order update');
 		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}`, body as IDataObject, {}, 'v1');
 	}
 

@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 export async function handleSupplier(
 	this: IExecuteFunctions,
@@ -44,6 +44,7 @@ export async function handleSupplier(
 		if (Object.keys(general).length > 0) body.general = general;
 		if (updateFields.supplierType !== undefined) body.type = updateFields.supplierType;
 
+		assertNonEmptyBody(body, 'supplier update');
 		return xentralRequest.call(this, 'PATCH', `suppliers/${supplierId}`, body as IDataObject, {}, 'v1');
 	}
 

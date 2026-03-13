@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 export async function handlePurchasePrice(
 	this: IExecuteFunctions,
@@ -61,6 +61,7 @@ export async function handlePurchasePrice(
 		if (updateFields.currency !== undefined) body.currency = updateFields.currency;
 		if (updateFields.deliveryTime !== undefined) body.deliveryTime = updateFields.deliveryTime;
 
+		assertNonEmptyBody(body, 'purchase price update');
 		return xentralRequest.call(this, 'PATCH', `purchasePrices/${purchasePriceId}`, body as IDataObject, {}, 'v1');
 	}
 

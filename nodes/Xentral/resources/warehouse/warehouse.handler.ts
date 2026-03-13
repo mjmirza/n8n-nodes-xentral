@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 
 export async function handleWarehouse(
 	this: IExecuteFunctions,
@@ -7,7 +7,7 @@ export async function handleWarehouse(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const name = this.getNodeParameter('warehouseName', itemIndex) as string;
+		const name = assertNonEmpty(this.getNodeParameter('warehouseName', itemIndex) as string, 'Warehouse Name');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
@@ -49,6 +49,7 @@ export async function handleWarehouse(
 		if (updateFields.country !== undefined) body.country = updateFields.country;
 		if (updateFields.isDefault !== undefined) body.isDefault = updateFields.isDefault;
 
+		assertNonEmptyBody(body, 'warehouse update');
 		return xentralRequest.call(this, 'PATCH', `warehouses/${warehouseId}`, body as IDataObject, {}, 'v1');
 	}
 

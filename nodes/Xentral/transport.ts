@@ -144,6 +144,22 @@ export function assertSafeId(id: string, paramName: string): void {
 	}
 }
 
+// ---------- input validation ----------
+
+export function assertNonEmpty(value: string, fieldName: string): string {
+	const trimmed = value.trim();
+	if (!trimmed) {
+		throw new Error(`${fieldName} is required and cannot be empty`);
+	}
+	return trimmed;
+}
+
+export function assertNonEmptyBody(body: IDataObject, operationName: string): void {
+	if (Object.keys(body).length === 0) {
+		throw new Error(`No fields provided for ${operationName}. Select at least one field to update.`);
+	}
+}
+
 // ---------- endpoint sanitization ----------
 
 function sanitizeEndpoint(endpoint: string): string {

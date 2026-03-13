@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, assertSafeId } from '../../transport';
+import { xentralRequest, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 export async function handleAddress(
 	this: IExecuteFunctions,
@@ -66,6 +66,7 @@ export async function handleAddress(
 		if (updateFields.name !== undefined) body.name = updateFields.name;
 		if (updateFields.addressSupplement !== undefined) body.addressSupplement = updateFields.addressSupplement;
 
+		assertNonEmptyBody(body, 'address update');
 		return xentralRequest.call(this, 'PATCH', `customers/${customerId}/addresses/${addressId}`, body as IDataObject, {}, 'v2');
 	}
 

@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest } from '../../transport';
+import { xentralRequest, assertNonEmpty } from '../../transport';
 
 export async function handleTag(
 	this: IExecuteFunctions,
@@ -7,7 +7,7 @@ export async function handleTag(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const tagName = this.getNodeParameter('tagName', itemIndex) as string;
+		const tagName = assertNonEmpty(this.getNodeParameter('tagName', itemIndex) as string, 'Tag Name');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const tagType = this.getNodeParameter('tagType', itemIndex, 'article') as string;

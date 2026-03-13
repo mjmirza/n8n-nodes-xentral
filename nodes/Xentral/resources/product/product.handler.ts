@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 
 export async function handleProduct(
 	this: IExecuteFunctions,
@@ -7,8 +7,8 @@ export async function handleProduct(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const name = this.getNodeParameter('productName', itemIndex) as string;
-		const project = this.getNodeParameter('project', itemIndex) as string;
+		const name = assertNonEmpty(this.getNodeParameter('productName', itemIndex) as string, 'Product Name');
+		const project = assertNonEmpty(this.getNodeParameter('project', itemIndex) as string, 'Project');
 		const articleNumber = this.getNodeParameter('articleNumber', itemIndex, '') as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
@@ -61,6 +61,7 @@ export async function handleProduct(
 		if (updateFields.manufacturer !== undefined) body.manufacturerName = updateFields.manufacturer;
 		if (updateFields.priceNet !== undefined) body.priceNet = updateFields.priceNet;
 
+		assertNonEmptyBody(body, 'product update');
 		return xentralRequest.call(this, 'PATCH', `products/${productId}`, body as IDataObject, {}, 'v1');
 	}
 
