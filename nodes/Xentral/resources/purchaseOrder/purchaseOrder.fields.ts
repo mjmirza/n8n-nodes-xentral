@@ -141,7 +141,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 				operation: ['search'],
 			},
 		},
-		description: 'Search by supplier name or purchase order number',
+		description: 'Search by document number (e.g. purchase order number)',
 	},
 
 	// ----------------------------------

@@ -47,7 +47,11 @@ export async function handleSupplier(
 	if (operation === 'search') {
 		const searchTerm = this.getNodeParameter('searchTerm', itemIndex) as string;
 		const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
-		return xentralV1PageGetAll.call(this, 'suppliers', { 'filter[name]': searchTerm }, limit);
+		return xentralV1PageGetAll.call(this, 'suppliers', {
+			'filter[0][key]': 'name',
+			'filter[0][op]': 'contains',
+			'filter[0][value]': searchTerm,
+		}, limit);
 	}
 
 	throw new Error(`Unknown supplier operation: ${operation}`);

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://unpkg.com/n8n-nodes-xentralx@0.8.0/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
+  <img src="https://unpkg.com/n8n-nodes-xentralx@0.9.0/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
 </p>
 
 <h1 align="center">n8n-nodes-xentralx</h1>
@@ -157,7 +157,7 @@ npm install n8n-nodes-xentralx
 
 1. Install the node in n8n
 2. Create a **Personal Access Token** in Xentral: *Administration > Account Settings > Developer Settings > Personal Access Tokens*
-3. Add **Xentral API** credentials in n8n with your instance URL and token
+3. Add **Xentral API** credentials in n8n with your instance URL and token - just paste the token exactly as Xentral shows it (e.g. `2|abc...xyz`), the node handles the rest automatically
 4. Start building workflows
 
 ---
@@ -195,6 +195,15 @@ We've delivered all of this for our clients and would be happy to discuss your s
 ---
 
 ## Changelog
+
+### v0.9.0 (2026-03-13)
+- **Fixed V1 search filters** across all 5 searchable resources (customer, product, salesOrder, purchaseOrder, supplier) - was using invalid filter format, now uses correct indexed `filter[0][key]/[op]/[value]` format
+- **Fixed V3 filters** across all 5 document resources (invoice, deliveryNote, offer, creditNote, proformaInvoice) - same indexed filter format fix
+- **Fixed salesOrder search** to use `documentNumber` filter (was using non-existent `name` key)
+- **Fixed purchaseOrder search** to use `documentNumber` filter (was using non-existent `name` key)
+- **Fixed Tag create** - API requires both `title` and `type` fields; now correctly sends both with type dropdown (article/customer/supplier/project)
+- **Zero-friction credential setup** - token normalization handles any paste format: full token (`2|abc...xyz`), hash-only, accidental `Bearer` prefix, surrounding quotes, whitespace - just paste and go
+- Updated credential description and placeholder for better UX
 
 ### v0.8.0 (2026-03-13)
 - **Full API audit** - every endpoint tested against live Xentral API

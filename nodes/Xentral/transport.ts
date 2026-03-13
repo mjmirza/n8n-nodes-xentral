@@ -57,6 +57,23 @@ async function getCredentials(ctx: IExecuteFunctions | ILoadOptionsFunctions | I
 	return ctx.getCredentials('xentralApi');
 }
 
+/**
+ * Normalize a Xentral API token for maximum compatibility.
+ * Xentral PATs use the Laravel Sanctum format: "<id>|<hash>" (e.g. "2|wQ5So...").
+ * Users may paste the full token, just the hash, or include accidental extras.
+ * This function handles all variations so users never have to manually edit the token.
+ */
+function normalizeToken(raw: string): string {
+	let token = raw.trim();
+	// Remove surrounding quotes (copy-paste from docs or JSON)
+	token = token.replace(/^["'`]+|["'`]+$/g, '');
+	// Strip accidental "Bearer " prefix (copy-paste from curl/docs)
+	token = token.replace(/^Bearer\s+/i, '');
+	// Remove all whitespace (spaces, newlines, tabs from copy-paste)
+	token = token.replace(/\s/g, '');
+	return token;
+}
+
 function parseXentralError(responseBody: any): string {
 	if (!responseBody) return 'Unknown Xentral API error';
 	const parts: string[] = [];
@@ -116,7 +133,7 @@ export async function xentralRequest(
 ): Promise<any> {
 	const credentials = await getCredentials(this);
 	const instanceUrl = credentials.instanceUrl as string;
-	const accessToken = (credentials.accessToken as string || '').replace(/\s/g, '');
+	const accessToken = normalizeToken(credentials.accessToken as string || '');
 	const safeEndpoint = sanitizeEndpoint(endpoint);
 
 	const options: IHttpRequestOptions = {
@@ -254,7 +271,7 @@ export async function xentralFileUpload(
 ): Promise<any> {
 	const credentials = await getCredentials(this);
 	const instanceUrl = credentials.instanceUrl as string;
-	const accessToken = (credentials.accessToken as string || '').replace(/\s/g, '');
+	const accessToken = normalizeToken(credentials.accessToken as string || '');
 	const safeEndpoint = sanitizeEndpoint(endpoint);
 
 	const binaryData = this.helpers.assertBinaryData(itemIndex, binaryPropertyName);

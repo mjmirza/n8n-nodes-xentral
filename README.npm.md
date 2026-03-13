@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://unpkg.com/n8n-nodes-xentralx@0.8.0/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
+  <img src="https://unpkg.com/n8n-nodes-xentralx@0.9.0/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
 </p>
 
 <h1 align="center">n8n-nodes-xentralx</h1>
@@ -114,7 +114,7 @@ npm install n8n-nodes-xentralx
 
 1. Install the node in n8n
 2. Create a **Personal Access Token** in Xentral: *Administration > Account Settings > Developer Settings > Personal Access Tokens*
-3. Add **Xentral API** credentials in n8n with your instance URL and token
+3. Add **Xentral API** credentials in n8n with your instance URL and token - just paste the token exactly as Xentral shows it (e.g. `2|abc...xyz`), the node handles the rest automatically
 4. Start building workflows
 
 ---

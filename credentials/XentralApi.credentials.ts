@@ -24,7 +24,8 @@ export class XentralApi implements ICredentialType {
 			typeOptions: { password: true },
 			default: '',
 			required: true,
-			description: 'Personal Access Token from Xentral (Administration > Developer Settings)',
+			placeholder: '2|wQ5SodU2fx0mSNWvpvV0uZVhA...',
+			description: 'Paste your Personal Access Token exactly as shown in Xentral (Administration > Developer Settings). Both the full token (e.g. 2|abc...xyz) and just the key part work.',
 		},
 	];
 }

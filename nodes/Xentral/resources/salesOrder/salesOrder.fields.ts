@@ -162,7 +162,7 @@ export const salesOrderFields: INodeProperties[] = [
 				operation: ['search'],
 			},
 		},
-		description: 'Search by sales order number or customer name',
+		description: 'Search by document number (e.g. order number)',
 	},
 
 	// ----------------------------------
