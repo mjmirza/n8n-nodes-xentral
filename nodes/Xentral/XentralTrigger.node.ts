@@ -1,3 +1,5 @@
+import { createHmac, timingSafeEqual } from 'crypto';
+
 import type {
 	IHookFunctions,
 	IWebhookFunctions,
@@ -8,7 +10,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes } from 'n8n-workflow';
 
-import { xentralRequest } from './transport';
+import { xentralRequest, assertSafeId } from './transport';
 
 export class XentralTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -118,6 +120,16 @@ export class XentralTrigger implements INodeType {
 				],
 				description: 'The Xentral event to listen for',
 			},
+			{
+				displayName: 'Signature Key',
+				name: 'signatureKey',
+				type: 'string',
+				typeOptions: {
+					password: true,
+				},
+				default: '',
+				description: 'Secret key for HMAC-SHA256 signature verification of incoming webhooks. If set, only verified payloads are accepted. Leave empty to auto-generate (Xentral will assign one).',
+			},
 		],
 	};
 
@@ -138,7 +150,7 @@ export class XentralTrigger implements INodeType {
 							return true;
 						}
 					}
-				} catch {
+				} catch (error: any) {
 					// Webhook listing may fail, treat as not existing
 				}
 
@@ -148,16 +160,21 @@ export class XentralTrigger implements INodeType {
 			async create(this: IHookFunctions): Promise<boolean> {
 				const webhookUrl = this.getNodeWebhookUrl('default');
 				const event = this.getNodeParameter('event') as string;
+				const signatureKey = this.getNodeParameter('signatureKey', '') as string;
 
 				const body: IDataObject = {
 					url: webhookUrl,
 					event,
 					active: true,
 				};
+				if (signatureKey) {
+					body.signatureKey = signatureKey;
+				}
 
 				const response = await xentralRequest.call(this, 'POST', 'webhooks', body, {}, 'v1');
 				const webhookData = this.getWorkflowStaticData('node');
 				webhookData.webhookId = (response.data as IDataObject)?.id || response.id;
+				webhookData.signatureKey = signatureKey;
 				return true;
 			},
 
@@ -167,9 +184,11 @@ export class XentralTrigger implements INodeType {
 
 				if (webhookId) {
 					try {
+						assertSafeId(webhookId, 'webhookId');
 						await xentralRequest.call(this, 'DELETE', `webhooks/${webhookId}`, {}, {}, 'v1');
-					} catch {
-						// Ignore deletion errors
+					} catch (error: any) {
+						// Log but don't fail - webhook may have been already deleted on Xentral side
+						console.warn(`[Xentral] Failed to delete webhook ${webhookId}: ${error.message || 'unknown error'}`);
 					}
 				}
 
@@ -180,12 +199,41 @@ export class XentralTrigger implements INodeType {
 	};
 
 	async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
+		const req = this.getRequestObject();
 		const body = this.getBodyData() as IDataObject;
+		const headers = this.getHeaderData() as IDataObject;
+
+		// Get signatureKey from static data (stored during webhook creation)
+		const staticData = this.getWorkflowStaticData('node') as IDataObject;
+		const signatureKey = (staticData.signatureKey as string) || '';
+
+		if (signatureKey) {
+			const xentralSignature = (headers['xentral-signature'] as string) || '';
+			const xentralTimestamp = (headers['xentral-request-timestamp'] as string) || '';
+
+			if (!xentralSignature || !xentralTimestamp) {
+				return { workflowData: [] };
+			}
+
+			const rawBody = req.rawBody?.toString() || JSON.stringify(body);
+			const message = rawBody + xentralTimestamp;
+			const expected = createHmac('sha256', signatureKey)
+				.update(message)
+				.digest('hex');
+
+			try {
+				const sigBuffer = Buffer.from(xentralSignature, 'hex');
+				const expectedBuffer = Buffer.from(expected, 'hex');
+				if (sigBuffer.length !== expectedBuffer.length || !timingSafeEqual(sigBuffer, expectedBuffer)) {
+					return { workflowData: [] };
+				}
+			} catch {
+				return { workflowData: [] };
+			}
+		}
 
 		return {
-			workflowData: [
-				this.helpers.returnJsonArray(body),
-			],
+			workflowData: [this.helpers.returnJsonArray(body)],
 		};
 	}
 }

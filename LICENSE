@@ -1,65 +1,43 @@
 Fair Use Code License (FUCL)
 
-Copyright (c) 2026 Mirza Iqbal / next8n (https://next8n.com)
-All rights reserved.
+Copyright (c) 2026 Mirza Iqbal / next8n (https://next8n.com). All rights reserved.
 
-This software and associated documentation files (the "Software") are the
-exclusive intellectual property of the copyright holder. The Software is
-published as an n8n community node for the Xentral ERP ecosystem.
+This node is published as an n8n community node for the benefit of the Xentral + n8n
+ecosystem. However, the intellectual property, source code, and all associated rights
+are owned exclusively by the copyright holder.
 
-PERMITTED USE:
-
-  1. You may install and use the Software for your own internal business
-     automation and workflow purposes.
+PERMITTED:
+  - Install and use this node for your own internal workflows and business automation
 
 PROHIBITED WITHOUT EXPLICIT WRITTEN CONSENT:
-
-  1. Commercial redistribution, resale, sublicensing, or white-labeling of
-     the Software or any substantial portion thereof.
-  2. Public redistribution of modified or unmodified copies of the Software.
-  3. Copying, forking, or reproducing the Software or its source code for
-     the purpose of creating competing or derivative products.
-  4. Removing, altering, or obscuring any copyright notices, license terms,
-     or attribution included in the Software.
-  5. Using the Software as part of a commercial service offering without a
-     separate commercial license agreement.
+  - Copying, forking, or reproducing the source code in any form
+  - Commercial redistribution, resale, sublicensing, or white-labeling
+  - Creating derivative works or competing products based on this code
+  - Public redistribution of modified or unmodified versions
+  - Using the Software as part of a commercial service offering
+  - Removing or altering copyright notices or attribution
 
 ATTRIBUTION:
-
-  This Software was developed and is actively maintained by next8n
-  (https://next8n.com). Attribution must be preserved in all permitted
-  copies and uses.
+  This node was developed and is actively maintained by next8n (https://next8n.com).
+  Attribution must be preserved in all copies.
 
 DISCLAIMER:
+  This software is provided "as is", without warranty of any kind, express or implied,
+  including but not limited to the warranties of merchantability, fitness for a
+  particular purpose, and noninfringement. In no event shall the authors or copyright
+  holders be liable for any claim, damages, or other liability, whether in an action
+  of contract, tort, or otherwise, arising from, out of, or in connection with the
+  software or the use or other dealings in the software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+LEGAL NOTICE:
+  "Xentral" and the Xentral logo are trademarks of Xentral ERP Software GmbH. We do
+  not claim ownership of the Xentral brand or logo. This node was developed independently
+  using publicly available API documentation for the purpose of interoperability, as
+  permitted under EU Directive 2009/24/EC (Software Directive, Article 6) and applicable
+  law. No Xentral proprietary code is included -- all interactions use publicly documented
+  REST API endpoints. This is an original, independently authored work; the entire source
+  code is the intellectual property of the copyright holder. The use of third-party APIs
+  for interoperability purposes does not constitute infringement under EU or international
+  law (see also Google LLC v. Oracle America, Inc., 593 U.S. 1 (2021) on API fair use).
 
-INTEROPERABILITY & LEGAL NOTICE:
-
-  This Software interfaces with the Xentral ERP REST API. It was developed
-  independently using publicly available Xentral API documentation for the
-  purpose of interoperability, as permitted under applicable law (including
-  EU Directive 2009/24/EC on the legal protection of computer programs,
-  Article 6 - Decompilation for Interoperability, and the German Copyright
-  Act / UrhG Section 69e).
-
-  No Xentral proprietary source code, binaries, or confidential materials
-  are included in this Software. All API interactions use only publicly
-  documented endpoints and standard HTTP protocols.
-
-TRADEMARK NOTICE:
-
-  "Xentral" and the Xentral logo are trademarks of Xentral ERP Software GmbH.
-  The copyright holder does not claim ownership of the Xentral brand, logo,
-  or any related trademarks. Use of the "Xentral" name in this Software is
-  solely for the purpose of identifying the compatible system and does not
-  imply endorsement or affiliation.
-
-For commercial licensing inquiries, partnership opportunities, or custom
-development requests, contact: https://services.next8n.com
+For commercial licensing, partnership, or custom development: https://services.next8n.com

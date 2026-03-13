@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll } from '../../transport';
+import { xentralRequest, xentralV3GetAll, assertSafeId } from '../../transport';
 
 export async function handleInvoice(
 	this: IExecuteFunctions,
@@ -28,12 +28,14 @@ export async function handleInvoice(
 
 	if (operation === 'get') {
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
 		return xentralRequest.call(this, 'GET', `invoices/${invoiceId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
 		const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 		const query: IDataObject = {};
 		let filterIndex = 0;
@@ -55,23 +57,27 @@ export async function handleInvoice(
 			query[`filter[${filterIndex}][value]`] = filters.createdAfter;
 			filterIndex++;
 		}
-		return xentralV3GetAll.call(this, 'invoices', query, limit);
+		return xentralV3GetAll.call(this, 'invoices', query, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'delete') {
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
 		return xentralRequest.call(this, 'DELETE', `invoices/${invoiceId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'addLineItem') {
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
+		assertSafeId(productId, 'productId');
 		const quantity = this.getNodeParameter('quantity', itemIndex) as number;
 		const lineItemOptions = this.getNodeParameter('lineItemOptions', itemIndex, {}) as IDataObject;
 
@@ -90,19 +96,24 @@ export async function handleInvoice(
 
 	if (operation === 'updateLineItem') {
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
+		assertSafeId(lineItemId, 'lineItemId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
+		assertSafeId(lineItemId, 'lineItemId');
 		return xentralRequest.call(this, 'DELETE', `invoices/${invoiceId}/lineItems/${lineItemId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'release') {
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
 		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}/actions/release`, {} as IDataObject, {}, 'v3');
 	}
 

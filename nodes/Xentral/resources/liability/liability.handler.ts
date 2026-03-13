@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handleLiability(
 	this: IExecuteFunctions,
@@ -24,17 +24,20 @@ export async function handleLiability(
 
 	if (operation === 'get') {
 		const liabilityId = this.getNodeParameter('liabilityId', itemIndex) as string;
+		assertSafeId(liabilityId, 'liabilityId');
 		return xentralRequest.call(this, 'GET', `liabilities/${liabilityId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'liabilities', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'liabilities', {}, limit, maxPages);
 	}
 
 	if (operation === 'release') {
 		const liabilityId = this.getNodeParameter('liabilityId', itemIndex) as string;
+		assertSafeId(liabilityId, 'liabilityId');
 		return xentralRequest.call(this, 'POST', `liabilities/${liabilityId}/actions/release`, {} as IDataObject, {}, 'v1');
 	}
 

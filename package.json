@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-xentralx",
-	"version": "0.9.4",
+	"version": "0.9.6",
 	"description": "The most comprehensive n8n community node for Xentral ERP - 30 resources, 163 operations, 58 webhook events. Full API audit verified. Built by next8n.",
 	"keywords": [
 		"n8n-community-node-package",
@@ -16,14 +16,15 @@
 		"warehouse",
 		"e-commerce"
 	],
-	"license": "SEE LICENSE IN LICENSE",
+	"license": "FUCL",
 	"author": {
 		"name": "Mirza Iqbal / next8n",
 		"url": "https://next8n.com"
 	},
+	"homepage": "https://next8n.com",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/mjmirza/n8n-nodes-xentral"
+		"url": "https://www.npmjs.com/package/n8n-nodes-xentralx"
 	},
 	"main": "index.js",
 	"scripts": {
@@ -35,7 +36,8 @@
 		"postpublish": "mv README.dev.md README.md"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"LICENSE"
 	],
 	"n8n": {
 		"n8nNodesApiVersion": 1,

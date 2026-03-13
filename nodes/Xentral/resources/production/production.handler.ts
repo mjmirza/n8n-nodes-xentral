@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handleProduction(
 	this: IExecuteFunctions,
@@ -25,27 +25,32 @@ export async function handleProduction(
 
 	if (operation === 'get') {
 		const productionId = this.getNodeParameter('productionId', itemIndex) as string;
+		assertSafeId(productionId, 'productionId');
 		return xentralRequest.call(this, 'GET', `productions/${productionId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'productions', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'productions', {}, limit, maxPages);
 	}
 
 	if (operation === 'delete') {
 		const productionId = this.getNodeParameter('productionId', itemIndex) as string;
+		assertSafeId(productionId, 'productionId');
 		return xentralRequest.call(this, 'DELETE', `productions/${productionId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'release') {
 		const productionId = this.getNodeParameter('productionId', itemIndex) as string;
+		assertSafeId(productionId, 'productionId');
 		return xentralRequest.call(this, 'PATCH', `productions/${productionId}/actions/release`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'start') {
 		const productionId = this.getNodeParameter('productionId', itemIndex) as string;
+		assertSafeId(productionId, 'productionId');
 		return xentralRequest.call(this, 'PATCH', `productions/${productionId}/actions/start`, {} as IDataObject, {}, 'v3');
 	}
 

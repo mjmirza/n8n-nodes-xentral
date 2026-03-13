@@ -105,7 +105,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['purchaseOrder'],
-				operation: ['getAll'],
+				operation: ['getAll', 'search'],
 			},
 		},
 		description: 'Whether to return all results or only up to a given limit',
@@ -119,7 +119,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['purchaseOrder'],
-				operation: ['getAll'],
+				operation: ['getAll', 'search'],
 				returnAll: [false],
 			},
 		},

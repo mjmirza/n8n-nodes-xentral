@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handleWebhook(
 	this: IExecuteFunctions,
@@ -23,17 +23,20 @@ export async function handleWebhook(
 
 	if (operation === 'get') {
 		const webhookId = this.getNodeParameter('webhookId', itemIndex) as string;
+		assertSafeId(webhookId, 'webhookId');
 		return xentralRequest.call(this, 'GET', `webhooks/${webhookId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'webhooks', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'webhooks', {}, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const webhookId = this.getNodeParameter('webhookId', itemIndex) as string;
+		assertSafeId(webhookId, 'webhookId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -47,6 +50,7 @@ export async function handleWebhook(
 
 	if (operation === 'delete') {
 		const webhookId = this.getNodeParameter('webhookId', itemIndex) as string;
+		assertSafeId(webhookId, 'webhookId');
 		return xentralRequest.call(this, 'DELETE', `webhooks/${webhookId}`, {}, {}, 'v1');
 	}
 

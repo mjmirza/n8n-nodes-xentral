@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://unpkg.com/n8n-nodes-xentralx@0.9.0/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
+  <img src="https://unpkg.com/n8n-nodes-xentralx@0.9.5/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
 </p>
 
 <h1 align="center">n8n-nodes-xentralx</h1>
@@ -78,45 +78,6 @@ Liability, Payment Method, Payment Terms Group, Shipping Method, Delivery Terms,
 
 ---
 
-## Full Operation Inventory
-
-| Resource | Operations | API |
-|----------|-----------|-----|
-| **Customer** | Create, Get, Get Many, Search, Update, Delete | V1 |
-| **Product** | Create, Get, Get Many, Search, Update, Delete | V1 |
-| **Sales Order** | Create, Get, Get Many, Update, Delete, Search, Cancel, Dispatch | V1 |
-| **Purchase Order** | Create, Get, Get Many, Search, Update, Delete, Cancel, Release | V1 |
-| **Return** | Create, Get, Get Many, Delete, Release | V1 |
-| **Supplier** | Get, Get Many, Search, Update | V1 |
-| **Warehouse** | Create, Get Many, Update, Delete | V1 |
-| **Address** | Create, Get Many, Update, Delete | V2 |
-| **Contact** | Create, Get, Get Many, Update, Delete | V1 |
-| **Tag** | Create, Get Many | V2 |
-| **Offer** | Create, Get, Get Many, Update, Delete, Add/Update/Delete Line Item, Release, Send, Cancel, Log Activity, Write Protection, Attach File | V3* |
-| **Invoice** | Create, Get, Get Many, Update, Delete, Add/Update/Delete Line Item, Release | V3 |
-| **Credit Note** | Create, Get, Get Many, Update, Delete, Add/Update/Delete Line Item, Release, Send, Cancel, Log Activity, Write Protection, Attach File | V3* |
-| **Delivery Note** | Create, Get, Get Many, Update, Delete, Add/Update/Delete Line Item | V3 |
-| **Proforma Invoice** | Create, Get, Get Many, Update, Delete, Add/Update/Delete Line Item, Release, Send, Cancel, Log Activity, Write Protection, Attach File | V3* |
-| **Production** | Create, Get, Get Many, Delete, Release, Start | V1+V3 |
-| **Shipment** | Create, Get, Get Many | V1 |
-| **Storage Location** | Get Many | V1 |
-| **Goods Receipt** | Create for Purchase Order, Create for Return | V1 |
-| **Sales Price** | Create, Get, Get Many, Update, Delete | V1 |
-| **Purchase Price** | Create, Get, Get Many, Update, Delete | V1 |
-| **Liability** | Create, Get, Get Many, Release | V1 |
-| **Payment Method** | Get Many | V1 |
-| **Payment Terms Group** | Create, Get, Get Many | V1 |
-| **Shipping Method** | Get, Get Many | V1 |
-| **Delivery Terms** | Get Many | V1 |
-| **Employee** | Get Many | V1 |
-| **Sales Channel** | Get Many | V1 |
-| **Project** | Get Many | V1 |
-| **Webhook** | Create, Get, Get Many, Update, Delete | V1 |
-
-*\* Requires Xentral feature flag to be enabled on your instance*
-
----
-
 ## 58 Webhook Trigger Events
 
 Real-time notifications for: Sales Orders, Products, Customers, Purchase Orders, Returns, Delivery Notes, Invoices, Credit Notes, Sales/Purchase Prices - including created, updated, deleted, released, sent, dispatched, archived, and more.
@@ -130,11 +91,7 @@ Every single endpoint in this node has been tested against the live Xentral API:
 - **All 163 operations** verified to point to existing, working API routes
 - **Zero 404 "Route not found" errors** on any non-feature-flag endpoint
 - **Correct field structures** validated for all create/update operations
-- **Three API versions** (V1, V2, V3) used where each is strongest
 - **Security hardened** - ID sanitization, SSRF protection, endpoint validation
-- **Pagination compliance** - respects all API limits (cursor, page, V3)
-
-See `AUDIT_REPORT.md` for the full test results.
 
 ---
 
@@ -194,33 +151,6 @@ We've delivered all of this for our clients and would be happy to discuss your s
 
 ---
 
-## Changelog
-
-### v0.9.0 (2026-03-13)
-- **Fixed V1 search filters** across all 5 searchable resources (customer, product, salesOrder, purchaseOrder, supplier) - was using invalid filter format, now uses correct indexed `filter[0][key]/[op]/[value]` format
-- **Fixed V3 filters** across all 5 document resources (invoice, deliveryNote, offer, creditNote, proformaInvoice) - same indexed filter format fix
-- **Fixed salesOrder search** to use `documentNumber` filter (was using non-existent `name` key)
-- **Fixed purchaseOrder search** to use `documentNumber` filter (was using non-existent `name` key)
-- **Fixed Tag create** - API requires both `title` and `type` fields; now correctly sends both with type dropdown (article/customer/supplier/project)
-- **Zero-friction credential setup** - token normalization handles any paste format: full token (`2|abc...xyz`), hash-only, accidental `Bearer` prefix, surrounding quotes, whitespace - just paste and go
-- Updated credential description and placeholder for better UX
-
-### v0.8.0 (2026-03-13)
-- **Full API audit** - every endpoint tested against live Xentral API
-- **30 resources, 163 operations** - all verified working
-- Added V2 API support (Addresses, Tags)
-- Fixed goods receipt endpoint path (`goods-receipt` -> `goodsReceipts`)
-- Fixed lineItems casing (`lineitems` -> `lineItems`) across all V3 documents
-- Fixed nested object structures for Product, Sales Order, Sales Price, Webhook, Contact, Warehouse, Production, Liability, Purchase Price, Payment Terms Group
-- Removed non-existent endpoints (Product Category, Tax Rate, various broken actions)
-- Security: Added ID sanitization, tightened endpoint regex, SSRF protection
-- Security: Hardened DELETE empty response handling
-
-### v0.7.0
-- Initial comprehensive release with 30+ resources
-
----
-
 ## License
 
 **Fair Use Code License (FUCL)**
@@ -246,7 +176,7 @@ This software is provided "as is", without warranty of any kind, express or impl
 
 **We built it. We maintain it. We own the rights to the code.**
 
-**Trademark & legal notice:** "Xentral" and the Xentral logo are trademarks of Xentral ERP Software GmbH. We do not claim ownership of the Xentral brand or logo. This node was developed independently using publicly available API documentation for the purpose of interoperability, as permitted under EU Directive 2009/24/EC and applicable law. No Xentral proprietary code is included - all interactions use publicly documented REST API endpoints.
+**Trademark & legal notice:** "Xentral" and the Xentral logo are trademarks of Xentral ERP Software GmbH. We do not claim ownership of the Xentral brand or logo. This node was developed independently using publicly available API documentation for the purpose of interoperability, as permitted under EU Directive 2009/24/EC (Software Directive, Article 6) and applicable law. No Xentral proprietary code is included -- all interactions use publicly documented REST API endpoints. This is an original, independently authored work; the entire source code is the intellectual property of the copyright holder. The use of third-party APIs for interoperability purposes does not constitute infringement under EU or international law (see also Google LLC v. Oracle America, Inc., 593 U.S. 1 (2021) on API fair use).
 
 Interested in collaborating or contributing? We're open to partnerships. Let's talk.
 

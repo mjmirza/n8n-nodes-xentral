@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handleSupplier(
 	this: IExecuteFunctions,
@@ -8,17 +8,20 @@ export async function handleSupplier(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'get') {
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
+		assertSafeId(supplierId, 'supplierId');
 		return xentralRequest.call(this, 'GET', `suppliers/${supplierId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'suppliers', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'suppliers', {}, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
+		assertSafeId(supplierId, 'supplierId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -46,12 +49,14 @@ export async function handleSupplier(
 
 	if (operation === 'search') {
 		const searchTerm = this.getNodeParameter('searchTerm', itemIndex) as string;
-		const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
+		const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
+		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex, 50) as number);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
 		return xentralV1PageGetAll.call(this, 'suppliers', {
 			'filter[0][key]': 'name',
 			'filter[0][op]': 'contains',
 			'filter[0][value]': searchTerm,
-		}, limit);
+		}, limit, maxPages);
 	}
 
 	throw new Error(`Unknown supplier operation: ${operation}`);
