@@ -46,19 +46,19 @@ export async function handleOffer(
 		const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 		const query: IDataObject = {};
 		let filterIndex = 0;
-		if (filters.status !== undefined) {
+		if (filters.status !== undefined && filters.status !== '') {
 			query[`filter[${filterIndex}][key]`] = 'status';
 			query[`filter[${filterIndex}][op]`] = 'equals';
 			query[`filter[${filterIndex}][value]`] = filters.status;
 			filterIndex++;
 		}
-		if (filters.customerId !== undefined) {
+		if (filters.customerId !== undefined && filters.customerId !== '') {
 			query[`filter[${filterIndex}][key]`] = 'customerId';
 			query[`filter[${filterIndex}][op]`] = 'equals';
 			query[`filter[${filterIndex}][value]`] = filters.customerId;
 			filterIndex++;
 		}
-		if (filters.createdAfter !== undefined) {
+		if (filters.createdAfter !== undefined && filters.createdAfter !== '') {
 			query[`filter[${filterIndex}][key]`] = 'createdAfter';
 			query[`filter[${filterIndex}][op]`] = 'gte';
 			query[`filter[${filterIndex}][value]`] = filters.createdAfter;
