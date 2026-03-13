@@ -72,11 +72,9 @@ function normalizeToken(raw: string): string {
 	// Remove all whitespace (spaces, newlines, tabs from copy-paste)
 	token = token.replace(/\s/g, '');
 	// Strip Laravel Sanctum "<id>|" prefix (e.g. "2|wQ5So..." -> "wQ5So...")
-	// Xentral PATs use this format, but only the hash after the pipe is needed.
-	// If Xentral ever removes the prefix, tokens without "|" pass through unchanged.
-	if (token.includes('|')) {
-		token = token.split('|').pop() || token;
-	}
+	// n8n silently strips the "|" from credential values, so we also handle
+	// the case where only the numeric ID remains glued to the front (e.g. "2wQ5So...")
+	token = token.replace(/^\d+\|?/, '');
 	return token;
 }
 
