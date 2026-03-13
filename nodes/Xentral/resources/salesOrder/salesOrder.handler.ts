@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 
 export async function handleSalesOrder(
 	this: IExecuteFunctions,
@@ -7,8 +7,8 @@ export async function handleSalesOrder(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const customerName = this.getNodeParameter('customerName', itemIndex) as string;
-		const project = this.getNodeParameter('project', itemIndex) as string;
+		const customerName = assertNonEmpty(this.getNodeParameter('customerName', itemIndex) as string, 'Customer Name');
+		const project = assertNonEmpty(this.getNodeParameter('project', itemIndex) as string, 'Project');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
@@ -46,6 +46,7 @@ export async function handleSalesOrder(
 		const salesOrderId = this.getNodeParameter('salesOrderId', itemIndex) as string;
 		assertSafeId(salesOrderId, 'salesOrderId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
+		assertNonEmptyBody(updateFields as IDataObject, 'sales order update');
 		return xentralRequest.call(this, 'PATCH', `salesOrders/${salesOrderId}`, updateFields as IDataObject, {}, 'v1');
 	}
 

@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 export async function handleProformaInvoice(
 	this: IExecuteFunctions,
@@ -61,6 +61,7 @@ export async function handleProformaInvoice(
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
+		assertNonEmptyBody(updateFields as IDataObject, 'proforma invoice update');
 		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
@@ -97,6 +98,7 @@ export async function handleProformaInvoice(
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		assertSafeId(lineItemId, 'lineItemId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
+		assertNonEmptyBody(updateFields as IDataObject, 'proforma invoice line item update');
 		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
 	}
 

@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1CursorGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1CursorGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 
 export async function handleCustomer(
 	this: IExecuteFunctions,
@@ -8,7 +8,7 @@ export async function handleCustomer(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
 		const type = this.getNodeParameter('customerType', itemIndex, 'company') as string;
-		const name = this.getNodeParameter('companyName', itemIndex) as string;
+		const name = assertNonEmpty(this.getNodeParameter('companyName', itemIndex) as string, 'Company Name');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
@@ -91,6 +91,7 @@ export async function handleCustomer(
 		if (Object.keys(address).length > 0) general.address = address;
 		if (Object.keys(general).length > 0) body.general = general;
 		if (updateFields.customerType !== undefined) body.type = updateFields.customerType;
+		assertNonEmptyBody(body, 'customer update');
 
 		return xentralRequest.call(this, 'PATCH', `customers/${customerId}`, body as IDataObject, {}, 'v1');
 	}

@@ -203,9 +203,8 @@ export class XentralTrigger implements INodeType {
 		const body = this.getBodyData() as IDataObject;
 		const headers = this.getHeaderData() as IDataObject;
 
-		// Get signatureKey from static data (stored during webhook creation)
-		const staticData = this.getWorkflowStaticData('node') as IDataObject;
-		const signatureKey = (staticData.signatureKey as string) || '';
+		// Read signatureKey from node parameters (persists across restarts, unlike staticData)
+		const signatureKey = (this.getNodeParameter('signatureKey', '') as string) || '';
 
 		if (signatureKey) {
 			const xentralSignature = (headers['xentral-signature'] as string) || '';

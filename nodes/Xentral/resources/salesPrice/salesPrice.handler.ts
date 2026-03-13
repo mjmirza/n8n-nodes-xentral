@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 export async function handleSalesPrice(
 	this: IExecuteFunctions,
@@ -59,6 +59,7 @@ export async function handleSalesPrice(
 		if (updateFields.validFrom !== undefined) body.validFrom = updateFields.validFrom;
 		if (updateFields.validTo !== undefined) body.validTo = updateFields.validTo;
 
+		assertNonEmptyBody(body, 'sales price update');
 		return xentralRequest.call(this, 'PATCH', `salesPrices/${salesPriceId}`, body as IDataObject, {}, 'v1');
 	}
 

@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty } from '../../transport';
 
 export async function handleShipment(
 	this: IExecuteFunctions,
@@ -7,7 +7,7 @@ export async function handleShipment(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const type = this.getNodeParameter('shipmentType', itemIndex) as string;
+		const type = assertNonEmpty(this.getNodeParameter('shipmentType', itemIndex) as string, 'Shipment Type');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = { type };

@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty } from '../../transport';
 
 export async function handlePaymentTermsGroup(
 	this: IExecuteFunctions,
@@ -7,8 +7,8 @@ export async function handlePaymentTermsGroup(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const name = this.getNodeParameter('paymentTermsGroupName', itemIndex) as string;
-		const key = this.getNodeParameter('paymentTermsGroupKey', itemIndex) as string;
+		const name = assertNonEmpty(this.getNodeParameter('paymentTermsGroupName', itemIndex) as string, 'Payment Terms Group Name');
+		const key = assertNonEmpty(this.getNodeParameter('paymentTermsGroupKey', itemIndex) as string, 'Payment Terms Group Key');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
