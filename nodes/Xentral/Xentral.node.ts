@@ -272,6 +272,7 @@ export class Xentral implements INodeType {
 				this: ICredentialTestFunctions,
 				credential: ICredentialsDecrypted,
 			): Promise<INodeCredentialTestResult> {
+				const NODE_VERSION = '0.9.3';
 				const { instanceUrl, accessToken } = (credential.data || {}) as {
 					instanceUrl: string;
 					accessToken: string;
@@ -279,7 +280,7 @@ export class Xentral implements INodeType {
 
 				let url = (instanceUrl || '').trim().replace(/\/+$/, '');
 				if (/^http:\/\//i.test(url)) {
-					return { status: 'Error', message: 'HTTP is not allowed, use HTTPS' };
+					return { status: 'Error', message: `[v${NODE_VERSION}] HTTP is not allowed, use HTTPS` };
 				}
 				if (!/^https:\/\//i.test(url)) {
 					url = 'https://' + url;
@@ -301,40 +302,57 @@ export class Xentral implements INodeType {
 						hostname === '::1' ||
 						hostname.startsWith('[')
 					) {
-						return { status: 'Error', message: 'Connections to internal network addresses are not allowed' };
+						return { status: 'Error', message: `[v${NODE_VERSION}] Connections to internal network addresses are not allowed` };
 					}
 				} catch {
-					return { status: 'Error', message: 'Invalid Xentral instance URL' };
+					return { status: 'Error', message: `[v${NODE_VERSION}] Invalid Xentral instance URL` };
 				}
 
-				// Normalize token: strip whitespace, quotes, Bearer prefix, and Laravel Sanctum "<id>|" prefix
-				let token = (accessToken || '').trim();
-				token = token.replace(/^["'`]+|["'`]+$/g, '');
-				token = token.replace(/^Bearer\s+/i, '');
-				token = token.replace(/\s/g, '');
-				if (token.includes('|')) {
-					token = token.split('|').pop() || token;
-				}
-				if (!token) {
-					return { status: 'Error', message: 'Access Token is required' };
+				const rawToken = (accessToken || '').trim();
+				if (!rawToken) {
+					return { status: 'Error', message: `[v${NODE_VERSION}] Access Token is required` };
 				}
 
-				try {
-					await this.helpers.request({
-						method: 'GET',
-						url: `${url}/api/v1/customers`,
-						headers: {
-							Authorization: `Bearer ${token}`,
-							Accept: 'application/json',
-							'Content-Type': 'application/json',
-						},
-						json: true,
-					});
-					return { status: 'OK', message: 'Connection successful' };
-				} catch (error: any) {
-					const msg = error.message || 'Unknown error';
-					return { status: 'Error', message: `Connection failed: ${msg}` };
+				// Build list of tokens to try (most likely first)
+				const tokensToTry: string[] = [];
+
+				// 1. Stripped token (after pipe) - most likely what works
+				let cleaned = rawToken.replace(/^["'`]+|["'`]+$/g, '').replace(/^Bearer\s+/i, '').replace(/\s/g, '');
+				if (cleaned.includes('|')) {
+					const afterPipe = cleaned.split('|').pop();
+					if (afterPipe) tokensToTry.push(afterPipe);
 				}
+
+				// 2. Full cleaned token (as-is, without pipe stripping)
+				if (!tokensToTry.includes(cleaned)) {
+					tokensToTry.push(cleaned);
+				}
+
+				const testUrl = `${url}/api/v1/products?page[number]=1&page[size]=10`;
+
+				for (const token of tokensToTry) {
+					try {
+						await this.helpers.request({
+							method: 'GET',
+							url: testUrl,
+							headers: {
+								Authorization: `Bearer ${token}`,
+								Accept: 'application/json',
+								'Content-Type': 'application/json',
+							},
+							json: true,
+						});
+						return { status: 'OK', message: `[v${NODE_VERSION}] Connection successful` };
+					} catch {
+						// Try next token variant
+					}
+				}
+
+				// All attempts failed
+				return {
+					status: 'Error',
+					message: `[v${NODE_VERSION}] Connection failed: 401 - Authentication failed. Token length: ${rawToken.length}, had pipe: ${rawToken.includes('|')}. Tried ${tokensToTry.length} variant(s).`,
+				};
 			},
 		},
 	};
