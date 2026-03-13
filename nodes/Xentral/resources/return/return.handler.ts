@@ -13,8 +13,14 @@ export async function handleReturn(
 
 		const body: IDataObject = {};
 
-		if (salesOrderId) body.salesOrder = { id: salesOrderId };
-		if (customerId) body.customer = { id: customerId };
+		if (salesOrderId) {
+			assertSafeId(salesOrderId, 'salesOrderId');
+			body.salesOrder = { id: salesOrderId };
+		}
+		if (customerId) {
+			assertSafeId(customerId, 'customerId');
+			body.customer = { id: customerId };
+		}
 		if (additionalFields.reason !== undefined) body.reason = additionalFields.reason;
 		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
 

@@ -197,11 +197,25 @@ export async function xentralRequest(
 		options.body = body;
 	}
 
-	try {
-		const response = await this.helpers.httpRequest(options);
-		return response;
-	} catch (error: any) {
-		handleXentralError(this, error);
+	// Retry loop for rate limiting (429) with exponential backoff
+	const maxRetries = 3;
+	for (let attempt = 0; attempt <= maxRetries; attempt++) {
+		try {
+			const response = await this.helpers.httpRequest(options);
+			return response;
+		} catch (error: any) {
+			const statusCode = error.response?.statusCode || error.statusCode;
+			if (statusCode === 429 && attempt < maxRetries) {
+				// Use Retry-After header if available, otherwise exponential backoff
+				const retryAfter = error.response?.headers?.['retry-after'];
+				const waitMs = retryAfter
+					? Math.min(parseInt(retryAfter, 10) * 1000, 30000)
+					: Math.min(1000 * Math.pow(2, attempt), 10000);
+				await new Promise((resolve) => setTimeout(resolve, waitMs));
+				continue;
+			}
+			handleXentralError(this, error);
+		}
 	}
 }
 
