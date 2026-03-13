@@ -16,7 +16,49 @@ export const tagFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The name/slug of the tag',
+		description: 'The title of the tag (required by Xentral API)',
+	},
+	{
+		displayName: 'Tag Type',
+		name: 'tagType',
+		type: 'options',
+		default: 'article',
+		required: true,
+		options: [
+			{ name: 'Article', value: 'article' },
+			{ name: 'Customer', value: 'customer' },
+			{ name: 'Supplier', value: 'supplier' },
+			{ name: 'Project', value: 'project' },
+		],
+		displayOptions: {
+			show: {
+				resource: ['tag'],
+				operation: ['create'],
+			},
+		},
+		description: 'The type/category of the tag (required by Xentral API)',
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['tag'],
+				operation: ['create'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Description',
+				name: 'description',
+				type: 'string',
+				default: '',
+				description: 'A description for the tag',
+			},
+		],
 	},
 
 	// ----------------------------------

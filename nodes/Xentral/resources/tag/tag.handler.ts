@@ -8,10 +8,16 @@ export async function handleTag(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
 		const tagName = this.getNodeParameter('tagName', itemIndex) as string;
+		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
+
+		const tagType = this.getNodeParameter('tagType', itemIndex, 'article') as string;
 
 		const body: IDataObject = {
-			type: tagName,
+			title: tagName,
+			type: tagType,
 		};
+
+		if (additionalFields.description !== undefined) body.description = additionalFields.description;
 
 		return xentralRequest.call(this, 'POST', 'tags', body, {}, 'v2');
 	}

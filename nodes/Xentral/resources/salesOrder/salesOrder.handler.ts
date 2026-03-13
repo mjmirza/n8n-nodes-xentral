@@ -54,7 +54,11 @@ export async function handleSalesOrder(
 	if (operation === 'search') {
 		const searchTerm = this.getNodeParameter('searchTerm', itemIndex) as string;
 		const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
-		return xentralV1PageGetAll.call(this, 'salesOrders', { 'filter[name]': searchTerm }, limit);
+		return xentralV1PageGetAll.call(this, 'salesOrders', {
+			'filter[0][key]': 'documentNumber',
+			'filter[0][op]': 'contains',
+			'filter[0][value]': searchTerm,
+		}, limit);
 	}
 
 	if (operation === 'cancel') {

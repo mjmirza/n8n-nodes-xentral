@@ -35,8 +35,19 @@ export async function handleCreditNote(
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
 		const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 		const query: IDataObject = {};
-		if (filters.status !== undefined) query['filter[status]'] = filters.status;
-		if (filters.customerId !== undefined) query['filter[customerId]'] = filters.customerId;
+		let filterIndex = 0;
+		if (filters.status !== undefined) {
+			query[`filter[${filterIndex}][key]`] = 'status';
+			query[`filter[${filterIndex}][op]`] = 'equals';
+			query[`filter[${filterIndex}][value]`] = filters.status;
+			filterIndex++;
+		}
+		if (filters.customerId !== undefined) {
+			query[`filter[${filterIndex}][key]`] = 'customerId';
+			query[`filter[${filterIndex}][op]`] = 'equals';
+			query[`filter[${filterIndex}][value]`] = filters.customerId;
+			filterIndex++;
+		}
 		return xentralV3GetAll.call(this, 'creditnotes', query, limit);
 	}
 

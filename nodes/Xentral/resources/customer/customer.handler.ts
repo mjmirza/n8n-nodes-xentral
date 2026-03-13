@@ -100,7 +100,11 @@ export async function handleCustomer(
 	if (operation === 'search') {
 		const searchTerm = this.getNodeParameter('searchTerm', itemIndex) as string;
 		const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
-		return xentralV1CursorGetAll.call(this, 'customers', { 'filter[name]': searchTerm }, limit);
+		return xentralV1CursorGetAll.call(this, 'customers', {
+			'filter[0][key]': 'name',
+			'filter[0][op]': 'contains',
+			'filter[0][value]': searchTerm,
+		}, limit);
 	}
 
 	throw new Error(`Unknown customer operation: ${operation}`);
