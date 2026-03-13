@@ -115,9 +115,12 @@ function handleXentralError(
 
 function parseXentralError(responseBody: any): string {
 	if (!responseBody) return 'Unknown Xentral API error';
+	if (typeof responseBody === 'string') return responseBody;
 	const parts: string[] = [];
 	if (responseBody.title) parts.push(responseBody.title);
 	if (responseBody.detail) parts.push(responseBody.detail);
+	if (responseBody.message && !responseBody.title) parts.push(responseBody.message);
+	if (responseBody.error) parts.push(String(responseBody.error));
 	if (responseBody.violations) {
 		const v = responseBody.violations;
 		if (typeof v === 'object') {
@@ -127,6 +130,17 @@ function parseXentralError(responseBody: any): string {
 						parts.push(key === '_' ? String(msg) : `${key}: ${msg}`);
 					}
 				}
+			}
+		}
+	}
+	if (responseBody.errors) {
+		const e = responseBody.errors;
+		if (Array.isArray(e)) {
+			parts.push(...e.map(String));
+		} else if (typeof e === 'object') {
+			for (const [key, msgs] of Object.entries(e)) {
+				const msgStr = Array.isArray(msgs) ? msgs.join(', ') : String(msgs);
+				parts.push(`${key}: ${msgStr}`);
 			}
 		}
 	}
@@ -213,21 +227,23 @@ export async function xentralRequest(
 		options.body = body;
 	}
 
-	// Retry loop for rate limiting (429) with exponential backoff
+	// Retry loop for transient errors with exponential backoff + jitter
 	const maxRetries = 3;
+	const retryableStatuses = [429, 502, 503, 504];
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
 		try {
 			const response = await this.helpers.httpRequest(options);
 			return response;
 		} catch (error: any) {
 			const statusCode = error.response?.statusCode || error.statusCode;
-			if (statusCode === 429 && attempt < maxRetries) {
-				// Use Retry-After header if available, otherwise exponential backoff
+			if (retryableStatuses.includes(statusCode) && attempt < maxRetries) {
 				const retryAfter = error.response?.headers?.['retry-after'];
-				const waitMs = retryAfter
+				const baseMs = retryAfter
 					? Math.min(parseInt(retryAfter, 10) * 1000, 30000)
 					: Math.min(1000 * Math.pow(2, attempt), 10000);
-				await new Promise((resolve) => setTimeout(resolve, waitMs));
+				// Add jitter (0-25% of base) to prevent thundering herd
+				const jitter = Math.floor(Math.random() * baseMs * 0.25);
+				await new Promise((resolve) => setTimeout(resolve, baseMs + jitter));
 				continue;
 			}
 			handleXentralError(this, error);
