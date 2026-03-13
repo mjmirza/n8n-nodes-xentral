@@ -272,7 +272,7 @@ export class Xentral implements INodeType {
 				this: ICredentialTestFunctions,
 				credential: ICredentialsDecrypted,
 			): Promise<INodeCredentialTestResult> {
-				const NODE_VERSION = '0.9.3';
+				const NODE_VERSION = '0.9.4';
 				const { instanceUrl, accessToken } = (credential.data || {}) as {
 					instanceUrl: string;
 					accessToken: string;
@@ -316,14 +316,14 @@ export class Xentral implements INodeType {
 				// Build list of tokens to try (most likely first)
 				const tokensToTry: string[] = [];
 
-				// 1. Stripped token (after pipe) - most likely what works
+				// Clean token: strip quotes, Bearer prefix, whitespace, then Sanctum ID prefix
+				// n8n silently strips "|" from credential values, so "2|abc" becomes "2abc"
+				// We strip leading digits + optional pipe to handle both cases
 				let cleaned = rawToken.replace(/^["'`]+|["'`]+$/g, '').replace(/^Bearer\s+/i, '').replace(/\s/g, '');
-				if (cleaned.includes('|')) {
-					const afterPipe = cleaned.split('|').pop();
-					if (afterPipe) tokensToTry.push(afterPipe);
-				}
+				const stripped = cleaned.replace(/^\d+\|?/, '');
+				if (stripped && stripped !== cleaned) tokensToTry.push(stripped);
 
-				// 2. Full cleaned token (as-is, without pipe stripping)
+				// Also try the full cleaned token as fallback
 				if (!tokensToTry.includes(cleaned)) {
 					tokensToTry.push(cleaned);
 				}
