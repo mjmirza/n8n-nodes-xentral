@@ -48,7 +48,10 @@ export async function handleSupplier(
 	}
 
 	if (operation === 'search') {
-		const searchTerm = this.getNodeParameter('searchTerm', itemIndex) as string;
+		const searchTerm = (this.getNodeParameter('searchTerm', itemIndex) as string).trim();
+		if (!searchTerm) {
+			return [];
+		}
 		const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex, 50) as number);
 		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;

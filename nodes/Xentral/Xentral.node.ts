@@ -288,7 +288,7 @@ export class Xentral implements INodeType {
 				this: ICredentialTestFunctions,
 				credential: ICredentialsDecrypted,
 			): Promise<INodeCredentialTestResult> {
-				const NODE_VERSION = '0.9.6';
+				const NODE_VERSION = '0.9.7';
 				const { instanceUrl, accessToken } = (credential.data || {}) as {
 					instanceUrl: string;
 					accessToken: string;
