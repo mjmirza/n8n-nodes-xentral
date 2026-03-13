@@ -48,6 +48,34 @@ export const purchasePriceFields: INodeProperties[] = [
 		description: 'Minimum quantity for this price tier',
 	},
 	{
+		displayName: 'Valid From',
+		name: 'validFrom',
+		type: 'dateTime',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['purchasePrice'],
+				operation: ['create'],
+			},
+		},
+		description: 'Start date for this price (required by Xentral API)',
+	},
+	{
+		displayName: 'Expires At',
+		name: 'expiresAt',
+		type: 'dateTime',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['purchasePrice'],
+				operation: ['create'],
+			},
+		},
+		description: 'Expiration date for this price (required by Xentral API)',
+	},
+	{
 		displayName: 'Package Amount',
 		name: 'packageAmount',
 		type: 'number',
@@ -76,12 +104,12 @@ export const purchasePriceFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Price',
-				name: 'price',
+				displayName: 'Amount',
+				name: 'amount',
 				type: 'number',
 				default: 0,
 				typeOptions: { numberPrecision: 2 },
-				description: 'The purchase price',
+				description: 'The purchase price amount (number)',
 			},
 			{
 				displayName: 'Currency',

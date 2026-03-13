@@ -9,6 +9,8 @@ export async function handlePurchasePrice(
 	if (operation === 'create') {
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
+		const validFrom = this.getNodeParameter('validFrom', itemIndex) as string;
+		const expiresAt = this.getNodeParameter('expiresAt', itemIndex) as string;
 		const fromQuantity = this.getNodeParameter('fromQuantity', itemIndex, 1) as number;
 		const packageAmount = this.getNodeParameter('packageAmount', itemIndex, 1) as number;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
@@ -16,12 +18,15 @@ export async function handlePurchasePrice(
 		const body: IDataObject = {
 			product: { id: productId },
 			supplier: { id: supplierId },
+			validFrom,
+			expiresAt,
 			fromQuantity,
 			packageAmount,
 		};
 
-		if (additionalFields.price !== undefined) body.price = additionalFields.price;
-		if (additionalFields.currency !== undefined) body.currency = additionalFields.currency;
+		if (additionalFields.amount !== undefined) {
+			body.price = { amount: Number(additionalFields.amount), currency: (additionalFields.currency as string) || 'EUR' };
+		}
 		if (additionalFields.deliveryTime !== undefined) body.deliveryTime = additionalFields.deliveryTime;
 
 		return xentralRequest.call(this, 'POST', 'purchasePrices', body as IDataObject, {}, 'v1');

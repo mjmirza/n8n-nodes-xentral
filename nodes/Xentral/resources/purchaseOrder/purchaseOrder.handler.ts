@@ -10,8 +10,11 @@ export async function handlePurchaseOrder(
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
+		const date = this.getNodeParameter('date', itemIndex) as string;
+
 		const body: IDataObject = {
 			supplier: { id: supplierId },
+			date,
 		};
 
 		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
