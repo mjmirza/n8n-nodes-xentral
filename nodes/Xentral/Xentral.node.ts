@@ -307,7 +307,14 @@ export class Xentral implements INodeType {
 					return { status: 'Error', message: 'Invalid Xentral instance URL' };
 				}
 
-				const token = (accessToken || '').replace(/\s/g, '');
+				// Normalize token: strip whitespace, quotes, Bearer prefix, and Laravel Sanctum "<id>|" prefix
+				let token = (accessToken || '').trim();
+				token = token.replace(/^["'`]+|["'`]+$/g, '');
+				token = token.replace(/^Bearer\s+/i, '');
+				token = token.replace(/\s/g, '');
+				if (token.includes('|')) {
+					token = token.split('|').pop() || token;
+				}
 				if (!token) {
 					return { status: 'Error', message: 'Access Token is required' };
 				}
