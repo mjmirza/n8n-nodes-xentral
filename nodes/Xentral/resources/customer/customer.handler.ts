@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1CursorGetAll } from '../../transport';
+import { xentralRequest, xentralV1CursorGetAll, assertSafeId } from '../../transport';
 
 export async function handleCustomer(
 	this: IExecuteFunctions,
@@ -53,17 +53,20 @@ export async function handleCustomer(
 
 	if (operation === 'get') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
+		assertSafeId(customerId, 'customerId');
 		return xentralRequest.call(this, 'GET', `customers/${customerId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1CursorGetAll.call(this, 'customers', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1CursorGetAll.call(this, 'customers', {}, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
+		assertSafeId(customerId, 'customerId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -94,17 +97,20 @@ export async function handleCustomer(
 
 	if (operation === 'delete') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
+		assertSafeId(customerId, 'customerId');
 		return xentralRequest.call(this, 'DELETE', `customers/${customerId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'search') {
 		const searchTerm = this.getNodeParameter('searchTerm', itemIndex) as string;
-		const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
+		const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
+		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex, 50) as number);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
 		return xentralV1CursorGetAll.call(this, 'customers', {
 			'filter[0][key]': 'name',
 			'filter[0][op]': 'contains',
 			'filter[0][value]': searchTerm,
-		}, limit);
+		}, limit, maxPages);
 	}
 
 	throw new Error(`Unknown customer operation: ${operation}`);

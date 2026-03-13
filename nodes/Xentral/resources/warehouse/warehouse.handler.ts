@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handleWarehouse(
 	this: IExecuteFunctions,
@@ -31,11 +31,13 @@ export async function handleWarehouse(
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'warehouses', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'warehouses', {}, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const warehouseId = this.getNodeParameter('warehouseId', itemIndex) as string;
+		assertSafeId(warehouseId, 'warehouseId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -52,6 +54,7 @@ export async function handleWarehouse(
 
 	if (operation === 'delete') {
 		const warehouseId = this.getNodeParameter('warehouseId', itemIndex) as string;
+		assertSafeId(warehouseId, 'warehouseId');
 		return xentralRequest.call(this, 'DELETE', `warehouses/${warehouseId}`, {}, {}, 'v1');
 	}
 

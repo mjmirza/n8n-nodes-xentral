@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://unpkg.com/n8n-nodes-xentralx@0.9.0/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
+  <img src="https://unpkg.com/n8n-nodes-xentralx@0.9.5/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
 </p>
 
 <h1 align="center">n8n-nodes-xentralx</h1>
@@ -176,7 +176,7 @@ This software is provided "as is", without warranty of any kind, express or impl
 
 **We built it. We maintain it. We own the rights to the code.**
 
-**Trademark & legal notice:** "Xentral" and the Xentral logo are trademarks of Xentral ERP Software GmbH. We do not claim ownership of the Xentral brand or logo. This node was developed independently using publicly available API documentation for the purpose of interoperability, as permitted under EU Directive 2009/24/EC and applicable law. No Xentral proprietary code is included - all interactions use publicly documented REST API endpoints.
+**Trademark & legal notice:** "Xentral" and the Xentral logo are trademarks of Xentral ERP Software GmbH. We do not claim ownership of the Xentral brand or logo. This node was developed independently using publicly available API documentation for the purpose of interoperability, as permitted under EU Directive 2009/24/EC (Software Directive, Article 6) and applicable law. No Xentral proprietary code is included -- all interactions use publicly documented REST API endpoints. This is an original, independently authored work; the entire source code is the intellectual property of the copyright holder. The use of third-party APIs for interoperability purposes does not constitute infringement under EU or international law (see also Google LLC v. Oracle America, Inc., 593 U.S. 1 (2021) on API fair use).
 
 Interested in collaborating or contributing? We're open to partnerships. Let's talk.
 

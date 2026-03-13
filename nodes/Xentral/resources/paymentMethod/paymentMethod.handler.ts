@@ -9,7 +9,8 @@ export async function handlePaymentMethod(
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'paymentMethods', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'paymentMethods', {}, limit, maxPages);
 	}
 
 	throw new Error(`Unknown paymentMethod operation: ${operation}`);

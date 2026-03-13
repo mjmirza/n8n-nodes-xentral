@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handleProduct(
 	this: IExecuteFunctions,
@@ -36,17 +36,20 @@ export async function handleProduct(
 
 	if (operation === 'get') {
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
+		assertSafeId(productId, 'productId');
 		return xentralRequest.call(this, 'GET', `products/${productId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'products', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'products', {}, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
+		assertSafeId(productId, 'productId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -63,17 +66,20 @@ export async function handleProduct(
 
 	if (operation === 'delete') {
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
+		assertSafeId(productId, 'productId');
 		return xentralRequest.call(this, 'DELETE', `products/${productId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'search') {
 		const searchTerm = this.getNodeParameter('searchTerm', itemIndex) as string;
-		const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
+		const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
+		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex, 50) as number);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
 		return xentralV1PageGetAll.call(this, 'products', {
 			'filter[0][key]': 'name',
 			'filter[0][op]': 'contains',
 			'filter[0][value]': searchTerm,
-		}, limit);
+		}, limit, maxPages);
 	}
 
 	throw new Error(`Unknown product operation: ${operation}`);

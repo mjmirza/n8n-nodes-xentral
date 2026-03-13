@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handlePurchaseOrder(
 	this: IExecuteFunctions,
@@ -27,17 +27,20 @@ export async function handlePurchaseOrder(
 
 	if (operation === 'get') {
 		const purchaseOrderId = this.getNodeParameter('purchaseOrderId', itemIndex) as string;
+		assertSafeId(purchaseOrderId, 'purchaseOrderId');
 		return xentralRequest.call(this, 'GET', `purchaseOrders/${purchaseOrderId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'purchaseOrders', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'purchaseOrders', {}, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const purchaseOrderId = this.getNodeParameter('purchaseOrderId', itemIndex) as string;
+		assertSafeId(purchaseOrderId, 'purchaseOrderId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -51,26 +54,31 @@ export async function handlePurchaseOrder(
 
 	if (operation === 'delete') {
 		const purchaseOrderId = this.getNodeParameter('purchaseOrderId', itemIndex) as string;
+		assertSafeId(purchaseOrderId, 'purchaseOrderId');
 		return xentralRequest.call(this, 'DELETE', `purchaseOrders/${purchaseOrderId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'search') {
 		const searchTerm = this.getNodeParameter('searchTerm', itemIndex) as string;
-		const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
+		const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
+		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex, 50) as number);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
 		return xentralV1PageGetAll.call(this, 'purchaseOrders', {
 			'filter[0][key]': 'documentNumber',
 			'filter[0][op]': 'contains',
 			'filter[0][value]': searchTerm,
-		}, limit);
+		}, limit, maxPages);
 	}
 
 	if (operation === 'cancel') {
 		const purchaseOrderId = this.getNodeParameter('purchaseOrderId', itemIndex) as string;
+		assertSafeId(purchaseOrderId, 'purchaseOrderId');
 		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/actions/cancel`, {} as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'release') {
 		const purchaseOrderId = this.getNodeParameter('purchaseOrderId', itemIndex) as string;
+		assertSafeId(purchaseOrderId, 'purchaseOrderId');
 		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/actions/release`, {} as IDataObject, {}, 'v1');
 	}
 

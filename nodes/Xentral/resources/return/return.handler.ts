@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handleReturn(
 	this: IExecuteFunctions,
@@ -23,22 +23,26 @@ export async function handleReturn(
 
 	if (operation === 'get') {
 		const returnId = this.getNodeParameter('returnId', itemIndex) as string;
+		assertSafeId(returnId, 'returnId');
 		return xentralRequest.call(this, 'GET', `returns/${returnId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'returns', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'returns', {}, limit, maxPages);
 	}
 
 	if (operation === 'delete') {
 		const returnId = this.getNodeParameter('returnId', itemIndex) as string;
+		assertSafeId(returnId, 'returnId');
 		return xentralRequest.call(this, 'DELETE', `returns/${returnId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'release') {
 		const returnId = this.getNodeParameter('returnId', itemIndex) as string;
+		assertSafeId(returnId, 'returnId');
 		return xentralRequest.call(this, 'POST', `returns/${returnId}/actions/release`, {} as IDataObject, {}, 'v1');
 	}
 

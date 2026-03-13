@@ -28,21 +28,24 @@ function normalizeUrl(raw: string): string {
 		if (
 			hostname === 'localhost' ||
 			hostname === '0.0.0.0' ||
+			hostname === '0' ||
 			/^127\./.test(hostname) ||
 			/^10\./.test(hostname) ||
 			/^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
 			/^192\.168\./.test(hostname) ||
 			/^169\.254\./.test(hostname) ||
+			/^0+\./.test(hostname) ||
 			hostname === '::1' ||
 			hostname.startsWith('[') ||
 			/^fc00:/i.test(hostname) ||
-			/^fe80:/i.test(hostname)
+			/^fe80:/i.test(hostname) ||
+			/^::ffff:/i.test(hostname)
 		) {
 			throw new Error('Connections to internal or reserved network addresses are not allowed');
 		}
 	} catch (e: any) {
 		if (e.message.includes('not allowed')) throw e;
-		throw new Error(`Invalid Xentral instance URL: ${url}`);
+		throw new Error('Invalid Xentral instance URL. Please check the format (e.g. https://yourcompany.xentral.com).');
 	}
 
 	return url;
@@ -71,11 +74,43 @@ function normalizeToken(raw: string): string {
 	token = token.replace(/^Bearer\s+/i, '');
 	// Remove all whitespace (spaces, newlines, tabs from copy-paste)
 	token = token.replace(/\s/g, '');
-	// Strip Laravel Sanctum "<id>|" prefix (e.g. "2|wQ5So..." -> "wQ5So...")
-	// n8n silently strips the "|" from credential values, so we also handle
-	// the case where only the numeric ID remains glued to the front (e.g. "2wQ5So...")
-	token = token.replace(/^\d+\|?/, '');
+	// Strip Laravel Sanctum "<id>|<hash>" prefix
+	// If pipe is present, strip everything before and including it
+	if (token.includes('|')) {
+		token = token.substring(token.indexOf('|') + 1);
+	} else {
+		// n8n silently strips "|" from credential values, so "2|wQ5So..." becomes "2wQ5So..."
+		// Sanctum hashes are exactly 40 chars ([a-zA-Z0-9]). Strip minimal leading digits.
+		// Only strip 1-4 leading digits (Sanctum IDs are small sequential integers)
+		token = token.replace(/^\d{1,4}(?=[a-zA-Z])/, '');
+	}
 	return token;
+}
+
+function handleXentralError(
+	node: IExecuteFunctions | ILoadOptionsFunctions | IHookFunctions,
+	error: any,
+): never {
+	if (error.response?.body) {
+		let errorBody: any;
+		try {
+			errorBody = typeof error.response.body === 'string'
+				? JSON.parse(error.response.body)
+				: error.response.body;
+		} catch {
+			errorBody = { detail: String(error.response.body) };
+		}
+		const message = parseXentralError(errorBody);
+		const safeError: Record<string, any> = {
+			message: error.message,
+			statusCode: error.response?.statusCode || error.statusCode,
+		};
+		throw new NodeApiError(node.getNode(), safeError as JsonObject, { message });
+	}
+	const safeError: Record<string, any> = {
+		message: error.message || 'Unknown error',
+	};
+	throw new NodeApiError(node.getNode(), safeError as JsonObject);
 }
 
 function parseXentralError(responseBody: any): string {
@@ -138,6 +173,9 @@ export async function xentralRequest(
 	const credentials = await getCredentials(this);
 	const instanceUrl = credentials.instanceUrl as string;
 	const accessToken = normalizeToken(credentials.accessToken as string || '');
+	if (!accessToken) {
+		throw new NodeApiError(this.getNode(), { message: 'No access token configured' } as JsonObject, { message: 'Xentral access token is empty. Please configure your credentials.' });
+	}
 	const safeEndpoint = sanitizeEndpoint(endpoint);
 
 	const options: IHttpRequestOptions = {
@@ -163,29 +201,7 @@ export async function xentralRequest(
 		const response = await this.helpers.httpRequest(options);
 		return response;
 	} catch (error: any) {
-		// Try to parse Xentral's RFC 9457 error format
-		if (error.response?.body) {
-			let errorBody: any;
-			try {
-				errorBody = typeof error.response.body === 'string'
-					? JSON.parse(error.response.body)
-					: error.response.body;
-			} catch {
-				errorBody = { detail: String(error.response.body) };
-			}
-			const message = parseXentralError(errorBody);
-			// Sanitize error: strip headers that may contain credentials
-			const safeError: Record<string, any> = {
-				message: error.message,
-				statusCode: error.response?.statusCode || error.statusCode,
-			};
-			throw new NodeApiError(this.getNode(), safeError as JsonObject, { message });
-		}
-		// Sanitize: only pass message, not full error with headers/tokens
-		const safeError: Record<string, any> = {
-			message: error.message || 'Unknown error',
-		};
-		throw new NodeApiError(this.getNode(), safeError as JsonObject);
+		handleXentralError(this, error);
 	}
 }
 
@@ -196,12 +212,13 @@ export async function xentralV1CursorGetAll(
 	endpoint: string,
 	query: IDataObject = {},
 	limit?: number,
+	maxPages?: number,
 ): Promise<IDataObject[]> {
 	const returnData: IDataObject[] = [];
 	const cursorSize = 50;
 	let nextCursor: string | undefined;
 	let iterations = 0;
-	const maxIterations = 100;
+	const maxIterations = maxPages && maxPages > 0 ? maxPages : 1000;
 
 	do {
 		const qs: IDataObject = {
@@ -224,6 +241,14 @@ export async function xentralV1CursorGetAll(
 		}
 	} while (nextCursor && iterations < maxIterations);
 
+	if (iterations >= maxIterations) {
+		throw new NodeApiError(
+			this.getNode(),
+			{ message: 'Pagination limit reached' } as JsonObject,
+			{ message: `Results truncated at ${returnData.length} records. The API has more data available. Consider adding filters to reduce the result set.` },
+		);
+	}
+
 	return limit ? returnData.slice(0, limit) : returnData;
 }
 
@@ -234,13 +259,14 @@ export async function xentralV1PageGetAll(
 	endpoint: string,
 	query: IDataObject = {},
 	limit?: number,
+	maxPages?: number,
 ): Promise<IDataObject[]> {
 	const returnData: IDataObject[] = [];
 	const pageSize = 150;
 	let pageNumber = 1;
 	let totalCount = Infinity;
 	let iterations = 0;
-	const maxIterations = 100;
+	const maxIterations = maxPages && maxPages > 0 ? maxPages : 1000;
 
 	do {
 		const qs: IDataObject = {
@@ -253,7 +279,7 @@ export async function xentralV1PageGetAll(
 		const items = response.data || [];
 		returnData.push(...items);
 
-		totalCount = response?.extra?.totalCount ?? 0;
+		totalCount = response?.extra?.totalCount ?? Infinity;
 		pageNumber++;
 		iterations++;
 
@@ -261,6 +287,14 @@ export async function xentralV1PageGetAll(
 			return returnData.slice(0, limit);
 		}
 	} while (returnData.length < totalCount && iterations < maxIterations);
+
+	if (iterations >= maxIterations) {
+		throw new NodeApiError(
+			this.getNode(),
+			{ message: 'Pagination limit reached' } as JsonObject,
+			{ message: `Results truncated at ${returnData.length} records. The API has more data available. Consider adding filters to reduce the result set.` },
+		);
+	}
 
 	return limit ? returnData.slice(0, limit) : returnData;
 }
@@ -276,6 +310,9 @@ export async function xentralFileUpload(
 	const credentials = await getCredentials(this);
 	const instanceUrl = credentials.instanceUrl as string;
 	const accessToken = normalizeToken(credentials.accessToken as string || '');
+	if (!accessToken) {
+		throw new NodeApiError(this.getNode(), { message: 'No access token configured' } as JsonObject, { message: 'Xentral access token is empty. Please configure your credentials.' });
+	}
 	const safeEndpoint = sanitizeEndpoint(endpoint);
 
 	const binaryData = this.helpers.assertBinaryData(itemIndex, binaryPropertyName);
@@ -303,26 +340,7 @@ export async function xentralFileUpload(
 		});
 		return response;
 	} catch (error: any) {
-		if (error.response?.body) {
-			let errorBody: any;
-			try {
-				errorBody = typeof error.response.body === 'string'
-					? JSON.parse(error.response.body)
-					: error.response.body;
-			} catch {
-				errorBody = { detail: String(error.response.body) };
-			}
-			const message = parseXentralError(errorBody);
-			const safeError: Record<string, any> = {
-				message: error.message,
-				statusCode: error.response?.statusCode || error.statusCode,
-			};
-			throw new NodeApiError(this.getNode(), safeError as JsonObject, { message });
-		}
-		const safeError: Record<string, any> = {
-			message: error.message || 'Unknown error',
-		};
-		throw new NodeApiError(this.getNode(), safeError as JsonObject);
+		handleXentralError(this, error);
 	}
 }
 
@@ -333,12 +351,13 @@ export async function xentralV3GetAll(
 	endpoint: string,
 	query: IDataObject = {},
 	limit?: number,
+	maxPages?: number,
 ): Promise<IDataObject[]> {
 	const returnData: IDataObject[] = [];
 	const perPage = 50;
 	let page = 1;
 	let iterations = 0;
-	const maxIterations = 100;
+	const maxIterations = maxPages && maxPages > 0 ? maxPages : 1000;
 
 	do {
 		const qs: IDataObject = {
@@ -365,6 +384,14 @@ export async function xentralV3GetAll(
 			return returnData.slice(0, limit);
 		}
 	} while (iterations < maxIterations);
+
+	if (iterations >= maxIterations) {
+		throw new NodeApiError(
+			this.getNode(),
+			{ message: 'Pagination limit reached' } as JsonObject,
+			{ message: `Results truncated at ${returnData.length} records. The API has more data available. Consider adding filters to reduce the result set.` },
+		);
+	}
 
 	return limit ? returnData.slice(0, limit) : returnData;
 }

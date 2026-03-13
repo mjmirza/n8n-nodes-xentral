@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest } from '../../transport';
+import { xentralRequest, assertSafeId } from '../../transport';
 
 export async function handleGoodsReceipt(
 	this: IExecuteFunctions,
@@ -8,6 +8,7 @@ export async function handleGoodsReceipt(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'createForPurchaseOrder') {
 		const purchaseOrderId = this.getNodeParameter('purchaseOrderId', itemIndex) as string;
+		assertSafeId(purchaseOrderId, 'purchaseOrderId');
 		const receivedItems = this.getNodeParameter('receivedItems', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -18,6 +19,7 @@ export async function handleGoodsReceipt(
 
 	if (operation === 'createForReturn') {
 		const returnId = this.getNodeParameter('returnId', itemIndex) as string;
+		assertSafeId(returnId, 'returnId');
 
 		return xentralRequest.call(this, 'POST', `returns/${returnId}/goodsReceipts`, {} as IDataObject, {}, 'v1');
 	}

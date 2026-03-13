@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest } from '../../transport';
+import { xentralRequest, assertSafeId } from '../../transport';
 
 export async function handleAddress(
 	this: IExecuteFunctions,
@@ -32,11 +32,13 @@ export async function handleAddress(
 		if (additionalFields.department !== undefined) body.department = additionalFields.department;
 		if (additionalFields.subDepartment !== undefined) body.subDepartment = additionalFields.subDepartment;
 
+		assertSafeId(customerId, 'customerId');
 		return xentralRequest.call(this, 'POST', `customers/${customerId}/addresses`, body as IDataObject, {}, 'v2');
 	}
 
 	if (operation === 'getAll') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
+		assertSafeId(customerId, 'customerId');
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
 		const response = await xentralRequest.call(this, 'GET', `customers/${customerId}/addresses`, {}, {}, 'v2');
@@ -46,7 +48,9 @@ export async function handleAddress(
 
 	if (operation === 'update') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
+		assertSafeId(customerId, 'customerId');
 		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
+		assertSafeId(addressId, 'addressId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -67,7 +71,9 @@ export async function handleAddress(
 
 	if (operation === 'delete') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
+		assertSafeId(customerId, 'customerId');
 		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
+		assertSafeId(addressId, 'addressId');
 		return xentralRequest.call(this, 'DELETE', `customers/${customerId}/addresses/${addressId}`, {}, {}, 'v2');
 	}
 

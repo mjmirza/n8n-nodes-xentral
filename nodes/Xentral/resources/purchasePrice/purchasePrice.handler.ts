@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handlePurchasePrice(
 	this: IExecuteFunctions,
@@ -8,7 +8,9 @@ export async function handlePurchasePrice(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
+		assertSafeId(productId, 'productId');
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
+		assertSafeId(supplierId, 'supplierId');
 		const validFrom = this.getNodeParameter('validFrom', itemIndex) as string;
 		const expiresAt = this.getNodeParameter('expiresAt', itemIndex) as string;
 		const fromQuantity = this.getNodeParameter('fromQuantity', itemIndex, 1) as number;
@@ -34,17 +36,20 @@ export async function handlePurchasePrice(
 
 	if (operation === 'get') {
 		const purchasePriceId = this.getNodeParameter('purchasePriceId', itemIndex) as string;
+		assertSafeId(purchasePriceId, 'purchasePriceId');
 		return xentralRequest.call(this, 'GET', `purchasePrices/${purchasePriceId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'purchasePrices', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'purchasePrices', {}, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const purchasePriceId = this.getNodeParameter('purchasePriceId', itemIndex) as string;
+		assertSafeId(purchasePriceId, 'purchasePriceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -61,6 +66,7 @@ export async function handlePurchasePrice(
 
 	if (operation === 'delete') {
 		const purchasePriceId = this.getNodeParameter('purchasePriceId', itemIndex) as string;
+		assertSafeId(purchasePriceId, 'purchasePriceId');
 		return xentralRequest.call(this, 'DELETE', `purchasePrices/${purchasePriceId}`, {}, {}, 'v1');
 	}
 

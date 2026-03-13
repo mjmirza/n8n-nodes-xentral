@@ -201,6 +201,22 @@ export class Xentral implements INodeType {
 				],
 				default: 'customer',
 			},
+			// Global pagination control (applies to all resources with getAll/search)
+			{
+				displayName: 'Max Pages',
+				name: 'maxPages',
+				type: 'number',
+				default: 1000,
+				typeOptions: {
+					minValue: 1,
+				},
+				description: 'Maximum number of API pages to fetch. Each page returns 50-150 records depending on the resource. Default is 1000 pages. Increase if you need more records, or decrease to limit API calls.',
+				displayOptions: {
+					show: {
+						returnAll: [true],
+					},
+				},
+			},
 			// Operations
 			...addressOperations,
 			...contactOperations,
@@ -272,7 +288,7 @@ export class Xentral implements INodeType {
 				this: ICredentialTestFunctions,
 				credential: ICredentialsDecrypted,
 			): Promise<INodeCredentialTestResult> {
-				const NODE_VERSION = '0.9.4';
+				const NODE_VERSION = '0.9.6';
 				const { instanceUrl, accessToken } = (credential.data || {}) as {
 					instanceUrl: string;
 					accessToken: string;
@@ -299,8 +315,12 @@ export class Xentral implements INodeType {
 						/^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
 						/^192\.168\./.test(hostname) ||
 						/^169\.254\./.test(hostname) ||
+						/^0+\./.test(hostname) ||
 						hostname === '::1' ||
-						hostname.startsWith('[')
+						hostname.startsWith('[') ||
+						/^fc00:/i.test(hostname) ||
+						/^fe80:/i.test(hostname) ||
+						/^::ffff:/i.test(hostname)
 					) {
 						return { status: 'Error', message: `[v${NODE_VERSION}] Connections to internal network addresses are not allowed` };
 					}
@@ -316,11 +336,16 @@ export class Xentral implements INodeType {
 				// Build list of tokens to try (most likely first)
 				const tokensToTry: string[] = [];
 
-				// Clean token: strip quotes, Bearer prefix, whitespace, then Sanctum ID prefix
-				// n8n silently strips "|" from credential values, so "2|abc" becomes "2abc"
-				// We strip leading digits + optional pipe to handle both cases
+				// Clean token: strip quotes, Bearer prefix, whitespace
 				let cleaned = rawToken.replace(/^["'`]+|["'`]+$/g, '').replace(/^Bearer\s+/i, '').replace(/\s/g, '');
-				const stripped = cleaned.replace(/^\d+\|?/, '');
+
+				// Strip Sanctum ID prefix using same logic as transport.ts
+				let stripped: string;
+				if (cleaned.includes('|')) {
+					stripped = cleaned.substring(cleaned.indexOf('|') + 1);
+				} else {
+					stripped = cleaned.replace(/^\d{1,4}(?=[a-zA-Z])/, '');
+				}
 				if (stripped && stripped !== cleaned) tokensToTry.push(stripped);
 
 				// Also try the full cleaned token as fallback
@@ -351,7 +376,7 @@ export class Xentral implements INodeType {
 				// All attempts failed
 				return {
 					status: 'Error',
-					message: `[v${NODE_VERSION}] Connection failed: 401 - Authentication failed. Token length: ${rawToken.length}, had pipe: ${rawToken.includes('|')}. Tried ${tokensToTry.length} variant(s).`,
+					message: `[v${NODE_VERSION}] Authentication failed. Please verify your Personal Access Token is correct.`,
 				};
 			},
 		},

@@ -187,7 +187,7 @@ export const customerFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['customer'],
-				operation: ['getAll'],
+				operation: ['getAll', 'search'],
 			},
 		},
 		description: 'Whether to return all results or only up to a given limit',
@@ -201,7 +201,7 @@ export const customerFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['customer'],
-				operation: ['getAll'],
+				operation: ['getAll', 'search'],
 				returnAll: [false],
 			},
 		},

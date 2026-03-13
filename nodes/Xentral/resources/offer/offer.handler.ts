@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId } from '../../transport';
 
 export async function handleOffer(
 	this: IExecuteFunctions,
@@ -35,12 +35,14 @@ export async function handleOffer(
 
 	if (operation === 'get') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		return xentralRequest.call(this, 'GET', `offers/${offerId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
 		const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 		const query: IDataObject = {};
 		let filterIndex = 0;
@@ -62,23 +64,27 @@ export async function handleOffer(
 			query[`filter[${filterIndex}][value]`] = filters.createdAfter;
 			filterIndex++;
 		}
-		return xentralV3GetAll.call(this, 'offers', query, limit);
+		return xentralV3GetAll.call(this, 'offers', query, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 		return xentralRequest.call(this, 'PATCH', `offers/${offerId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'delete') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		return xentralRequest.call(this, 'DELETE', `offers/${offerId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'addLineItem') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
+		assertSafeId(productId, 'productId');
 		const quantity = this.getNodeParameter('quantity', itemIndex) as number;
 		const lineItemOptions = this.getNodeParameter('lineItemOptions', itemIndex, {}) as IDataObject;
 
@@ -97,50 +103,61 @@ export async function handleOffer(
 
 	if (operation === 'updateLineItem') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
+		assertSafeId(lineItemId, 'lineItemId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
+		assertSafeId(lineItemId, 'lineItemId');
 		return xentralRequest.call(this, 'DELETE', `offers/${offerId}/lineItems/${lineItemId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'release') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/release`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'cancel') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/cancel`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'send') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/send`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'logActivity') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		const body = this.getNodeParameter('activityData', itemIndex, {}) as IDataObject;
 		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/log-activity`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'setWriteProtection') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/set-write-protection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'removeWriteProtection') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/remove-write-protection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'attachFile') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
+		assertSafeId(offerId, 'offerId');
 		const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex, 'data') as string;
 		return xentralFileUpload.call(this, `offers/${offerId}/files`, binaryPropertyName, itemIndex);
 	}

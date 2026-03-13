@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handleSalesPrice(
 	this: IExecuteFunctions,
@@ -8,6 +8,7 @@ export async function handleSalesPrice(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
+		assertSafeId(productId, 'productId');
 		const amount = this.getNodeParameter('amount', itemIndex) as number;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
@@ -29,17 +30,20 @@ export async function handleSalesPrice(
 
 	if (operation === 'get') {
 		const salesPriceId = this.getNodeParameter('salesPriceId', itemIndex) as string;
+		assertSafeId(salesPriceId, 'salesPriceId');
 		return xentralRequest.call(this, 'GET', `salesPrices/${salesPriceId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'salesPrices', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'salesPrices', {}, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const salesPriceId = this.getNodeParameter('salesPriceId', itemIndex) as string;
+		assertSafeId(salesPriceId, 'salesPriceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -60,6 +64,7 @@ export async function handleSalesPrice(
 
 	if (operation === 'delete') {
 		const salesPriceId = this.getNodeParameter('salesPriceId', itemIndex) as string;
+		assertSafeId(salesPriceId, 'salesPriceId');
 		return xentralRequest.call(this, 'DELETE', `salesPrices/${salesPriceId}`, {}, {}, 'v1');
 	}
 

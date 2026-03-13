@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handleContact(
 	this: IExecuteFunctions,
@@ -7,6 +7,7 @@ export async function handleContact(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	const customerId = this.getNodeParameter('customerId', itemIndex) as string;
+	assertSafeId(customerId, 'customerId');
 
 	if (operation === 'create') {
 		const name = this.getNodeParameter('contactName', itemIndex) as string;
@@ -26,17 +27,20 @@ export async function handleContact(
 
 	if (operation === 'get') {
 		const contactId = this.getNodeParameter('contactId', itemIndex) as string;
+		assertSafeId(contactId, 'contactId');
 		return xentralRequest.call(this, 'GET', `customers/${customerId}/contactPerson/${contactId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, `customers/${customerId}/contactPerson`, {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, `customers/${customerId}/contactPerson`, {}, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const contactId = this.getNodeParameter('contactId', itemIndex) as string;
+		assertSafeId(contactId, 'contactId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
@@ -51,6 +55,7 @@ export async function handleContact(
 
 	if (operation === 'delete') {
 		const contactId = this.getNodeParameter('contactId', itemIndex) as string;
+		assertSafeId(contactId, 'contactId');
 		return xentralRequest.call(this, 'DELETE', `customers/${customerId}/contactPerson/${contactId}`, {}, {}, 'v1');
 	}
 

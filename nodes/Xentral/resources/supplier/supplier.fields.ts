@@ -30,7 +30,7 @@ export const supplierFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['supplier'],
-				operation: ['getAll'],
+				operation: ['getAll', 'search'],
 			},
 		},
 		description: 'Whether to return all results or only up to a given limit',
@@ -44,7 +44,7 @@ export const supplierFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['supplier'],
-				operation: ['getAll'],
+				operation: ['getAll', 'search'],
 				returnAll: [false],
 			},
 		},

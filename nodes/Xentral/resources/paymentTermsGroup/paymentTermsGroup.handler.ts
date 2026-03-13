@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
 
 export async function handlePaymentTermsGroup(
 	this: IExecuteFunctions,
@@ -25,13 +25,15 @@ export async function handlePaymentTermsGroup(
 
 	if (operation === 'get') {
 		const paymentTermsGroupId = this.getNodeParameter('paymentTermsGroupId', itemIndex) as string;
+		assertSafeId(paymentTermsGroupId, 'paymentTermsGroupId');
 		return xentralRequest.call(this, 'GET', `paymentTermsGroups/${paymentTermsGroupId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'paymentTermsGroups', {}, limit);
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'paymentTermsGroups', {}, limit, maxPages);
 	}
 
 	throw new Error(`Unknown paymentTermsGroup operation: ${operation}`);
