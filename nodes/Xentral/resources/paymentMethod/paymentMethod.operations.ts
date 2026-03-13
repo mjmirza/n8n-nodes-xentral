@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const paymentMethodOperations: INodeProperties[] = [
 	{
@@ -12,12 +12,6 @@ export const paymentMethodOperations: INodeProperties[] = [
 			},
 		},
 		options: [
-			{
-				name: 'Get',
-				value: 'get',
-				description: 'Get a payment method by ID',
-				action: 'Get a payment method',
-			},
 			{
 				name: 'Get Many',
 				value: 'getAll',

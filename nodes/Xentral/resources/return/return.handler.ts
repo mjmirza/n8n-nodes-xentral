@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1CursorGetAll } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll } from '../../transport';
 
 export async function handleReturn(
 	this: IExecuteFunctions,
@@ -13,10 +13,10 @@ export async function handleReturn(
 
 		const body: IDataObject = {};
 
-		if (salesOrderId) body.salesOrderId = salesOrderId;
-		if (customerId) body.customerId = customerId;
-		if (additionalFields.reason) body.reason = additionalFields.reason;
-		if (additionalFields.internalNote) body.internalNote = additionalFields.internalNote;
+		if (salesOrderId) body.salesOrder = { id: salesOrderId };
+		if (customerId) body.customer = { id: customerId };
+		if (additionalFields.reason !== undefined) body.reason = additionalFields.reason;
+		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
 
 		return xentralRequest.call(this, 'POST', 'returns', body as IDataObject, {}, 'v1');
 	}
@@ -29,18 +29,7 @@ export async function handleReturn(
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1CursorGetAll.call(this, 'returns', {}, limit);
-	}
-
-	if (operation === 'update') {
-		const returnId = this.getNodeParameter('returnId', itemIndex) as string;
-		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-
-		const body: IDataObject = {};
-		if (updateFields.reason) body.reason = updateFields.reason;
-		if (updateFields.internalNote) body.internalNote = updateFields.internalNote;
-
-		return xentralRequest.call(this, 'PATCH', `returns/${returnId}`, body as IDataObject, {}, 'v1');
+		return xentralV1PageGetAll.call(this, 'returns', {}, limit);
 	}
 
 	if (operation === 'delete') {
@@ -50,11 +39,7 @@ export async function handleReturn(
 
 	if (operation === 'release') {
 		const returnId = this.getNodeParameter('returnId', itemIndex) as string;
-		return xentralRequest.call(this, 'POST', `returns/${returnId}/release`, {} as IDataObject, {}, 'v1');
-	}
-
-	if (operation === 'getReasons') {
-		return xentralRequest.call(this, 'GET', 'returns/reasons', {}, {}, 'v1');
+		return xentralRequest.call(this, 'POST', `returns/${returnId}/actions/release`, {} as IDataObject, {}, 'v1');
 	}
 
 	throw new Error(`Unknown return operation: ${operation}`);

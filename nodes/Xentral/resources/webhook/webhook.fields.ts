@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const webhookFields: INodeProperties[] = [
 	// ----------------------------------
@@ -19,10 +19,25 @@ export const webhookFields: INodeProperties[] = [
 		description: 'The URL the webhook will send events to',
 	},
 	{
-		displayName: 'Event',
-		name: 'event',
-		type: 'string',
-		default: '',
+		displayName: 'Events',
+		name: 'events',
+		type: 'multiOptions',
+		options: [
+			{ name: 'Customer Created', value: 'customer.created' },
+			{ name: 'Customer Updated', value: 'customer.updated' },
+			{ name: 'Customer Deleted', value: 'customer.deleted' },
+			{ name: 'Product Created', value: 'product.created' },
+			{ name: 'Product Updated', value: 'product.updated' },
+			{ name: 'Product Deleted', value: 'product.deleted' },
+			{ name: 'Sales Order Created', value: 'salesOrder.created' },
+			{ name: 'Sales Order Updated', value: 'salesOrder.updated' },
+			{ name: 'Sales Order Deleted', value: 'salesOrder.deleted' },
+			{ name: 'Purchase Order Created', value: 'purchaseOrder.created' },
+			{ name: 'Purchase Order Updated', value: 'purchaseOrder.updated' },
+			{ name: 'Shipment Created', value: 'shipment.created' },
+			{ name: 'Shipment Updated', value: 'shipment.updated' },
+		],
+		default: [],
 		required: true,
 		displayOptions: {
 			show: {
@@ -30,29 +45,21 @@ export const webhookFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The event to listen for (e.g. salesOrder.created, product.updated)',
+		description: 'The events to listen for',
 	},
 	{
-		displayName: 'Additional Fields',
-		name: 'additionalFields',
-		type: 'collection',
-		placeholder: 'Add Field',
-		default: {},
+		displayName: 'Signature Key',
+		name: 'signatureKey',
+		type: 'string',
+		typeOptions: { password: true },
+		default: '',
 		displayOptions: {
 			show: {
 				resource: ['webhook'],
 				operation: ['create'],
 			},
 		},
-		options: [
-			{
-				displayName: 'Active',
-				name: 'active',
-				type: 'boolean',
-				default: true,
-				description: 'Whether the webhook is active',
-			},
-		],
+		description: 'Secret key used for HMAC signature verification of webhook payloads',
 	},
 
 	// ----------------------------------
@@ -129,18 +136,30 @@ export const webhookFields: INodeProperties[] = [
 				description: 'The URL the webhook will send events to',
 			},
 			{
-				displayName: 'Event',
-				name: 'event',
-				type: 'string',
-				default: '',
-				description: 'The event to listen for (e.g. salesOrder.created, product.updated)',
+				displayName: 'Events',
+				name: 'events',
+				type: 'multiOptions',
+				options: [
+					{ name: 'Customer Created', value: 'customer.created' },
+					{ name: 'Customer Updated', value: 'customer.updated' },
+					{ name: 'Customer Deleted', value: 'customer.deleted' },
+					{ name: 'Product Created', value: 'product.created' },
+					{ name: 'Product Updated', value: 'product.updated' },
+					{ name: 'Product Deleted', value: 'product.deleted' },
+					{ name: 'Sales Order Created', value: 'salesOrder.created' },
+					{ name: 'Sales Order Updated', value: 'salesOrder.updated' },
+					{ name: 'Sales Order Deleted', value: 'salesOrder.deleted' },
+				],
+				default: [],
+				description: 'The events to listen for',
 			},
 			{
-				displayName: 'Active',
-				name: 'active',
-				type: 'boolean',
-				default: true,
-				description: 'Whether the webhook is active',
+				displayName: 'Signature Key',
+				name: 'signatureKey',
+				type: 'string',
+				typeOptions: { password: true },
+				default: '',
+				description: 'Secret key used for HMAC signature verification',
 			},
 		],
 	},

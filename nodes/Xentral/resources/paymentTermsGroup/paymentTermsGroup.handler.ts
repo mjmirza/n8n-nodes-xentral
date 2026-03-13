@@ -8,28 +8,30 @@ export async function handlePaymentTermsGroup(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
 		const name = this.getNodeParameter('paymentTermsGroupName', itemIndex) as string;
+		const key = this.getNodeParameter('paymentTermsGroupKey', itemIndex) as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
 			name,
+			key,
 		};
 
-		if (additionalFields.days) body.days = additionalFields.days;
-		if (additionalFields.discountDays) body.discountDays = additionalFields.discountDays;
-		if (additionalFields.discountPercent) body.discountPercent = additionalFields.discountPercent;
+		if (additionalFields.days !== undefined) body.days = additionalFields.days;
+		if (additionalFields.discountDays !== undefined) body.discountDays = additionalFields.discountDays;
+		if (additionalFields.discountPercent !== undefined) body.discountPercent = additionalFields.discountPercent;
 
-		return xentralRequest.call(this, 'POST', 'payment-terms-group', body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', 'paymentTermsGroups', body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'get') {
 		const paymentTermsGroupId = this.getNodeParameter('paymentTermsGroupId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `payment-terms-group/${paymentTermsGroupId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'GET', `paymentTermsGroups/${paymentTermsGroupId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'payment-terms-group', {}, limit);
+		return xentralV1PageGetAll.call(this, 'paymentTermsGroups', {}, limit);
 	}
 
 	throw new Error(`Unknown paymentTermsGroup operation: ${operation}`);

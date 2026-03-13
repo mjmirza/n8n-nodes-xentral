@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest } from '../../transport';
 
 export async function handleAddress(
 	this: IExecuteFunctions,
@@ -7,7 +7,7 @@ export async function handleAddress(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const customerId = this.getNodeParameter('customerId', itemIndex, '') as string;
+		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
 		const type = this.getNodeParameter('addressType', itemIndex) as string;
 		const street = this.getNodeParameter('street', itemIndex) as string;
 		const zip = this.getNodeParameter('zipCode', itemIndex) as string;
@@ -21,61 +21,54 @@ export async function handleAddress(
 			zip,
 			city,
 			country,
-			company: additionalFields.company || undefined,
-			firstName: additionalFields.firstName || undefined,
-			lastName: additionalFields.lastName || undefined,
-			state: additionalFields.state || undefined,
 		};
 
-		if (customerId) {
-			body.customerId = customerId;
-		}
+		if (additionalFields.company !== undefined) body.company = additionalFields.company;
+		if (additionalFields.firstName !== undefined) body.firstName = additionalFields.firstName;
+		if (additionalFields.lastName !== undefined) body.lastName = additionalFields.lastName;
+		if (additionalFields.state !== undefined) body.state = additionalFields.state;
+		if (additionalFields.name !== undefined) body.name = additionalFields.name;
+		if (additionalFields.addressSupplement !== undefined) body.addressSupplement = additionalFields.addressSupplement;
+		if (additionalFields.department !== undefined) body.department = additionalFields.department;
+		if (additionalFields.subDepartment !== undefined) body.subDepartment = additionalFields.subDepartment;
 
-		// Clean undefined values
-		Object.keys(body).forEach((key) => {
-			if (body[key] === undefined) delete body[key];
-		});
-
-		return xentralRequest.call(this, 'POST', 'customer-address', body as IDataObject, {}, 'v1');
-	}
-
-	if (operation === 'get') {
-		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `customer-address/${addressId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'POST', `customers/${customerId}/addresses`, body as IDataObject, {}, 'v2');
 	}
 
 	if (operation === 'getAll') {
+		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		const query: IDataObject = {};
-		const customerId = this.getNodeParameter('customerId', itemIndex, '') as string;
-		if (customerId) {
-			query['filter[customerId]'] = customerId;
-		}
-		return xentralV1PageGetAll.call(this, 'customer-address', query, limit);
+		const response = await xentralRequest.call(this, 'GET', `customers/${customerId}/addresses`, {}, {}, 'v2');
+		const items = (response.data || []) as IDataObject[];
+		return limit ? items.slice(0, limit) : items;
 	}
 
 	if (operation === 'update') {
+		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
 		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
-		if (updateFields.addressType) body.type = updateFields.addressType;
-		if (updateFields.company) body.company = updateFields.company;
-		if (updateFields.firstName) body.firstName = updateFields.firstName;
-		if (updateFields.lastName) body.lastName = updateFields.lastName;
-		if (updateFields.street) body.street = updateFields.street;
-		if (updateFields.zipCode) body.zip = updateFields.zipCode;
-		if (updateFields.city) body.city = updateFields.city;
-		if (updateFields.state) body.state = updateFields.state;
-		if (updateFields.country) body.country = updateFields.country;
+		if (updateFields.addressType !== undefined) body.type = updateFields.addressType;
+		if (updateFields.company !== undefined) body.company = updateFields.company;
+		if (updateFields.firstName !== undefined) body.firstName = updateFields.firstName;
+		if (updateFields.lastName !== undefined) body.lastName = updateFields.lastName;
+		if (updateFields.street !== undefined) body.street = updateFields.street;
+		if (updateFields.zipCode !== undefined) body.zip = updateFields.zipCode;
+		if (updateFields.city !== undefined) body.city = updateFields.city;
+		if (updateFields.state !== undefined) body.state = updateFields.state;
+		if (updateFields.country !== undefined) body.country = updateFields.country;
+		if (updateFields.name !== undefined) body.name = updateFields.name;
+		if (updateFields.addressSupplement !== undefined) body.addressSupplement = updateFields.addressSupplement;
 
-		return xentralRequest.call(this, 'PATCH', `customer-address/${addressId}`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'PATCH', `customers/${customerId}/addresses/${addressId}`, body as IDataObject, {}, 'v2');
 	}
 
 	if (operation === 'delete') {
+		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
 		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `customer-address/${addressId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'DELETE', `customers/${customerId}/addresses/${addressId}`, {}, {}, 'v2');
 	}
 
 	throw new Error(`Unknown address operation: ${operation}`);

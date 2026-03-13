@@ -1,24 +1,6 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const paymentMethodFields: INodeProperties[] = [
-	// ----------------------------------
-	//         paymentMethod:get
-	// ----------------------------------
-	{
-		displayName: 'Payment Method ID',
-		name: 'paymentMethodId',
-		type: 'string',
-		default: '',
-		required: true,
-		displayOptions: {
-			show: {
-				resource: ['paymentMethod'],
-				operation: ['get'],
-			},
-		},
-		description: 'The ID of the payment method',
-	},
-
 	// ----------------------------------
 	//         paymentMethod:getAll
 	// ----------------------------------

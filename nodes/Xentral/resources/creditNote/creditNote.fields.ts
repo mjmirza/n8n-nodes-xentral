@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const creditNoteFields: INodeProperties[] = [
 	// ----------------------------------
@@ -85,7 +85,7 @@ export const creditNoteFields: INodeProperties[] = [
 	},
 
 	// ----------------------------------
-	//         creditNote:get / update / delete / release / send / cancel / getLineItems / logActivity / setWriteProtection / removeWriteProtection / attachFile
+	//         creditNote:get / update / delete / release / send / cancel / logActivity / setWriteProtection / removeWriteProtection / attachFile
 	// ----------------------------------
 	{
 		displayName: 'Credit Note ID',
@@ -98,7 +98,7 @@ export const creditNoteFields: INodeProperties[] = [
 				resource: ['creditNote'],
 				operation: [
 					'get', 'update', 'delete', 'release', 'send', 'cancel',
-					'getLineItems', 'updateLineItem', 'deleteLineItem',
+					'updateLineItem', 'deleteLineItem',
 					'logActivity', 'setWriteProtection', 'removeWriteProtection', 'attachFile',
 				],
 			},
@@ -419,39 +419,17 @@ export const creditNoteFields: INodeProperties[] = [
 	//         creditNote:attachFile
 	// ----------------------------------
 	{
-		displayName: 'File Data',
-		name: 'fileData',
-		type: 'collection',
-		placeholder: 'Add Field',
-		default: {},
+		displayName: 'Binary Property',
+		name: 'binaryPropertyName',
+		type: 'string',
+		default: 'data',
+		required: true,
 		displayOptions: {
 			show: {
 				resource: ['creditNote'],
 				operation: ['attachFile'],
 			},
 		},
-		options: [
-			{
-				displayName: 'File Name',
-				name: 'fileName',
-				type: 'string',
-				default: '',
-				description: 'Name of the file to attach',
-			},
-			{
-				displayName: 'File Content (Base64)',
-				name: 'content',
-				type: 'string',
-				default: '',
-				description: 'Base64-encoded file content',
-			},
-			{
-				displayName: 'MIME Type',
-				name: 'mimeType',
-				type: 'string',
-				default: 'application/pdf',
-				description: 'MIME type of the file',
-			},
-		],
+		description: 'Name of the binary property containing the file to upload. In most cases the default "data" works when connected to a node that outputs binary data (e.g. Email Trigger, HTTP Request, Read Binary File).',
 	},
 ];

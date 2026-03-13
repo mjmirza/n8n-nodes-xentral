@@ -11,8 +11,45 @@ import { NodeApiError } from 'n8n-workflow';
 
 // ---------- helpers ----------
 
+function normalizeUrl(raw: string): string {
+	let url = raw.trim().replace(/\/+$/, '');
+	// Enforce HTTPS: reject explicit http:// and auto-add https:// if missing
+	if (/^http:\/\//i.test(url)) {
+		throw new Error('HTTP is not allowed - only HTTPS connections are supported for security');
+	}
+	if (!/^https:\/\//i.test(url)) {
+		url = `https://${url}`;
+	}
+
+	// SSRF protection: block internal/reserved IP ranges and localhost
+	try {
+		const parsed = new URL(url);
+		const hostname = parsed.hostname.toLowerCase();
+		if (
+			hostname === 'localhost' ||
+			hostname === '0.0.0.0' ||
+			/^127\./.test(hostname) ||
+			/^10\./.test(hostname) ||
+			/^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
+			/^192\.168\./.test(hostname) ||
+			/^169\.254\./.test(hostname) ||
+			hostname === '::1' ||
+			hostname.startsWith('[') ||
+			/^fc00:/i.test(hostname) ||
+			/^fe80:/i.test(hostname)
+		) {
+			throw new Error('Connections to internal or reserved network addresses are not allowed');
+		}
+	} catch (e: any) {
+		if (e.message.includes('not allowed')) throw e;
+		throw new Error(`Invalid Xentral instance URL: ${url}`);
+	}
+
+	return url;
+}
+
 function getBaseUrl(instanceUrl: string, apiVersion: string): string {
-	const base = instanceUrl.replace(/\/+$/, '');
+	const base = normalizeUrl(instanceUrl);
 	return `${base}/api/${apiVersion}`;
 }
 
@@ -43,6 +80,30 @@ function parseXentralError(responseBody: any): string {
 	return parts.length > 0 ? parts.join(' | ') : JSON.stringify(responseBody);
 }
 
+// ---------- ID sanitization ----------
+
+export function assertSafeId(id: string, paramName: string): void {
+	if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+		throw new Error(`Invalid ${paramName}: contains disallowed characters`);
+	}
+}
+
+// ---------- endpoint sanitization ----------
+
+function sanitizeEndpoint(endpoint: string): string {
+	// Remove leading slashes and prevent path traversal
+	let clean = endpoint.replace(/^\/+/, '');
+	// Block path traversal attempts
+	if (/\.\.[\\/]/.test(clean) || clean.includes('..')) {
+		throw new Error('Invalid endpoint: path traversal is not allowed');
+	}
+	// Only allow safe URL characters in endpoint path segments (no query string chars)
+	if (!/^[a-zA-Z0-9\-_/.[\]]+$/.test(clean)) {
+		throw new Error('Invalid endpoint: contains disallowed characters');
+	}
+	return clean;
+}
+
 // ---------- core request ----------
 
 export async function xentralRequest(
@@ -55,11 +116,12 @@ export async function xentralRequest(
 ): Promise<any> {
 	const credentials = await getCredentials(this);
 	const instanceUrl = credentials.instanceUrl as string;
-	const accessToken = credentials.accessToken as string;
+	const accessToken = (credentials.accessToken as string || '').replace(/\s/g, '');
+	const safeEndpoint = sanitizeEndpoint(endpoint);
 
 	const options: IHttpRequestOptions = {
 		method,
-		url: `${getBaseUrl(instanceUrl, apiVersion)}/${endpoint.replace(/^\/+/, '')}`,
+		url: `${getBaseUrl(instanceUrl, apiVersion)}/${safeEndpoint}`,
 		headers: {
 			Authorization: `Bearer ${accessToken}`,
 			'Content-Type': 'application/json',
@@ -82,13 +144,27 @@ export async function xentralRequest(
 	} catch (error: any) {
 		// Try to parse Xentral's RFC 9457 error format
 		if (error.response?.body) {
-			const errorBody = typeof error.response.body === 'string'
-				? JSON.parse(error.response.body)
-				: error.response.body;
+			let errorBody: any;
+			try {
+				errorBody = typeof error.response.body === 'string'
+					? JSON.parse(error.response.body)
+					: error.response.body;
+			} catch {
+				errorBody = { detail: String(error.response.body) };
+			}
 			const message = parseXentralError(errorBody);
-			throw new NodeApiError(this.getNode(), error as JsonObject, { message });
+			// Sanitize error: strip headers that may contain credentials
+			const safeError: Record<string, any> = {
+				message: error.message,
+				statusCode: error.response?.statusCode || error.statusCode,
+			};
+			throw new NodeApiError(this.getNode(), safeError as JsonObject, { message });
 		}
-		throw new NodeApiError(this.getNode(), error as JsonObject);
+		// Sanitize: only pass message, not full error with headers/tokens
+		const safeError: Record<string, any> = {
+			message: error.message || 'Unknown error',
+		};
+		throw new NodeApiError(this.getNode(), safeError as JsonObject);
 	}
 }
 
@@ -101,7 +177,7 @@ export async function xentralV1CursorGetAll(
 	limit?: number,
 ): Promise<IDataObject[]> {
 	const returnData: IDataObject[] = [];
-	const cursorSize = 250;
+	const cursorSize = 50;
 	let nextCursor: string | undefined;
 	let iterations = 0;
 	const maxIterations = 100;
@@ -139,7 +215,7 @@ export async function xentralV1PageGetAll(
 	limit?: number,
 ): Promise<IDataObject[]> {
 	const returnData: IDataObject[] = [];
-	const pageSize = 250;
+	const pageSize = 150;
 	let pageNumber = 1;
 	let totalCount = Infinity;
 	let iterations = 0;
@@ -166,6 +242,67 @@ export async function xentralV1PageGetAll(
 	} while (returnData.length < totalCount && iterations < maxIterations);
 
 	return limit ? returnData.slice(0, limit) : returnData;
+}
+
+// ---------- V3 file upload (multipart/form-data) ----------
+
+export async function xentralFileUpload(
+	this: IExecuteFunctions,
+	endpoint: string,
+	binaryPropertyName: string,
+	itemIndex: number,
+): Promise<any> {
+	const credentials = await getCredentials(this);
+	const instanceUrl = credentials.instanceUrl as string;
+	const accessToken = (credentials.accessToken as string || '').replace(/\s/g, '');
+	const safeEndpoint = sanitizeEndpoint(endpoint);
+
+	const binaryData = this.helpers.assertBinaryData(itemIndex, binaryPropertyName);
+	const dataBuffer = await this.helpers.getBinaryDataBuffer(itemIndex, binaryPropertyName);
+
+	try {
+		const response = await this.helpers.httpRequest({
+			method: 'POST',
+			url: `${getBaseUrl(instanceUrl, 'v3')}/${safeEndpoint}`,
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				Accept: 'application/json',
+				'Content-Type': 'multipart/form-data',
+			},
+			body: {
+				file: {
+					value: dataBuffer,
+					options: {
+						filename: binaryData.fileName || 'file',
+						contentType: binaryData.mimeType || 'application/octet-stream',
+					},
+				},
+			},
+			json: true,
+		});
+		return response;
+	} catch (error: any) {
+		if (error.response?.body) {
+			let errorBody: any;
+			try {
+				errorBody = typeof error.response.body === 'string'
+					? JSON.parse(error.response.body)
+					: error.response.body;
+			} catch {
+				errorBody = { detail: String(error.response.body) };
+			}
+			const message = parseXentralError(errorBody);
+			const safeError: Record<string, any> = {
+				message: error.message,
+				statusCode: error.response?.statusCode || error.statusCode,
+			};
+			throw new NodeApiError(this.getNode(), safeError as JsonObject, { message });
+		}
+		const safeError: Record<string, any> = {
+			message: error.message || 'Unknown error',
+		};
+		throw new NodeApiError(this.getNode(), safeError as JsonObject);
+	}
 }
 
 // ---------- V3 page pagination (offers, invoices, etc) ----------

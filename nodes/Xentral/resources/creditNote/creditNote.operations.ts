@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const creditNoteOperations: INodeProperties[] = [
 	{
@@ -66,13 +66,7 @@ export const creditNoteOperations: INodeProperties[] = [
 				description: 'Cancel a credit note',
 				action: 'Cancel a credit note',
 			},
-			{
-				name: 'Get Line Items',
-				value: 'getLineItems',
-				description: 'Get all line items of a credit note',
-				action: 'Get line items of credit note',
-			},
-			{
+	{
 				name: 'Update Line Item',
 				value: 'updateLineItem',
 				description: 'Update a line item of a credit note',

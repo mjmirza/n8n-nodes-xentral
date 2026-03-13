@@ -1,4 +1,4 @@
-# Xentral API — Complete Endpoint Reference
+# Xentral API - Complete Endpoint Reference
 
 Cross-referenced against https://developer.xentral.com/reference on 2026-03-12.
 This is the authoritative list. The README.md summarizes; this file is exhaustive.
@@ -114,7 +114,7 @@ Every V3 business document follows an identical pattern. This applies to:
 
 ## Module 2: Products
 
-### 2.1 Product (V2 — Current)
+### 2.1 Product (V2 - Current)
 | Method | Endpoint | Operation |
 |--------|----------|-----------|
 | POST | `/api/v1/product-v2` | Create product |
@@ -125,7 +125,7 @@ Every V3 business document follows an identical pattern. This applies to:
 | DELETE | `/api/v1/product/{id}` | Delete product |
 | DELETE | `/api/v1/product/batch` | Delete multiple products |
 
-### 2.2 Product — Related Data
+### 2.2 Product - Related Data
 | Method | Endpoint | Operation |
 |--------|----------|-----------|
 | GET | `/api/v1/product/{id}/media` | View media |
@@ -276,7 +276,7 @@ Every V3 business document follows an identical pattern. This applies to:
 
 ## Module 3: Business Documents
 
-### 3.1 Offer (Angebot) — V3
+### 3.1 Offer (Angebot) - V3
 
 **CRUD:**
 | Method | Endpoint | Operation |
@@ -449,14 +449,14 @@ Every V3 business document follows an identical pattern. This applies to:
 |--------|----------|-----------|
 | POST | `/api/v1/collective-bill` | Create collective bill |
 
-### 3.13 Service Order (V3 — Files Only So Far)
+### 3.13 Service Order (V3 - Files Only So Far)
 | Method | Endpoint | Operation |
 |--------|----------|-----------|
 | POST | `/api/v3/serviceorders/{id}/files` | Attach file |
 | PATCH | `/api/v3/serviceorders/{id}/files/{fileId}` | Update file |
 | DELETE | `/api/v3/serviceorders/{id}/files/{fileId}` | Delete file |
 
-### 3.14 Price Inquiry (V3 — Files Only)
+### 3.14 Price Inquiry (V3 - Files Only)
 | Method | Endpoint | Operation |
 |--------|----------|-----------|
 | POST | `/api/v3/priceinquiries/{id}/files` | Attach file |
@@ -832,14 +832,14 @@ Every V3 business document follows an identical pattern. This applies to:
 | Sent | `deliveryNote.sent` |
 | Archived | `deliveryNote.archived` |
 
-### Invoice Events (Unconfirmed — verify with webhook/event-types endpoint)
+### Invoice Events (Unconfirmed - verify with webhook/event-types endpoint)
 | Event | Key |
 |-------|-----|
 | Created | `invoice.created` |
 | Updated | `invoice.updated` |
 | Sent | `invoice.sent` |
 
-### Credit Note Events (Unconfirmed — verify)
+### Credit Note Events (Unconfirmed - verify)
 | Event | Key |
 |-------|-----|
 | Created | `creditNote.created` |

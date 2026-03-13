@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const warehouseOperations: INodeProperties[] = [
 	{
@@ -17,12 +17,6 @@ export const warehouseOperations: INodeProperties[] = [
 				value: 'create',
 				description: 'Create a new warehouse',
 				action: 'Create a warehouse',
-			},
-			{
-				name: 'Get',
-				value: 'get',
-				description: 'Get a warehouse by ID',
-				action: 'Get a warehouse',
 			},
 			{
 				name: 'Get Many',

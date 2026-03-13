@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const invoiceFields: INodeProperties[] = [
 	// ----------------------------------
@@ -92,7 +92,7 @@ export const invoiceFields: INodeProperties[] = [
 	},
 
 	// ----------------------------------
-	//         invoice:get / update / delete / release / send / cancel / getLineItems / logActivity / setWriteProtection / removeWriteProtection / attachFile
+	//         invoice:get / update / delete / release / attachFile
 	// ----------------------------------
 	{
 		displayName: 'Invoice ID',
@@ -104,9 +104,8 @@ export const invoiceFields: INodeProperties[] = [
 			show: {
 				resource: ['invoice'],
 				operation: [
-					'get', 'update', 'delete', 'release', 'send', 'cancel',
-					'getLineItems', 'updateLineItem', 'deleteLineItem',
-					'logActivity', 'setWriteProtection', 'removeWriteProtection', 'attachFile',
+					'get', 'update', 'delete', 'release',
+					'updateLineItem', 'deleteLineItem',
 				],
 			},
 		},
@@ -394,77 +393,4 @@ export const invoiceFields: INodeProperties[] = [
 		],
 	},
 
-	// ----------------------------------
-	//         invoice:logActivity
-	// ----------------------------------
-	{
-		displayName: 'Activity Data',
-		name: 'activityData',
-		type: 'collection',
-		placeholder: 'Add Field',
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ['invoice'],
-				operation: ['logActivity'],
-			},
-		},
-		options: [
-			{
-				displayName: 'Type',
-				name: 'type',
-				type: 'string',
-				default: '',
-				description: 'The type of the activity',
-			},
-			{
-				displayName: 'Note',
-				name: 'note',
-				type: 'string',
-				typeOptions: { rows: 3 },
-				default: '',
-				description: 'A note for the activity',
-			},
-		],
-	},
-
-	// ----------------------------------
-	//         invoice:attachFile
-	// ----------------------------------
-	{
-		displayName: 'File Data',
-		name: 'fileData',
-		type: 'collection',
-		placeholder: 'Add Field',
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ['invoice'],
-				operation: ['attachFile'],
-			},
-		},
-		options: [
-			{
-				displayName: 'File Name',
-				name: 'fileName',
-				type: 'string',
-				default: '',
-				description: 'Name of the file to attach',
-			},
-			{
-				displayName: 'File Content (Base64)',
-				name: 'content',
-				type: 'string',
-				default: '',
-				description: 'Base64-encoded file content',
-			},
-			{
-				displayName: 'MIME Type',
-				name: 'mimeType',
-				type: 'string',
-				default: 'application/pdf',
-				description: 'MIME type of the file',
-			},
-		],
-	},
 ];

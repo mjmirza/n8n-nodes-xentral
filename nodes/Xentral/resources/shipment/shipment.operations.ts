@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const shipmentOperations: INodeProperties[] = [
 	{
@@ -15,7 +15,7 @@ export const shipmentOperations: INodeProperties[] = [
 			{
 				name: 'Create',
 				value: 'create',
-				description: 'Create a new shipment',
+				description: 'Create a new shipment (requires a valid shipment type configured in your Xentral instance)',
 				action: 'Create a shipment',
 			},
 			{

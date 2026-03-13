@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralRequest } from '../../transport';
 
 export async function handleTag(
 	this: IExecuteFunctions,
@@ -7,31 +7,22 @@ export async function handleTag(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const name = this.getNodeParameter('name', itemIndex) as string;
-		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
+		const tagName = this.getNodeParameter('tagName', itemIndex) as string;
 
 		const body: IDataObject = {
-			name,
-			type: additionalFields.type || undefined,
+			type: tagName,
 		};
 
-		// Clean undefined
-		Object.keys(body).forEach((key) => {
-			if (body[key] === undefined) delete body[key];
-		});
-
-		return xentralRequest.call(this, 'POST', 'tag', body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', 'tags', body, {}, 'v2');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'tag', {}, limit);
-	}
 
-	if (operation === 'delete') {
-		const tagId = this.getNodeParameter('tagId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', 'tag/batch', { ids: [tagId] } as unknown as IDataObject, {}, 'v1');
+		const response = await xentralRequest.call(this, 'GET', 'tags', {}, {}, 'v2');
+		const items = (Array.isArray(response) ? response : (response as IDataObject).data || []) as IDataObject[];
+		return limit ? items.slice(0, limit) : items;
 	}
 
 	throw new Error(`Unknown tag operation: ${operation}`);

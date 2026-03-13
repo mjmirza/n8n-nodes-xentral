@@ -8,14 +8,15 @@ export async function handleWebhook(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
 		const url = this.getNodeParameter('url', itemIndex) as string;
-		const event = this.getNodeParameter('event', itemIndex) as string;
-		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
+		const events = this.getNodeParameter('events', itemIndex) as string[];
+		const signatureKey = this.getNodeParameter('signatureKey', itemIndex, '') as string;
 
 		const body: IDataObject = {
 			url,
-			event,
-			active: additionalFields.active !== undefined ? additionalFields.active : true,
+			events,
 		};
+
+		if (signatureKey) body.signatureKey = signatureKey;
 
 		return xentralRequest.call(this, 'POST', 'webhooks', body, {}, 'v1');
 	}
@@ -37,9 +38,9 @@ export async function handleWebhook(
 
 		const body: IDataObject = {};
 
-		if (updateFields.url) body.url = updateFields.url;
-		if (updateFields.event) body.event = updateFields.event;
-		if (updateFields.active !== undefined) body.active = updateFields.active;
+		if (updateFields.url !== undefined) body.url = updateFields.url;
+		if (updateFields.events !== undefined) body.events = updateFields.events;
+		if (updateFields.signatureKey !== undefined) body.signatureKey = updateFields.signatureKey;
 
 		return xentralRequest.call(this, 'PATCH', `webhooks/${webhookId}`, body, {}, 'v1');
 	}

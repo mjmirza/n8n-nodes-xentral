@@ -1,22 +1,22 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const addressFields: INodeProperties[] = [
 	// ----------------------------------
-	//         address: customerId (create + getAll)
+	//         address: customerId (all operations)
 	// ----------------------------------
 	{
 		displayName: 'Customer ID',
 		name: 'customerId',
 		type: 'string',
 		default: '',
-		required: false,
+		required: true,
 		displayOptions: {
 			show: {
 				resource: ['address'],
-				operation: ['create', 'getAll'],
+				operation: ['create', 'getAll', 'update', 'delete'],
 			},
 		},
-		description: 'The ID of the parent customer. For create, included in request body. For getAll, used as filter.',
+		description: 'The ID of the customer whose addresses to manage',
 	},
 
 	// ----------------------------------
@@ -138,7 +138,7 @@ export const addressFields: INodeProperties[] = [
 	},
 
 	// ----------------------------------
-	//         address:get / update / delete
+	//         address:update / delete
 	// ----------------------------------
 	{
 		displayName: 'Address ID',
@@ -149,7 +149,7 @@ export const addressFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['address'],
-				operation: ['get', 'update', 'delete'],
+				operation: ['update', 'delete'],
 			},
 		},
 		description: 'The ID of the address',

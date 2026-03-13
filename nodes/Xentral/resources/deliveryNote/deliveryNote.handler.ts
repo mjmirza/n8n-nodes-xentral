@@ -16,19 +16,19 @@ export async function handleDeliveryNote(
 			language,
 		};
 
-		if (additionalFields.documentDate) body.documentDate = additionalFields.documentDate;
-		if (additionalFields.salesOrderId) body.salesOrderId = additionalFields.salesOrderId;
-		if (additionalFields.shippingMethod) body.shippingMethod = additionalFields.shippingMethod;
-		if (additionalFields.trackingNumber) body.trackingNumber = additionalFields.trackingNumber;
-		if (additionalFields.carrier) body.carrier = additionalFields.carrier;
-		if (additionalFields.internalNote) body.internalNote = additionalFields.internalNote;
+		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
+		if (additionalFields.salesOrderId !== undefined) body.salesOrderId = additionalFields.salesOrderId;
+		if (additionalFields.shippingMethod !== undefined) body.shippingMethod = additionalFields.shippingMethod;
+		if (additionalFields.trackingNumber !== undefined) body.trackingNumber = additionalFields.trackingNumber;
+		if (additionalFields.carrier !== undefined) body.carrier = additionalFields.carrier;
+		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
 
-		return xentralRequest.call(this, 'POST', 'deliverynotes', body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', 'deliveryNotes', body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'get') {
 		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `deliverynotes/${deliveryNoteId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'GET', `deliveryNotes/${deliveryNoteId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'getAll') {
@@ -36,20 +36,20 @@ export async function handleDeliveryNote(
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
 		const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 		const query: IDataObject = {};
-		if (filters.status) query['filter[status]'] = filters.status;
-		if (filters.customerId) query['filter[customerId]'] = filters.customerId;
-		return xentralV3GetAll.call(this, 'deliverynotes', query, limit);
+		if (filters.status !== undefined) query['filter[status]'] = filters.status;
+		if (filters.customerId !== undefined) query['filter[customerId]'] = filters.customerId;
+		return xentralV3GetAll.call(this, 'deliveryNotes', query, limit);
 	}
 
 	if (operation === 'update') {
 		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `deliverynotes/${deliveryNoteId}`, updateFields as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'delete') {
 		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `deliverynotes/${deliveryNoteId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'DELETE', `deliveryNotes/${deliveryNoteId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'addLineItem') {
@@ -63,67 +63,25 @@ export async function handleDeliveryNote(
 			quantity,
 		};
 
-		if (lineItemOptions.unitPrice) body.unitPrice = lineItemOptions.unitPrice;
-		if (lineItemOptions.discount) body.discount = lineItemOptions.discount;
-		if (lineItemOptions.description) body.description = lineItemOptions.description;
-		if (lineItemOptions.position) body.position = lineItemOptions.position;
+		if (lineItemOptions.unitPrice !== undefined) body.unitPrice = lineItemOptions.unitPrice;
+		if (lineItemOptions.discount !== undefined) body.discount = lineItemOptions.discount;
+		if (lineItemOptions.description !== undefined) body.description = lineItemOptions.description;
+		if (lineItemOptions.position !== undefined) body.position = lineItemOptions.position;
 
-		return xentralRequest.call(this, 'POST', `deliverynotes/${deliveryNoteId}/lineitems`, body as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'getLineItems') {
-		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `deliverynotes/${deliveryNoteId}/lineitems`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `deliveryNotes/${deliveryNoteId}/lineItems`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {
 		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `deliverynotes/${deliveryNoteId}/lineitems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
 		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `deliverynotes/${deliveryNoteId}/lineitems/${lineItemId}`, {}, {}, 'v3');
-	}
-
-	if (operation === 'release') {
-		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `deliverynotes/${deliveryNoteId}/actions/release`, {} as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'cancel') {
-		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `deliverynotes/${deliveryNoteId}/actions/cancel`, {} as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'send') {
-		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `deliverynotes/${deliveryNoteId}/actions/send`, {} as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'logActivity') {
-		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
-		const body = this.getNodeParameter('activityData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `deliverynotes/${deliveryNoteId}/actions/logactivity`, body as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'setWriteProtection') {
-		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `deliverynotes/${deliveryNoteId}/actions/setwriteprotection`, {} as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'removeWriteProtection') {
-		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
-		return xentralRequest.call(this, 'PATCH', `deliverynotes/${deliveryNoteId}/actions/removewriteprotection`, {} as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'attachFile') {
-		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
-		const body = this.getNodeParameter('fileData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'POST', `deliverynotes/${deliveryNoteId}/files`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'DELETE', `deliveryNotes/${deliveryNoteId}/lineItems/${lineItemId}`, {}, {}, 'v3');
 	}
 
 	throw new Error(`Unknown deliveryNote operation: ${operation}`);

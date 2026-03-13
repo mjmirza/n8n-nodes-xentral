@@ -9,36 +9,30 @@ export async function handleContact(
 	const customerId = this.getNodeParameter('customerId', itemIndex) as string;
 
 	if (operation === 'create') {
-		const firstName = this.getNodeParameter('firstName', itemIndex) as string;
-		const lastName = this.getNodeParameter('lastName', itemIndex) as string;
+		const name = this.getNodeParameter('contactName', itemIndex) as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
-			firstName,
-			lastName,
-			email: additionalFields.email || undefined,
-			phone: additionalFields.phone || undefined,
-			position: additionalFields.position || undefined,
-			department: additionalFields.department || undefined,
+			name,
 		};
 
-		// Clean undefined values
-		Object.keys(body).forEach((key) => {
-			if (body[key] === undefined) delete body[key];
-		});
+		if (additionalFields.email !== undefined) body.email = additionalFields.email;
+		if (additionalFields.phone !== undefined) body.phone = additionalFields.phone;
+		if (additionalFields.position !== undefined) body.position = additionalFields.position;
+		if (additionalFields.department !== undefined) body.department = additionalFields.department;
 
-		return xentralRequest.call(this, 'POST', `customer/${customerId}/contact-person`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', `customers/${customerId}/contactPerson`, body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'get') {
 		const contactId = this.getNodeParameter('contactId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `customer/${customerId}/contact-person/${contactId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'GET', `customers/${customerId}/contactPerson/${contactId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, `customer/${customerId}/contact-persons`, {}, limit);
+		return xentralV1PageGetAll.call(this, `customers/${customerId}/contactPerson`, {}, limit);
 	}
 
 	if (operation === 'update') {
@@ -46,19 +40,18 @@ export async function handleContact(
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
-		if (updateFields.firstName) body.firstName = updateFields.firstName;
-		if (updateFields.lastName) body.lastName = updateFields.lastName;
-		if (updateFields.email) body.email = updateFields.email;
-		if (updateFields.phone) body.phone = updateFields.phone;
-		if (updateFields.position) body.position = updateFields.position;
-		if (updateFields.department) body.department = updateFields.department;
+		if (updateFields.contactName !== undefined) body.name = updateFields.contactName;
+		if (updateFields.email !== undefined) body.email = updateFields.email;
+		if (updateFields.phone !== undefined) body.phone = updateFields.phone;
+		if (updateFields.position !== undefined) body.position = updateFields.position;
+		if (updateFields.department !== undefined) body.department = updateFields.department;
 
-		return xentralRequest.call(this, 'PATCH', `customer/${customerId}/contact-person/${contactId}`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'PATCH', `customers/${customerId}/contactPerson/${contactId}`, body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'delete') {
 		const contactId = this.getNodeParameter('contactId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `customer/${customerId}/contact-person/${contactId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'DELETE', `customers/${customerId}/contactPerson/${contactId}`, {}, {}, 'v1');
 	}
 
 	throw new Error(`Unknown contact operation: ${operation}`);

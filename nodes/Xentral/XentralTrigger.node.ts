@@ -155,14 +155,10 @@ export class XentralTrigger implements INodeType {
 					active: true,
 				};
 
-				try {
-					const response = await xentralRequest.call(this, 'POST', 'webhooks', body, {}, 'v1');
-					const webhookData = this.getWorkflowStaticData('node');
-					webhookData.webhookId = (response.data as IDataObject)?.id || response.id;
-					return true;
-				} catch {
-					return false;
-				}
+				const response = await xentralRequest.call(this, 'POST', 'webhooks', body, {}, 'v1');
+				const webhookData = this.getWorkflowStaticData('node');
+				webhookData.webhookId = (response.data as IDataObject)?.id || response.id;
+				return true;
 			},
 
 			async delete(this: IHookFunctions): Promise<boolean> {

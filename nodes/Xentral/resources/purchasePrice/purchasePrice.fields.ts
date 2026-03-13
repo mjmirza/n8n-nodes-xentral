@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const purchasePriceFields: INodeProperties[] = [
 	// ----------------------------------
@@ -33,19 +33,34 @@ export const purchasePriceFields: INodeProperties[] = [
 		description: 'The ID of the supplier',
 	},
 	{
-		displayName: 'Price',
-		name: 'price',
+		displayName: 'From Quantity',
+		name: 'fromQuantity',
 		type: 'number',
-		default: 0,
+		default: 1,
 		required: true,
-		typeOptions: { numberPrecision: 2 },
+		typeOptions: { minValue: 1 },
 		displayOptions: {
 			show: {
 				resource: ['purchasePrice'],
 				operation: ['create'],
 			},
 		},
-		description: 'The purchase price',
+		description: 'Minimum quantity for this price tier',
+	},
+	{
+		displayName: 'Package Amount',
+		name: 'packageAmount',
+		type: 'number',
+		default: 1,
+		required: true,
+		typeOptions: { minValue: 1 },
+		displayOptions: {
+			show: {
+				resource: ['purchasePrice'],
+				operation: ['create'],
+			},
+		},
+		description: 'The package amount for this price',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -61,17 +76,19 @@ export const purchasePriceFields: INodeProperties[] = [
 		},
 		options: [
 			{
+				displayName: 'Price',
+				name: 'price',
+				type: 'number',
+				default: 0,
+				typeOptions: { numberPrecision: 2 },
+				description: 'The purchase price',
+			},
+			{
 				displayName: 'Currency',
 				name: 'currency',
 				type: 'string',
 				default: 'EUR',
 				description: 'ISO 4217 currency code',
-			},
-			{
-				displayName: 'Min Quantity',
-				name: 'minQuantity',
-				type: 'number',
-				default: 1,
 			},
 			{
 				displayName: 'Delivery Time',
@@ -162,6 +179,18 @@ export const purchasePriceFields: INodeProperties[] = [
 				default: '',
 			},
 			{
+				displayName: 'From Quantity',
+				name: 'fromQuantity',
+				type: 'number',
+				default: 1,
+			},
+			{
+				displayName: 'Package Amount',
+				name: 'packageAmount',
+				type: 'number',
+				default: 1,
+			},
+			{
 				displayName: 'Price',
 				name: 'price',
 				type: 'number',
@@ -173,12 +202,6 @@ export const purchasePriceFields: INodeProperties[] = [
 				name: 'currency',
 				type: 'string',
 				default: 'EUR',
-			},
-			{
-				displayName: 'Min Quantity',
-				name: 'minQuantity',
-				type: 'number',
-				default: 1,
 			},
 			{
 				displayName: 'Delivery Time',

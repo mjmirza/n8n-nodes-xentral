@@ -9,35 +9,33 @@ export async function handlePurchasePrice(
 	if (operation === 'create') {
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
-		const price = this.getNodeParameter('price', itemIndex) as number;
+		const fromQuantity = this.getNodeParameter('fromQuantity', itemIndex, 1) as number;
+		const packageAmount = this.getNodeParameter('packageAmount', itemIndex, 1) as number;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
-			productId,
-			supplierId,
-			price,
-			currency: additionalFields.currency || undefined,
-			minQuantity: additionalFields.minQuantity || undefined,
-			deliveryTime: additionalFields.deliveryTime || undefined,
+			product: { id: productId },
+			supplier: { id: supplierId },
+			fromQuantity,
+			packageAmount,
 		};
 
-		// Clean undefined
-		Object.keys(body).forEach((key) => {
-			if (body[key] === undefined) delete body[key];
-		});
+		if (additionalFields.price !== undefined) body.price = additionalFields.price;
+		if (additionalFields.currency !== undefined) body.currency = additionalFields.currency;
+		if (additionalFields.deliveryTime !== undefined) body.deliveryTime = additionalFields.deliveryTime;
 
-		return xentralRequest.call(this, 'POST', 'purchase-price-v2', body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', 'purchasePrices', body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'get') {
 		const purchasePriceId = this.getNodeParameter('purchasePriceId', itemIndex) as string;
-		return xentralRequest.call(this, 'GET', `purchase-price/${purchasePriceId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'GET', `purchasePrices/${purchasePriceId}`, {}, {}, 'v1');
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		return xentralV1PageGetAll.call(this, 'purchase-price-v2', {}, limit);
+		return xentralV1PageGetAll.call(this, 'purchasePrices', {}, limit);
 	}
 
 	if (operation === 'update') {
@@ -45,19 +43,20 @@ export async function handlePurchasePrice(
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
-		if (updateFields.productId) body.productId = updateFields.productId;
-		if (updateFields.supplierId) body.supplierId = updateFields.supplierId;
+		if (updateFields.productId !== undefined) body.product = { id: updateFields.productId };
+		if (updateFields.supplierId !== undefined) body.supplier = { id: updateFields.supplierId };
+		if (updateFields.fromQuantity !== undefined) body.fromQuantity = updateFields.fromQuantity;
+		if (updateFields.packageAmount !== undefined) body.packageAmount = updateFields.packageAmount;
 		if (updateFields.price !== undefined) body.price = updateFields.price;
-		if (updateFields.currency) body.currency = updateFields.currency;
-		if (updateFields.minQuantity) body.minQuantity = updateFields.minQuantity;
-		if (updateFields.deliveryTime) body.deliveryTime = updateFields.deliveryTime;
+		if (updateFields.currency !== undefined) body.currency = updateFields.currency;
+		if (updateFields.deliveryTime !== undefined) body.deliveryTime = updateFields.deliveryTime;
 
-		return xentralRequest.call(this, 'PATCH', `purchase-price-v2/${purchasePriceId}`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'PATCH', `purchasePrices/${purchasePriceId}`, body as IDataObject, {}, 'v1');
 	}
 
 	if (operation === 'delete') {
 		const purchasePriceId = this.getNodeParameter('purchasePriceId', itemIndex) as string;
-		return xentralRequest.call(this, 'DELETE', `purchase-price/${purchasePriceId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'DELETE', `purchasePrices/${purchasePriceId}`, {}, {}, 'v1');
 	}
 
 	throw new Error(`Unknown purchasePrice operation: ${operation}`);

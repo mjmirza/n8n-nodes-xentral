@@ -1,4 +1,4 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const deliveryNoteFields: INodeProperties[] = [
 	// ----------------------------------
@@ -90,7 +90,7 @@ export const deliveryNoteFields: INodeProperties[] = [
 	},
 
 	// ----------------------------------
-	//         deliveryNote:get / update / delete / release / send / cancel / getLineItems / logActivity / setWriteProtection / removeWriteProtection / attachFile
+	//         deliveryNote:get / update / delete / attachFile
 	// ----------------------------------
 	{
 		displayName: 'Delivery Note ID',
@@ -102,9 +102,8 @@ export const deliveryNoteFields: INodeProperties[] = [
 			show: {
 				resource: ['deliveryNote'],
 				operation: [
-					'get', 'update', 'delete', 'release', 'send', 'cancel',
-					'getLineItems', 'updateLineItem', 'deleteLineItem',
-					'logActivity', 'setWriteProtection', 'removeWriteProtection', 'attachFile',
+					'get', 'update', 'delete',
+					'updateLineItem', 'deleteLineItem',
 				],
 			},
 		},
@@ -386,77 +385,4 @@ export const deliveryNoteFields: INodeProperties[] = [
 		],
 	},
 
-	// ----------------------------------
-	//         deliveryNote:logActivity
-	// ----------------------------------
-	{
-		displayName: 'Activity Data',
-		name: 'activityData',
-		type: 'collection',
-		placeholder: 'Add Field',
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ['deliveryNote'],
-				operation: ['logActivity'],
-			},
-		},
-		options: [
-			{
-				displayName: 'Type',
-				name: 'type',
-				type: 'string',
-				default: '',
-				description: 'The type of the activity',
-			},
-			{
-				displayName: 'Note',
-				name: 'note',
-				type: 'string',
-				typeOptions: { rows: 3 },
-				default: '',
-				description: 'A note for the activity',
-			},
-		],
-	},
-
-	// ----------------------------------
-	//         deliveryNote:attachFile
-	// ----------------------------------
-	{
-		displayName: 'File Data',
-		name: 'fileData',
-		type: 'collection',
-		placeholder: 'Add Field',
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ['deliveryNote'],
-				operation: ['attachFile'],
-			},
-		},
-		options: [
-			{
-				displayName: 'File Name',
-				name: 'fileName',
-				type: 'string',
-				default: '',
-				description: 'Name of the file to attach',
-			},
-			{
-				displayName: 'File Content (Base64)',
-				name: 'content',
-				type: 'string',
-				default: '',
-				description: 'Base64-encoded file content',
-			},
-			{
-				displayName: 'MIME Type',
-				name: 'mimeType',
-				type: 'string',
-				default: 'application/pdf',
-				description: 'MIME type of the file',
-			},
-		],
-	},
 ];

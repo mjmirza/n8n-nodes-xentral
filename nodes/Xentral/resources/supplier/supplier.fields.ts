@@ -1,120 +1,6 @@
-import { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow';
 
 export const supplierFields: INodeProperties[] = [
-	// ----------------------------------
-	//         supplier:create
-	// ----------------------------------
-	{
-		displayName: 'Supplier Type',
-		name: 'supplierType',
-		type: 'options',
-		options: [
-			{ name: 'Company', value: 'company' },
-			{ name: 'Individual', value: 'individual' },
-		],
-		default: 'company',
-		displayOptions: {
-			show: {
-				resource: ['supplier'],
-				operation: ['create'],
-			},
-		},
-		description: 'Whether the supplier is a company or individual',
-	},
-	{
-		displayName: 'Name',
-		name: 'supplierName',
-		type: 'string',
-		default: '',
-		required: true,
-		displayOptions: {
-			show: {
-				resource: ['supplier'],
-				operation: ['create'],
-			},
-		},
-		description: 'The company name or full name of the supplier',
-	},
-	{
-		displayName: 'Additional Fields',
-		name: 'additionalFields',
-		type: 'collection',
-		placeholder: 'Add Field',
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ['supplier'],
-				operation: ['create'],
-			},
-		},
-		options: [
-			{
-				displayName: 'Email',
-				name: 'email',
-				type: 'string',
-				placeholder: 'name@email.com',
-				default: '',
-			},
-			{
-				displayName: 'Phone',
-				name: 'phone',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Fax',
-				name: 'fax',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Street',
-				name: 'street',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'ZIP Code',
-				name: 'zipCode',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'City',
-				name: 'city',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Country',
-				name: 'country',
-				type: 'string',
-				default: 'DE',
-				description: 'ISO 3166-1 alpha-2 country code',
-			},
-			{
-				displayName: 'VAT ID',
-				name: 'vatId',
-				type: 'string',
-				default: '',
-				description: 'VAT identification number',
-			},
-			{
-				displayName: 'Payment Method',
-				name: 'paymentMethod',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Language',
-				name: 'language',
-				type: 'string',
-				default: 'de',
-				description: 'ISO 639-1 language code',
-			},
-		],
-	},
-
 	// ----------------------------------
 	//         supplier:get
 	// ----------------------------------
@@ -127,7 +13,7 @@ export const supplierFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['supplier'],
-				operation: ['get', 'update', 'delete'],
+				operation: ['get', 'update'],
 			},
 		},
 		description: 'The ID of the supplier',
