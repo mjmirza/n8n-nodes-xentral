@@ -19,6 +19,20 @@ export const purchaseOrderFields: INodeProperties[] = [
 		description: 'The ID of the supplier for this purchase order',
 	},
 	{
+		displayName: 'Date',
+		name: 'date',
+		type: 'dateTime',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['purchaseOrder'],
+				operation: ['create'],
+			},
+		},
+		description: 'The date of the purchase order (required by Xentral API)',
+	},
+	{
 		displayName: 'Additional Fields',
 		name: 'additionalFields',
 		type: 'collection',
