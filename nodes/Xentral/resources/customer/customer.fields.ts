@@ -893,13 +893,6 @@ export const customerFields: INodeProperties[] = [
 				default: '',
 			},
 			{
-				displayName: 'Project ID',
-				name: 'projectId',
-				type: 'string',
-				default: '',
-				description: 'Project ID (wrapped as object ref)',
-			},
-			{
 				displayName: 'Sales Manager ID',
 				name: 'salesManagerId',
 				type: 'string',

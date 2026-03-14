@@ -127,7 +127,6 @@ export async function handleReturn(
 		const returnId = this.getNodeParameter('returnId', itemIndex) as string;
 		assertSafeId(returnId, 'returnId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		assertNonEmptyBody(updateFields as IDataObject, 'return order update');
 
 		const body: IDataObject = {};
 
@@ -184,6 +183,8 @@ export async function handleReturn(
 			body.sales = { id: updateFields.salesId };
 		}
 
+		assertNonEmptyBody(body as IDataObject, 'return order update');
+
 		return xentralRequest.call(this, 'PATCH', `returnOrders/${returnId}`, body as IDataObject, {}, 'v3');
 	}
 
@@ -234,7 +235,6 @@ export async function handleReturn(
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		assertSafeId(lineItemId, 'lineItemId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		assertNonEmptyBody(updateFields as IDataObject, 'return order line item update');
 
 		const body: IDataObject = {};
 
@@ -260,6 +260,8 @@ export async function handleReturn(
 				body.returnReason = reason;
 			}
 		}
+
+		assertNonEmptyBody(body as IDataObject, 'return order line item update');
 
 		return xentralRequest.call(this, 'PATCH', `returnOrders/${returnId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
 	}
