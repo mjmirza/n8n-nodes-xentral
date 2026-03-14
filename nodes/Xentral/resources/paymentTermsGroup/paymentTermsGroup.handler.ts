@@ -7,18 +7,46 @@ export async function handlePaymentTermsGroup(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const name = assertNonEmpty(this.getNodeParameter('paymentTermsGroupName', itemIndex) as string, 'Payment Terms Group Name');
-		const key = assertNonEmpty(this.getNodeParameter('paymentTermsGroupKey', itemIndex) as string, 'Payment Terms Group Key');
+		const key = assertNonEmpty(this.getNodeParameter('key', itemIndex) as string, 'Key');
+		const name = assertNonEmpty(this.getNodeParameter('name', itemIndex) as string, 'Name');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
-			name,
 			key,
+			name,
 		};
 
-		if (additionalFields.days !== undefined) body.days = additionalFields.days;
-		if (additionalFields.discountDays !== undefined) body.discountDays = additionalFields.discountDays;
-		if (additionalFields.discountPercent !== undefined) body.discountPercent = additionalFields.discountPercent;
+		if (additionalFields.comment !== undefined) body.comment = additionalFields.comment;
+		if (additionalFields.isActive !== undefined) body.isActive = additionalFields.isActive;
+
+		if (additionalFields.category !== undefined) {
+			if (typeof additionalFields.category === 'string') {
+				try {
+					body.category = JSON.parse(additionalFields.category as string);
+				} catch {
+					throw new Error('Invalid JSON in category. Please provide valid JSON.');
+				}
+			} else {
+				body.category = additionalFields.category;
+			}
+		}
+
+		if (additionalFields.paymentTerms !== undefined) {
+			if (typeof additionalFields.paymentTerms === 'string') {
+				try {
+					body.paymentTerms = JSON.parse(additionalFields.paymentTerms as string);
+				} catch {
+					throw new Error('Invalid JSON in paymentTerms. Please provide valid JSON.');
+				}
+			} else {
+				body.paymentTerms = additionalFields.paymentTerms;
+			}
+		}
+
+		// Project object ref
+		if (additionalFields.projectId) {
+			body.project = { id: additionalFields.projectId };
+		}
 
 		return xentralRequest.call(this, 'POST', 'paymentTermsGroups', body as IDataObject, {}, 'v1');
 	}

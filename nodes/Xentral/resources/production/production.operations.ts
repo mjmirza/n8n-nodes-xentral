@@ -31,6 +31,12 @@ export const productionOperations: INodeProperties[] = [
 				action: 'Get many production orders',
 			},
 			{
+				name: 'Attach File',
+				value: 'attachFile',
+				description: 'Attach a file to a production order',
+				action: 'Attach file to production order',
+			},
+			{
 				name: 'Delete',
 				value: 'delete',
 				description: 'Delete a production order',
@@ -47,6 +53,12 @@ export const productionOperations: INodeProperties[] = [
 				value: 'start',
 				description: 'Start a production order',
 				action: 'Start a production order',
+			},
+			{
+				name: 'Log Activity',
+				value: 'logActivity',
+				description: 'Log an activity on a production order',
+				action: 'Log activity on production order',
 			},
 		],
 		default: 'getAll',

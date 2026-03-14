@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 export async function handleDeliveryNote(
 	this: IExecuteFunctions,
@@ -9,20 +9,45 @@ export async function handleDeliveryNote(
 	if (operation === 'create') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
 		assertSafeId(customerId, 'customerId');
-		const language = this.getNodeParameter('language', itemIndex, 'de') as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
 			address: { id: customerId },
-			language,
 		};
 
+		// Simple string/date fields
+		if (additionalFields.bodyIntroduction !== undefined) body.bodyIntroduction = additionalFields.bodyIntroduction;
+		if (additionalFields.bodyOutroduction !== undefined) body.bodyOutroduction = additionalFields.bodyOutroduction;
+		if (additionalFields.costCenter !== undefined) body.costCenter = additionalFields.costCenter;
+		if (additionalFields.deliveryTerms !== undefined) body.deliveryTerms = additionalFields.deliveryTerms;
 		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
-		if (additionalFields.salesOrderId !== undefined) body.salesOrderId = additionalFields.salesOrderId;
-		if (additionalFields.shippingMethod !== undefined) body.shippingMethod = additionalFields.shippingMethod;
-		if (additionalFields.trackingNumber !== undefined) body.trackingNumber = additionalFields.trackingNumber;
-		if (additionalFields.carrier !== undefined) body.carrier = additionalFields.carrier;
-		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
+		if (additionalFields.internalComment !== undefined) body.internalComment = additionalFields.internalComment;
+		if (additionalFields.internalDesignation !== undefined) body.internalDesignation = additionalFields.internalDesignation;
+		if (additionalFields.language !== undefined) body.language = additionalFields.language;
+		if (additionalFields.masterReferenceNumber !== undefined) body.masterReferenceNumber = additionalFields.masterReferenceNumber;
+		if (additionalFields.vatId !== undefined) body.vatId = additionalFields.vatId;
+
+		// Object-wrapped ID references
+		if (additionalFields.commissionConsignmentWarehouseId) {
+			body.commissionConsignmentWarehouse = { id: additionalFields.commissionConsignmentWarehouseId };
+		}
+		if (additionalFields.editorId) body.editor = { id: additionalFields.editorId };
+		if (additionalFields.orderPickingId) body.orderPicking = { id: additionalFields.orderPickingId };
+		if (additionalFields.preferredWarehouseId) body.preferredWarehouse = { id: additionalFields.preferredWarehouseId };
+		if (additionalFields.projectId) body.project = { id: additionalFields.projectId };
+		if (additionalFields.salesId) body.sales = { id: additionalFields.salesId };
+		if (additionalFields.salesOrderId) body.salesOrder = { id: additionalFields.salesOrderId };
+
+		// Tags
+		if (additionalFields.tags !== undefined && (additionalFields.tags as string).trim() !== '') {
+			body.tags = (additionalFields.tags as string).split(',').map((t: string) => t.trim()).filter((t: string) => t !== '').map((t: string) => ({ title: t }));
+		}
+
+		// Fixed collections (address objects)
+		if (additionalFields.documentAddress !== undefined) {
+			const addr = (additionalFields.documentAddress as IDataObject).address as IDataObject;
+			if (addr !== undefined) body.documentAddress = addr;
+		}
 
 		return xentralRequest.call(this, 'POST', 'deliveryNotes', body as IDataObject, {}, 'v3');
 	}
@@ -52,6 +77,12 @@ export async function handleDeliveryNote(
 			query[`filter[${filterIndex}][value]`] = filters.customerId;
 			filterIndex++;
 		}
+		if (filters.createdAfter !== undefined && filters.createdAfter !== '') {
+			query[`filter[${filterIndex}][key]`] = 'createdAfter';
+			query[`filter[${filterIndex}][op]`] = 'gte';
+			query[`filter[${filterIndex}][value]`] = filters.createdAfter;
+			filterIndex++;
+		}
 		return xentralV3GetAll.call(this, 'deliveryNotes', query, limit, maxPages);
 	}
 
@@ -59,8 +90,45 @@ export async function handleDeliveryNote(
 		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
 		assertSafeId(deliveryNoteId, 'deliveryNoteId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		assertNonEmptyBody(updateFields as IDataObject, 'delivery note update');
-		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}`, updateFields as IDataObject, {}, 'v3');
+
+		const body: IDataObject = {};
+
+		// Simple string/date fields
+		if (updateFields.bodyIntroduction !== undefined) body.bodyIntroduction = updateFields.bodyIntroduction;
+		if (updateFields.bodyOutroduction !== undefined) body.bodyOutroduction = updateFields.bodyOutroduction;
+		if (updateFields.costCenter !== undefined) body.costCenter = updateFields.costCenter;
+		if (updateFields.deliveryTerms !== undefined) body.deliveryTerms = updateFields.deliveryTerms;
+		if (updateFields.documentDate !== undefined) body.documentDate = updateFields.documentDate;
+		if (updateFields.internalComment !== undefined) body.internalComment = updateFields.internalComment;
+		if (updateFields.internalDesignation !== undefined) body.internalDesignation = updateFields.internalDesignation;
+		if (updateFields.language !== undefined) body.language = updateFields.language;
+		if (updateFields.masterReferenceNumber !== undefined) body.masterReferenceNumber = updateFields.masterReferenceNumber;
+		if (updateFields.vatId !== undefined) body.vatId = updateFields.vatId;
+
+		// Object-wrapped ID references
+		if (updateFields.commissionConsignmentWarehouseId) {
+			body.commissionConsignmentWarehouse = { id: updateFields.commissionConsignmentWarehouseId };
+		}
+		if (updateFields.editorId) body.editor = { id: updateFields.editorId };
+		if (updateFields.orderPickingId) body.orderPicking = { id: updateFields.orderPickingId };
+		if (updateFields.preferredWarehouseId) body.preferredWarehouse = { id: updateFields.preferredWarehouseId };
+		if (updateFields.projectId) body.project = { id: updateFields.projectId };
+		if (updateFields.salesId) body.sales = { id: updateFields.salesId };
+		if (updateFields.salesOrderId) body.salesOrder = { id: updateFields.salesOrderId };
+
+		// Tags
+		if (updateFields.tags !== undefined && (updateFields.tags as string).trim() !== '') {
+			body.tags = (updateFields.tags as string).split(',').map((t: string) => t.trim()).filter((t: string) => t !== '').map((t: string) => ({ title: t }));
+		}
+
+		// Fixed collections (address objects)
+		if (updateFields.documentAddress !== undefined) {
+			const addr = (updateFields.documentAddress as IDataObject).address as IDataObject;
+			if (addr !== undefined) body.documentAddress = addr;
+		}
+
+		assertNonEmptyBody(body, 'delivery note update');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'delete') {
@@ -82,10 +150,16 @@ export async function handleDeliveryNote(
 			quantity,
 		};
 
-		if (lineItemOptions.unitPrice !== undefined) body.unitPrice = lineItemOptions.unitPrice;
-		if (lineItemOptions.discount !== undefined) body.discount = lineItemOptions.discount;
+		if (lineItemOptions.countryOfOrigin !== undefined) body.countryOfOrigin = lineItemOptions.countryOfOrigin;
+		if (lineItemOptions.customerProductNumber !== undefined) body.customerProductNumber = lineItemOptions.customerProductNumber;
+		if (lineItemOptions.deliveredQuantity !== undefined) body.deliveredQuantity = lineItemOptions.deliveredQuantity;
+		if (lineItemOptions.deliveryDate !== undefined) body.deliveryDate = lineItemOptions.deliveryDate;
+		if (lineItemOptions.deliveryDateAsCalendarWeek !== undefined) body.deliveryDateAsCalendarWeek = lineItemOptions.deliveryDateAsCalendarWeek;
 		if (lineItemOptions.description !== undefined) body.description = lineItemOptions.description;
-		if (lineItemOptions.position !== undefined) body.position = lineItemOptions.position;
+		if (lineItemOptions.hsCode !== undefined) body.hsCode = lineItemOptions.hsCode;
+		if (lineItemOptions.internalComment !== undefined) body.internalComment = lineItemOptions.internalComment;
+		if (lineItemOptions.name !== undefined) body.name = lineItemOptions.name;
+		if (lineItemOptions.number !== undefined) body.number = lineItemOptions.number;
 
 		return xentralRequest.call(this, 'POST', `deliveryNotes/${deliveryNoteId}/lineItems`, body as IDataObject, {}, 'v3');
 	}
@@ -95,9 +169,20 @@ export async function handleDeliveryNote(
 		assertSafeId(deliveryNoteId, 'deliveryNoteId');
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		assertSafeId(lineItemId, 'lineItemId');
-		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		assertNonEmptyBody(updateFields as IDataObject, 'delivery note line item update');
-		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
+		const updateFields = this.getNodeParameter('lineItemUpdateFields', itemIndex, {}) as IDataObject;
+
+		const body: IDataObject = {};
+		if (updateFields.deliveredQuantity !== undefined) body.deliveredQuantity = updateFields.deliveredQuantity;
+		if (updateFields.deliveryDate !== undefined) body.deliveryDate = updateFields.deliveryDate;
+		if (updateFields.deliveryDateAsCalendarWeek !== undefined) body.deliveryDateAsCalendarWeek = updateFields.deliveryDateAsCalendarWeek;
+		if (updateFields.description !== undefined) body.description = updateFields.description;
+		if (updateFields.name !== undefined) body.name = updateFields.name;
+		if (updateFields.quantity !== undefined) body.quantity = updateFields.quantity;
+		if (updateFields.sort !== undefined) body.sort = updateFields.sort;
+		if (updateFields.productId) body.product = { id: updateFields.productId };
+
+		assertNonEmptyBody(body, 'delivery note line item update');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
@@ -106,6 +191,51 @@ export async function handleDeliveryNote(
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		assertSafeId(lineItemId, 'lineItemId');
 		return xentralRequest.call(this, 'DELETE', `deliveryNotes/${deliveryNoteId}/lineItems/${lineItemId}`, {}, {}, 'v3');
+	}
+
+	if (operation === 'release') {
+		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
+		assertSafeId(deliveryNoteId, 'deliveryNoteId');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/actions/release`, {} as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'send') {
+		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
+		assertSafeId(deliveryNoteId, 'deliveryNoteId');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/actions/send`, {} as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'cancel') {
+		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
+		assertSafeId(deliveryNoteId, 'deliveryNoteId');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/actions/cancel`, {} as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'logActivity') {
+		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
+		assertSafeId(deliveryNoteId, 'deliveryNoteId');
+		const activityMessage = this.getNodeParameter('activityMessage', itemIndex) as string;
+		const body: IDataObject = { message: activityMessage };
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/actions/logActivity`, body as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'setWriteProtection') {
+		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
+		assertSafeId(deliveryNoteId, 'deliveryNoteId');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/actions/setWriteProtection`, {} as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'removeWriteProtection') {
+		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
+		assertSafeId(deliveryNoteId, 'deliveryNoteId');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/actions/removeWriteProtection`, {} as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'attachFile') {
+		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
+		assertSafeId(deliveryNoteId, 'deliveryNoteId');
+		const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex, 'data') as string;
+		return xentralFileUpload.call(this, `deliveryNotes/${deliveryNoteId}/files`, binaryPropertyName, itemIndex);
 	}
 
 	throw new Error(`Unknown deliveryNote operation: ${operation}`);

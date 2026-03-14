@@ -1,6 +1,55 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 
+/**
+ * Build the purchase price body from a flat field map.
+ * Handles object refs (product, supplier) and the price object { amount, currency }.
+ */
+function buildPurchasePriceBody(fields: IDataObject): IDataObject {
+	const body: IDataObject = {};
+
+	// Object refs
+	if (fields.productId !== undefined && fields.productId !== '') {
+		body.product = { id: fields.productId };
+	}
+	if (fields.supplierId !== undefined && fields.supplierId !== '') {
+		body.supplier = { id: fields.supplierId };
+	}
+
+	// Price object: V1 uses flat { amount, currency }
+	const priceAmount = fields.priceAmount as number | undefined;
+	const priceCurrency = fields.priceCurrency as string | undefined;
+	if (priceAmount !== undefined || priceCurrency !== undefined) {
+		const price: IDataObject = {};
+		if (priceAmount !== undefined) price.amount = priceAmount;
+		if (priceCurrency !== undefined) price.currency = priceCurrency;
+		// Default currency to EUR if only amount is provided
+		if (priceAmount !== undefined && priceCurrency === undefined) {
+			price.currency = 'EUR';
+		}
+		body.price = price;
+	}
+
+	// Direct fields
+	const directFields = [
+		'expiresAt',
+		'fromQuantity',
+		'isStandardSupplier',
+		'packageAmount',
+		'supplierDesignation',
+		'supplierItemNumber',
+		'validFrom',
+	];
+
+	for (const key of directFields) {
+		if (fields[key] !== undefined && fields[key] !== '') {
+			body[key] = fields[key];
+		}
+	}
+
+	return body;
+}
+
 export async function handlePurchasePrice(
 	this: IExecuteFunctions,
 	operation: string,
@@ -9,27 +58,22 @@ export async function handlePurchasePrice(
 	if (operation === 'create') {
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
 		assertSafeId(productId, 'productId');
-		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
-		assertSafeId(supplierId, 'supplierId');
+		const fromQuantity = this.getNodeParameter('fromQuantity', itemIndex) as number;
+		const priceAmount = this.getNodeParameter('priceAmount', itemIndex) as number;
+		const priceCurrency = this.getNodeParameter('priceCurrency', itemIndex, 'EUR') as string;
 		const validFrom = assertNonEmpty(this.getNodeParameter('validFrom', itemIndex) as string, 'Valid From');
 		const expiresAt = assertNonEmpty(this.getNodeParameter('expiresAt', itemIndex) as string, 'Expires At');
-		const fromQuantity = this.getNodeParameter('fromQuantity', itemIndex, 1) as number;
-		const packageAmount = this.getNodeParameter('packageAmount', itemIndex, 1) as number;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = {
-			product: { id: productId },
-			supplier: { id: supplierId },
+		const body = buildPurchasePriceBody({
+			productId,
+			fromQuantity,
+			priceAmount,
+			priceCurrency,
 			validFrom,
 			expiresAt,
-			fromQuantity,
-			packageAmount,
-		};
-
-		if (additionalFields.amount !== undefined) {
-			body.price = { amount: Number(additionalFields.amount), currency: (additionalFields.currency as string) || 'EUR' };
-		}
-		if (additionalFields.deliveryTime !== undefined) body.deliveryTime = additionalFields.deliveryTime;
+			...additionalFields,
+		});
 
 		return xentralRequest.call(this, 'POST', 'purchasePrices', body as IDataObject, {}, 'v1');
 	}
@@ -52,15 +96,7 @@ export async function handlePurchasePrice(
 		assertSafeId(purchasePriceId, 'purchasePriceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = {};
-		if (updateFields.productId !== undefined) body.product = { id: updateFields.productId };
-		if (updateFields.supplierId !== undefined) body.supplier = { id: updateFields.supplierId };
-		if (updateFields.fromQuantity !== undefined) body.fromQuantity = updateFields.fromQuantity;
-		if (updateFields.packageAmount !== undefined) body.packageAmount = updateFields.packageAmount;
-		if (updateFields.price !== undefined) body.price = updateFields.price;
-		if (updateFields.currency !== undefined) body.currency = updateFields.currency;
-		if (updateFields.deliveryTime !== undefined) body.deliveryTime = updateFields.deliveryTime;
-
+		const body = buildPurchasePriceBody(updateFields);
 		assertNonEmptyBody(body, 'purchase price update');
 		return xentralRequest.call(this, 'PATCH', `purchasePrices/${purchasePriceId}`, body as IDataObject, {}, 'v1');
 	}

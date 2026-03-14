@@ -55,18 +55,6 @@ export const creditNoteOperations: INodeProperties[] = [
 				action: 'Release a credit note',
 			},
 			{
-				name: 'Send',
-				value: 'send',
-				description: 'Send a credit note to the customer',
-				action: 'Send a credit note',
-			},
-			{
-				name: 'Cancel',
-				value: 'cancel',
-				description: 'Cancel a credit note',
-				action: 'Cancel a credit note',
-			},
-	{
 				name: 'Update Line Item',
 				value: 'updateLineItem',
 				description: 'Update a line item of a credit note',

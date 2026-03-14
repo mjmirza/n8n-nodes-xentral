@@ -19,8 +19,8 @@ export const goodsReceiptFields: INodeProperties[] = [
 		description: 'The ID of the purchase order to create a goods receipt for',
 	},
 	{
-		displayName: 'Received Items',
-		name: 'receivedItems',
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
 		type: 'collection',
 		placeholder: 'Add Field',
 		default: {},
@@ -32,11 +32,18 @@ export const goodsReceiptFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Items (JSON)',
-				name: 'items',
+				displayName: 'Date',
+				name: 'date',
+				type: 'string',
+				default: '',
+				description: 'The goods receipt date (ISO 8601 date string)',
+			},
+			{
+				displayName: 'Positions (JSON)',
+				name: 'positionsJson',
 				type: 'json',
 				default: '[]',
-				description: 'JSON array of received items with productId and quantity',
+				description: 'JSON array of positions. Each position should specify the received items.',
 			},
 		],
 	},
@@ -45,7 +52,7 @@ export const goodsReceiptFields: INodeProperties[] = [
 	//         goodsReceipt:createForReturn
 	// ----------------------------------
 	{
-		displayName: 'Return ID',
+		displayName: 'Return Order ID',
 		name: 'returnId',
 		type: 'string',
 		default: '',
@@ -56,6 +63,35 @@ export const goodsReceiptFields: INodeProperties[] = [
 				operation: ['createForReturn'],
 			},
 		},
-		description: 'The ID of the return to create a goods receipt for',
+		description: 'The ID of the return order to create a goods receipt for',
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['goodsReceipt'],
+				operation: ['createForReturn'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Date',
+				name: 'date',
+				type: 'string',
+				default: '',
+				description: 'The goods receipt date (ISO 8601 date string)',
+			},
+			{
+				displayName: 'Positions (JSON)',
+				name: 'positionsJson',
+				type: 'json',
+				default: '[]',
+				description: 'JSON array of positions. Each position should specify the received items.',
+			},
+		],
 	},
 ];

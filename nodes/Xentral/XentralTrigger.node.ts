@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, timingSafeEqual, randomBytes } from 'crypto';
 
 import type {
 	IHookFunctions,
@@ -11,6 +11,23 @@ import type {
 import { NodeConnectionTypes } from 'n8n-workflow';
 
 import { xentralRequest, assertSafeId } from './transport';
+
+/**
+ * Convert a short event name (e.g. "salesOrder.created") to the full
+ * Xentral webhook event ID format: "com.xentral.salesOrder.created.v1"
+ */
+function toEventId(shortName: string): string {
+	if (shortName.startsWith('com.xentral.')) return shortName;
+	return `com.xentral.${shortName}.v1`;
+}
+
+/**
+ * Generate a random signature key (32 alphanumeric characters).
+ * The Xentral API requires signatureKey with minLength 20.
+ */
+function generateSignatureKey(): string {
+	return randomBytes(24).toString('base64url').slice(0, 32);
+}
 
 export class XentralTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -128,7 +145,7 @@ export class XentralTrigger implements INodeType {
 					password: true,
 				},
 				default: '',
-				description: 'Secret key for HMAC-SHA256 signature verification of incoming webhooks. If set, only verified payloads are accepted. Leave empty to auto-generate (Xentral will assign one).',
+				description: 'Secret key (min 20 chars) for HMAC-SHA256 signature verification of incoming webhooks. Leave empty to auto-generate a random key.',
 			},
 		],
 	};
@@ -138,13 +155,18 @@ export class XentralTrigger implements INodeType {
 			async checkExists(this: IHookFunctions): Promise<boolean> {
 				const webhookUrl = this.getNodeWebhookUrl('default');
 				const event = this.getNodeParameter('event') as string;
+				const eventId = toEventId(event);
 
 				try {
 					const response = await xentralRequest.call(this, 'GET', 'webhooks', {}, {}, 'v1');
 					const webhooks = (response.data as IDataObject[]) || [];
 
 					for (const webhook of webhooks) {
-						if (webhook.url === webhookUrl && webhook.event === event) {
+						if (webhook.url !== webhookUrl) continue;
+						// Check if the webhook's events array contains our event
+						const events = (webhook.events as IDataObject[]) || [];
+						const hasEvent = events.some((e) => e.id === eventId);
+						if (hasEvent) {
 							const webhookData = this.getWorkflowStaticData('node');
 							webhookData.webhookId = webhook.id;
 							return true;
@@ -160,16 +182,20 @@ export class XentralTrigger implements INodeType {
 			async create(this: IHookFunctions): Promise<boolean> {
 				const webhookUrl = this.getNodeWebhookUrl('default');
 				const event = this.getNodeParameter('event') as string;
-				const signatureKey = this.getNodeParameter('signatureKey', '') as string;
+				const eventId = toEventId(event);
+				let signatureKey = (this.getNodeParameter('signatureKey', '') as string) || '';
+
+				// API requires signatureKey (minLength 20) - auto-generate if not provided
+				if (!signatureKey || signatureKey.length < 20) {
+					signatureKey = generateSignatureKey();
+				}
 
 				const body: IDataObject = {
+					name: `n8n-${event}`,
 					url: webhookUrl,
-					event,
-					active: true,
+					signatureKey,
+					events: [{ id: eventId }],
 				};
-				if (signatureKey) {
-					body.signatureKey = signatureKey;
-				}
 
 				const response = await xentralRequest.call(this, 'POST', 'webhooks', body, {}, 'v1');
 				const webhookData = this.getWorkflowStaticData('node');
@@ -193,6 +219,7 @@ export class XentralTrigger implements INodeType {
 				}
 
 				delete webhookData.webhookId;
+				delete webhookData.signatureKey;
 				return true;
 			},
 		},
@@ -203,8 +230,12 @@ export class XentralTrigger implements INodeType {
 		const body = this.getBodyData() as IDataObject;
 		const headers = this.getHeaderData() as IDataObject;
 
-		// Read signatureKey from node parameters (persists across restarts, unlike staticData)
-		const signatureKey = (this.getNodeParameter('signatureKey', '') as string) || '';
+		// Read signatureKey from node parameters first, fall back to staticData (auto-generated keys)
+		let signatureKey = (this.getNodeParameter('signatureKey', '') as string) || '';
+		if (!signatureKey) {
+			const webhookData = this.getWorkflowStaticData('node');
+			signatureKey = (webhookData.signatureKey as string) || '';
+		}
 
 		if (signatureKey) {
 			const xentralSignature = (headers['xentral-signature'] as string) || '';

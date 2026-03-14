@@ -1,6 +1,125 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
 
+/**
+ * Build the nested body structure from flat n8n fields for document create/update.
+ * Handles: editor, sales, project, preferredWarehouse, shippingMethod, paymentMethod,
+ * financials, documentAddress, deviatingShipToAddress, tags.
+ */
+function buildOfferBody(fields: IDataObject): IDataObject {
+	const body: IDataObject = {};
+
+	// Simple string/boolean/date fields - pass through directly
+	const directFields = [
+		'bodyIntroduction', 'bodyOutroduction', 'costCenter', 'customerReference',
+		'deliveryTerms', 'desiredDeliveryDate', 'desiredDeliveryDateAsCalendarWeek',
+		'documentDate', 'internalComment', 'internalDesignation', 'language',
+		'manualShippingCostApproval', 'plannedOrderDate', 'useAlternativeDocumentTitle',
+		'validUntilDate', 'vatId',
+	];
+	for (const key of directFields) {
+		if (fields[key] !== undefined && fields[key] !== '') {
+			body[key] = fields[key];
+		}
+	}
+
+	// Boolean fields that should pass through even when false
+	const booleanFields = [
+		'desiredDeliveryDateAsCalendarWeek', 'manualShippingCostApproval',
+		'useAlternativeDocumentTitle',
+	];
+	for (const key of booleanFields) {
+		if (fields[key] !== undefined) {
+			body[key] = fields[key];
+		}
+	}
+
+	// Nested object refs: wrap as { id: "..." }
+	if (fields.editorId) body.editor = { id: fields.editorId };
+	if (fields.projectId !== undefined) {
+		body.project = fields.projectId === '' ? null : { id: fields.projectId };
+	}
+	if (fields.preferredWarehouseId) body.preferredWarehouse = { id: fields.preferredWarehouseId };
+	if (fields.shippingMethodId) body.shippingMethod = { id: fields.shippingMethodId };
+	if (fields.paymentMethodId) body.paymentMethod = { id: fields.paymentMethodId };
+
+	// Sales: { id: "..." }
+	if (fields.salesId) {
+		body.sales = { id: fields.salesId };
+	}
+
+	// Financials: { currency: "EUR", tax: { taxation: "domestic" } }
+	const financials: IDataObject = {};
+	if (fields.currency) financials.currency = fields.currency;
+	if (fields.taxation) financials.tax = { taxation: fields.taxation };
+	if (Object.keys(financials).length > 0) body.financials = financials;
+
+	// Document address (fixedCollection)
+	if (fields.documentAddress !== undefined) {
+		const fc = fields.documentAddress as IDataObject;
+		const addr = fc.address as IDataObject;
+		if (addr) body.documentAddress = addr;
+	}
+
+	// Deviating ship-to address (fixedCollection)
+	if (fields.deviatingShipToAddress !== undefined) {
+		const fc = fields.deviatingShipToAddress as IDataObject;
+		const addr = fc.address as IDataObject;
+		if (addr) body.deviatingShipToAddress = addr;
+	}
+
+	// Tags: comma-separated string to array
+	if (fields.tags !== undefined && fields.tags !== '') {
+		body.tags = (fields.tags as string).split(',').map((t: string) => t.trim()).filter((t: string) => t !== '').map((t: string) => ({ title: t }));
+	}
+
+	return body;
+}
+
+/**
+ * Build nested line item body from flat n8n fields.
+ */
+function buildLineItemBody(fields: IDataObject): IDataObject {
+	const body: IDataObject = {};
+
+	// Direct pass-through fields
+	const directFields = [
+		'countryOfOrigin', 'customerProductNumber', 'deliveryDate',
+		'deliveryDateAsCalendarWeek', 'description', 'discount', 'hsCode',
+		'internalComment', 'name', 'number', 'taxLegalNotice', 'quantity', 'sort',
+	];
+	for (const key of directFields) {
+		if (fields[key] !== undefined && fields[key] !== '') {
+			body[key] = fields[key];
+		}
+	}
+
+	// Boolean field
+	if (fields.deliveryDateAsCalendarWeek !== undefined) {
+		body.deliveryDateAsCalendarWeek = fields.deliveryDateAsCalendarWeek;
+	}
+
+	// Numeric fields that can be 0
+	if (fields.discount !== undefined) body.discount = fields.discount;
+	if (fields.quantity !== undefined) body.quantity = fields.quantity;
+	if (fields.sort !== undefined) body.sort = fields.sort;
+
+	// Product ref
+	if (fields.productId) body.product = { id: fields.productId };
+
+	// Price object: { net: { amount: X, currency: "EUR" } }
+	if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
+		body.price = {
+			net: {
+				amount: fields.priceAmount,
+				currency: fields.priceCurrency || 'EUR',
+			},
+		};
+	}
+
+	return body;
+}
+
 export async function handleOffer(
 	this: IExecuteFunctions,
 	operation: string,
@@ -9,27 +128,10 @@ export async function handleOffer(
 	if (operation === 'create') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
 		assertSafeId(customerId, 'customerId');
-		const language = this.getNodeParameter('language', itemIndex, 'de') as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = {
-			address: { id: customerId },
-			language,
-		};
-
-		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
-		if (additionalFields.deliveryTime !== undefined) body.deliveryTime = additionalFields.deliveryTime;
-		if (additionalFields.paymentTerm !== undefined) body.paymentTerm = additionalFields.paymentTerm;
-		if (additionalFields.shippingMethod !== undefined) body.shippingMethod = additionalFields.shippingMethod;
-		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
-		if (additionalFields.shippingCost !== undefined) body.shippingCost = additionalFields.shippingCost;
-		if (additionalFields.headerText !== undefined) body.headerText = additionalFields.headerText;
-		if (additionalFields.footerText !== undefined) body.footerText = additionalFields.footerText;
-		if (additionalFields.validityDays !== undefined) body.validityDays = additionalFields.validityDays;
-		if (additionalFields.deliveryAddress !== undefined) {
-			const addr = (additionalFields.deliveryAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.deliveryAddress = addr;
-		}
+		const body = buildOfferBody(additionalFields);
+		body.address = { id: customerId };
 
 		return xentralRequest.call(this, 'POST', 'offers', body as IDataObject, {}, 'v3');
 	}
@@ -72,8 +174,9 @@ export async function handleOffer(
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
 		assertSafeId(offerId, 'offerId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		assertNonEmptyBody(updateFields as IDataObject, 'offer update');
-		return xentralRequest.call(this, 'PATCH', `offers/${offerId}`, updateFields as IDataObject, {}, 'v3');
+		const body = buildOfferBody(updateFields);
+		assertNonEmptyBody(body as IDataObject, 'offer update');
+		return xentralRequest.call(this, 'PATCH', `offers/${offerId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'delete') {
@@ -90,15 +193,9 @@ export async function handleOffer(
 		const quantity = this.getNodeParameter('quantity', itemIndex) as number;
 		const lineItemOptions = this.getNodeParameter('lineItemOptions', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = {
-			product: { id: productId },
-			quantity,
-		};
-
-		if (lineItemOptions.unitPrice !== undefined) body.unitPrice = lineItemOptions.unitPrice;
-		if (lineItemOptions.discount !== undefined) body.discount = lineItemOptions.discount;
-		if (lineItemOptions.description !== undefined) body.description = lineItemOptions.description;
-		if (lineItemOptions.position !== undefined) body.position = lineItemOptions.position;
+		const body = buildLineItemBody(lineItemOptions);
+		body.product = { id: productId };
+		body.quantity = quantity;
 
 		return xentralRequest.call(this, 'POST', `offers/${offerId}/lineItems`, body as IDataObject, {}, 'v3');
 	}
@@ -109,8 +206,9 @@ export async function handleOffer(
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		assertSafeId(lineItemId, 'lineItemId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		assertNonEmptyBody(updateFields as IDataObject, 'offer line item update');
-		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
+		const body = buildLineItemBody(updateFields);
+		assertNonEmptyBody(body as IDataObject, 'offer line item update');
+		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
@@ -142,20 +240,21 @@ export async function handleOffer(
 	if (operation === 'logActivity') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
 		assertSafeId(offerId, 'offerId');
-		const body = this.getNodeParameter('activityData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/log-activity`, body as IDataObject, {}, 'v3');
+		const activityMessage = this.getNodeParameter('activityMessage', itemIndex) as string;
+		const body: IDataObject = { message: activityMessage };
+		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/logActivity`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'setWriteProtection') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
 		assertSafeId(offerId, 'offerId');
-		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/set-write-protection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/setWriteProtection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'removeWriteProtection') {
 		const offerId = this.getNodeParameter('offerId', itemIndex) as string;
 		assertSafeId(offerId, 'offerId');
-		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/remove-write-protection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `offers/${offerId}/actions/removeWriteProtection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'attachFile') {

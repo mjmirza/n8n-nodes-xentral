@@ -217,6 +217,7 @@ export async function xentralRequest(
 			Accept: 'application/json',
 		},
 		json: true,
+		timeout: 30000,
 	};
 
 	if (Object.keys(query).length > 0) {
@@ -259,6 +260,7 @@ export async function xentralV1CursorGetAll(
 	query: IDataObject = {},
 	limit?: number,
 	maxPages?: number,
+	apiVersion: string = 'v1',
 ): Promise<IDataObject[]> {
 	const returnData: IDataObject[] = [];
 	const cursorSize = 50;
@@ -275,9 +277,12 @@ export async function xentralV1CursorGetAll(
 			qs['cursor[nextCursor]'] = nextCursor;
 		}
 
-		const response = await xentralRequest.call(this, 'GET', endpoint, {}, qs, 'v1');
+		const response = await xentralRequest.call(this, 'GET', endpoint, {}, qs, apiVersion);
 		const items = response.data || [];
 		returnData.push(...items);
+
+		// Stop if page returned no items (empty result set or end of data)
+		if (items.length === 0) break;
 
 		nextCursor = response?.extra?.cursor?.nextCursor;
 		iterations++;
@@ -306,11 +311,11 @@ export async function xentralV1PageGetAll(
 	query: IDataObject = {},
 	limit?: number,
 	maxPages?: number,
+	apiVersion: string = 'v1',
 ): Promise<IDataObject[]> {
 	const returnData: IDataObject[] = [];
 	const pageSize = 150;
 	let pageNumber = 1;
-	let totalCount = Infinity;
 	let iterations = 0;
 	const maxIterations = maxPages && maxPages > 0 ? maxPages : 1000;
 
@@ -321,18 +326,24 @@ export async function xentralV1PageGetAll(
 			'page[size]': pageSize,
 		};
 
-		const response = await xentralRequest.call(this, 'GET', endpoint, {}, qs, 'v1');
+		const response = await xentralRequest.call(this, 'GET', endpoint, {}, qs, apiVersion);
 		const items = response.data || [];
 		returnData.push(...items);
 
-		totalCount = response?.extra?.totalCount ?? Infinity;
+		// Stop if page returned fewer items than requested (last page or empty)
+		if (items.length < pageSize) break;
+
+		// Stop if API provides totalCount and we've reached it
+		const totalCount = response?.extra?.totalCount;
+		if (totalCount !== undefined && returnData.length >= totalCount) break;
+
 		pageNumber++;
 		iterations++;
 
 		if (limit && returnData.length >= limit) {
 			return returnData.slice(0, limit);
 		}
-	} while (returnData.length < totalCount && iterations < maxIterations);
+	} while (iterations < maxIterations);
 
 	if (iterations >= maxIterations) {
 		throw new NodeApiError(
@@ -352,6 +363,7 @@ export async function xentralFileUpload(
 	endpoint: string,
 	binaryPropertyName: string,
 	itemIndex: number,
+	apiVersion: string = 'v3',
 ): Promise<any> {
 	const credentials = await getCredentials(this);
 	const instanceUrl = credentials.instanceUrl as string;
@@ -367,7 +379,7 @@ export async function xentralFileUpload(
 	try {
 		const response = await this.helpers.httpRequest({
 			method: 'POST',
-			url: `${getBaseUrl(instanceUrl, 'v3')}/${safeEndpoint}`,
+			url: `${getBaseUrl(instanceUrl, apiVersion)}/${safeEndpoint}`,
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 				Accept: 'application/json',
@@ -415,6 +427,9 @@ export async function xentralV3GetAll(
 		const response = await xentralRequest.call(this, 'GET', endpoint, {}, qs, 'v3');
 		const items = response.data || [];
 		returnData.push(...items);
+
+		// Stop immediately if page returned no items
+		if (items.length === 0) break;
 
 		const hasNext = response?.links?.next != null;
 		const meta = response?.meta || {};

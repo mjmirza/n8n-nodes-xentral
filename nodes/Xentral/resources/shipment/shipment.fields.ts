@@ -5,8 +5,8 @@ export const shipmentFields: INodeProperties[] = [
 	//         shipment:create
 	// ----------------------------------
 	{
-		displayName: 'Shipment Type',
-		name: 'shipmentType',
+		displayName: 'Delivery Note ID',
+		name: 'deliveryNoteId',
 		type: 'string',
 		default: '',
 		required: true,
@@ -16,7 +16,7 @@ export const shipmentFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The shipment type (must match a type configured in your Xentral instance)',
+		description: 'The ID of the delivery note this shipment belongs to',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -32,24 +32,53 @@ export const shipmentFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Sales Order ID',
-				name: 'salesOrderId',
-				type: 'string',
-				default: '',
-				description: 'The ID of the related sales order',
+				displayName: 'Parcel Count',
+				name: 'parcelCount',
+				type: 'number',
+				default: 1,
+				typeOptions: { minValue: 1 },
+				description: 'The number of parcels in this shipment',
 			},
 			{
-				displayName: 'Carrier',
-				name: 'carrier',
+				displayName: 'Send Tracking Mail',
+				name: 'sendTrackingMail',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to send a tracking email to the customer',
+			},
+			{
+				displayName: 'Sent At',
+				name: 'sentAt',
+				type: 'dateTime',
+				default: '',
+				description: 'The date/time the shipment was sent',
+			},
+			{
+				displayName: 'Shipping Method ID',
+				name: 'shippingMethodId',
 				type: 'string',
 				default: '',
-				description: 'The carrier/shipping provider (e.g. DHL, DPD)',
+				description: 'The ID of the shipping method (nullable)',
+			},
+			{
+				displayName: 'Tracking Link',
+				name: 'trackingLink',
+				type: 'string',
+				default: '',
+				description: 'Full URL for tracking the shipment',
 			},
 			{
 				displayName: 'Tracking Number',
 				name: 'trackingNumber',
 				type: 'string',
 				default: '',
+			},
+			{
+				displayName: 'Update Delivery Note Shipping Method',
+				name: 'updateDeliveryNoteShippingMethod',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to update the shipping method on the delivery note',
 			},
 			{
 				displayName: 'Weight',
@@ -78,37 +107,5 @@ export const shipmentFields: INodeProperties[] = [
 			},
 		},
 		description: 'The ID of the shipment',
-	},
-
-	// ----------------------------------
-	//         shipment:getAll
-	// ----------------------------------
-	{
-		displayName: 'Return All',
-		name: 'returnAll',
-		type: 'boolean',
-		default: false,
-		displayOptions: {
-			show: {
-				resource: ['shipment'],
-				operation: ['getAll'],
-			},
-		},
-		description: 'Whether to return all results or only up to a given limit',
-	},
-	{
-		displayName: 'Limit',
-		name: 'limit',
-		type: 'number',
-		default: 50,
-		typeOptions: { minValue: 1, maxValue: 100 },
-		displayOptions: {
-			show: {
-				resource: ['shipment'],
-				operation: ['getAll'],
-				returnAll: [false],
-			},
-		},
-		description: 'Max number of results to return',
 	},
 ];

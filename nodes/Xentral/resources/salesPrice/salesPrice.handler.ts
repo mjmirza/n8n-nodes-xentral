@@ -1,6 +1,63 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
 
+/**
+ * Build the sales price body from a flat field map.
+ * Handles object refs (product, customer, customerGroup) and the price object.
+ */
+function buildSalesPriceBody(fields: IDataObject): IDataObject {
+	const body: IDataObject = {};
+
+	// Product ref (only used on create, not in update fields)
+	if (fields.productId !== undefined && fields.productId !== '') {
+		body.product = { id: fields.productId };
+	}
+
+	// Customer ref (nullable)
+	if (fields.customerId !== undefined) {
+		body.customer = fields.customerId !== '' ? { id: fields.customerId } : null;
+	}
+
+	// Customer group ref (nullable)
+	if (fields.customerGroupId !== undefined) {
+		body.customerGroup = fields.customerGroupId !== '' ? { id: fields.customerGroupId } : null;
+	}
+
+	// Price object: { amount, currency }
+	const priceAmount = fields.priceAmount as number | undefined;
+	const priceCurrency = fields.priceCurrency as string | undefined;
+	if (priceAmount !== undefined || priceCurrency !== undefined) {
+		const price: IDataObject = {};
+		if (priceAmount !== undefined) price.amount = String(priceAmount);
+		if (priceCurrency !== undefined) price.currency = priceCurrency;
+		// If only amount is given, default currency to EUR
+		if (priceAmount !== undefined && priceCurrency === undefined) {
+			price.currency = 'EUR';
+		}
+		body.price = price;
+	}
+
+	// Direct fields
+	const directFields = [
+		'amount',
+		'customerProductNumber',
+		'expiresAt',
+		'hideInBulkPriceListing',
+		'isNotCalculatedFromExchangeTable',
+		'packageAmount',
+		'remark',
+		'validFrom',
+	];
+
+	for (const key of directFields) {
+		if (fields[key] !== undefined && fields[key] !== '') {
+			body[key] = fields[key];
+		}
+	}
+
+	return body;
+}
+
 export async function handleSalesPrice(
 	this: IExecuteFunctions,
 	operation: string,
@@ -9,22 +66,9 @@ export async function handleSalesPrice(
 	if (operation === 'create') {
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
 		assertSafeId(productId, 'productId');
-		const amount = this.getNodeParameter('amount', itemIndex) as number;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const currency = (additionalFields.currency as string) || 'EUR';
-
-		const body: IDataObject = {
-			product: { id: productId },
-			amount: 1,
-			price: { amount: String(amount), currency },
-		};
-
-		if (additionalFields.customerGroupId !== undefined) body.customerGroupId = additionalFields.customerGroupId;
-		if (additionalFields.minQuantity !== undefined) body.minQuantity = additionalFields.minQuantity;
-		if (additionalFields.validFrom !== undefined) body.validFrom = additionalFields.validFrom;
-		if (additionalFields.validTo !== undefined) body.validTo = additionalFields.validTo;
-
+		const body = buildSalesPriceBody({ productId, ...additionalFields });
 		return xentralRequest.call(this, 'POST', 'salesPrices', body as IDataObject, {}, 'v1');
 	}
 
@@ -46,19 +90,7 @@ export async function handleSalesPrice(
 		assertSafeId(salesPriceId, 'salesPriceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = {};
-		if (updateFields.productId !== undefined) body.product = { id: updateFields.productId };
-		if (updateFields.amount !== undefined) {
-			const currency = (updateFields.currency as string) || 'EUR';
-			body.price = { amount: String(updateFields.amount), currency };
-		} else if (updateFields.currency !== undefined) {
-			body.price = { currency: updateFields.currency };
-		}
-		if (updateFields.customerGroupId !== undefined) body.customerGroupId = updateFields.customerGroupId;
-		if (updateFields.minQuantity !== undefined) body.minQuantity = updateFields.minQuantity;
-		if (updateFields.validFrom !== undefined) body.validFrom = updateFields.validFrom;
-		if (updateFields.validTo !== undefined) body.validTo = updateFields.validTo;
-
+		const body = buildSalesPriceBody(updateFields);
 		assertNonEmptyBody(body, 'sales price update');
 		return xentralRequest.call(this, 'PATCH', `salesPrices/${salesPriceId}`, body as IDataObject, {}, 'v1');
 	}

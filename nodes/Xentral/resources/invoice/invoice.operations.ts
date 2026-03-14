@@ -19,6 +19,12 @@ export const invoiceOperations: INodeProperties[] = [
 				action: 'Create an invoice',
 			},
 			{
+				name: 'Create from Sales Order',
+				value: 'createFromSalesOrder',
+				description: 'Create an invoice from an existing sales order',
+				action: 'Create invoice from sales order',
+			},
+			{
 				name: 'Get',
 				value: 'get',
 				description: 'Get an invoice by ID',
@@ -54,7 +60,13 @@ export const invoiceOperations: INodeProperties[] = [
 				description: 'Release an invoice (freigeben)',
 				action: 'Release an invoice',
 			},
-	{
+			{
+				name: 'Send',
+				value: 'send',
+				description: 'Send an invoice',
+				action: 'Send an invoice',
+			},
+			{
 				name: 'Update Line Item',
 				value: 'updateLineItem',
 				description: 'Update a line item of an invoice',
@@ -65,6 +77,30 @@ export const invoiceOperations: INodeProperties[] = [
 				value: 'deleteLineItem',
 				description: 'Delete a line item from an invoice',
 				action: 'Delete line item from invoice',
+			},
+			{
+				name: 'Log Activity',
+				value: 'logActivity',
+				description: 'Log an activity on an invoice',
+				action: 'Log activity on invoice',
+			},
+			{
+				name: 'Set Write Protection',
+				value: 'setWriteProtection',
+				description: 'Set write protection on an invoice',
+				action: 'Set write protection on invoice',
+			},
+			{
+				name: 'Remove Write Protection',
+				value: 'removeWriteProtection',
+				description: 'Remove write protection from an invoice',
+				action: 'Remove write protection from invoice',
+			},
+			{
+				name: 'Attach File',
+				value: 'attachFile',
+				description: 'Attach a file to an invoice',
+				action: 'Attach file to invoice',
 			},
 		],
 		default: 'create',

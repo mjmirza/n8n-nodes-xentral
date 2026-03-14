@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, xentralFileUpload, assertSafeId } from '../../transport';
 
 export async function handleLiability(
 	this: IExecuteFunctions,
@@ -15,10 +15,45 @@ export async function handleLiability(
 			supplier: { id: supplierId },
 		};
 
-		if (additionalFields.grossAmount !== undefined) body.grossAmount = additionalFields.grossAmount;
-		if (additionalFields.dueDate !== undefined) body.dueDate = additionalFields.dueDate;
-		if (additionalFields.description !== undefined) body.description = additionalFields.description;
-		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
+		// Simple fields
+		const simpleFields = [
+			'bookingText', 'clarificationCase', 'clarificationReason', 'date',
+			'internalComment', 'invoiceRelease', 'receiptDate', 'release',
+			'serviceDate', 'status', 'supplierInvoiceNumber',
+		];
+		for (const field of simpleFields) {
+			if (additionalFields[field] !== undefined) body[field] = additionalFields[field];
+		}
+
+		// Project ref
+		if (additionalFields.projectId !== undefined) {
+			assertSafeId(additionalFields.projectId as string, 'projectId');
+			body.project = { id: additionalFields.projectId };
+		}
+
+		// JSON fields (complex objects passed as JSON strings)
+		const jsonFields: Array<[string, string]> = [
+			['financialsJson', 'financials'],
+			['paymentJson', 'payment'],
+			['paymentTermsJson', 'paymentTerms'],
+			['positionsJson', 'positions'],
+			['accountingJson', 'accounting'],
+			['assignedPurchaseOrdersJson', 'assignedPurchaseOrders'],
+		];
+		for (const [paramName, apiField] of jsonFields) {
+			if (additionalFields[paramName] !== undefined) {
+				const val = additionalFields[paramName];
+				if (typeof val === 'string' && val.trim() !== '' && val.trim() !== '{}' && val.trim() !== '[]') {
+					try {
+						body[apiField] = JSON.parse(val);
+					} catch {
+						throw new Error(`Invalid JSON in ${apiField}. Please provide valid JSON.`);
+					}
+				} else if (typeof val === 'object') {
+					body[apiField] = val;
+				}
+			}
+		}
 
 		return xentralRequest.call(this, 'POST', 'liabilities', body as IDataObject, {}, 'v1');
 	}
@@ -39,7 +74,14 @@ export async function handleLiability(
 	if (operation === 'release') {
 		const liabilityId = this.getNodeParameter('liabilityId', itemIndex) as string;
 		assertSafeId(liabilityId, 'liabilityId');
-		return xentralRequest.call(this, 'POST', `liabilities/${liabilityId}/actions/release`, {} as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'PATCH', `liabilities/${liabilityId}/actions/release`, {} as IDataObject, {}, 'v1');
+	}
+
+	if (operation === 'uploadDocument') {
+		const liabilityId = this.getNodeParameter('liabilityId', itemIndex) as string;
+		assertSafeId(liabilityId, 'liabilityId');
+		const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex, 'data') as string;
+		return xentralFileUpload.call(this, `liabilities/${liabilityId}/documents`, binaryPropertyName, itemIndex, 'v1');
 	}
 
 	throw new Error(`Unknown liability operation: ${operation}`);

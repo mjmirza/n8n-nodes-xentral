@@ -1,81 +1,142 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
+
+// All flat fields that map directly to the V2 addresses API
+const ADDRESS_DIRECT_FIELDS = [
+	'addressSupplement',
+	'department',
+	'salutation',
+	'state',
+	'subDepartment',
+	'type',
+] as const;
+
+// Fields that belong in the contactDetails object
+const CONTACT_DETAIL_FIELDS = ['email', 'phone', 'gln'] as const;
 
 export async function handleAddress(
 	this: IExecuteFunctions,
 	operation: string,
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
+	const customerId = this.getNodeParameter('customerId', itemIndex) as string;
+	assertSafeId(customerId, 'customerId');
+	const basePath = `customers/${customerId}/addresses`;
+
 	if (operation === 'create') {
-		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
-		const type = this.getNodeParameter('addressType', itemIndex) as string;
-		const street = this.getNodeParameter('street', itemIndex) as string;
-		const zip = this.getNodeParameter('zipCode', itemIndex) as string;
-		const city = this.getNodeParameter('city', itemIndex) as string;
-		const country = this.getNodeParameter('country', itemIndex) as string;
+		const name = assertNonEmpty(this.getNodeParameter('name', itemIndex) as string, 'Name');
+		const street = assertNonEmpty(this.getNodeParameter('street', itemIndex) as string, 'Street');
+		const city = assertNonEmpty(this.getNodeParameter('city', itemIndex) as string, 'City');
+		const zip = assertNonEmpty(this.getNodeParameter('zip', itemIndex) as string, 'ZIP Code');
+		const country = assertNonEmpty(this.getNodeParameter('country', itemIndex) as string, 'Country');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
-			type,
+			name,
 			street,
-			zip,
 			city,
+			zip,
 			country,
 		};
 
-		if (additionalFields.company !== undefined) body.company = additionalFields.company;
-		if (additionalFields.firstName !== undefined) body.firstName = additionalFields.firstName;
-		if (additionalFields.lastName !== undefined) body.lastName = additionalFields.lastName;
-		if (additionalFields.state !== undefined) body.state = additionalFields.state;
-		if (additionalFields.name !== undefined) body.name = additionalFields.name;
-		if (additionalFields.addressSupplement !== undefined) body.addressSupplement = additionalFields.addressSupplement;
-		if (additionalFields.department !== undefined) body.department = additionalFields.department;
-		if (additionalFields.subDepartment !== undefined) body.subDepartment = additionalFields.subDepartment;
+		for (const field of ADDRESS_DIRECT_FIELDS) {
+			if (additionalFields[field] !== undefined) {
+				body[field] = additionalFields[field];
+			}
+		}
 
-		assertSafeId(customerId, 'customerId');
-		return xentralRequest.call(this, 'POST', `customers/${customerId}/addresses`, body as IDataObject, {}, 'v2');
+		// Build contactDetails object from flat fields
+		const contactDetails: IDataObject = {};
+		for (const field of CONTACT_DETAIL_FIELDS) {
+			if (additionalFields[field] !== undefined) {
+				contactDetails[field] = additionalFields[field];
+			}
+		}
+		if (Object.keys(contactDetails).length > 0) {
+			body.contactDetails = contactDetails;
+		}
+
+		// Build deliveryDetails object from fixedCollection
+		const deliveryDetailsCollection = additionalFields.deliveryDetails as IDataObject | undefined;
+		if (deliveryDetailsCollection?.deliveryDetailsValues) {
+			const vals = deliveryDetailsCollection.deliveryDetailsValues as IDataObject;
+			const deliveryDetails: IDataObject = {};
+			if (vals.defaultDeliveryAddress !== undefined) deliveryDetails.defaultDeliveryAddress = vals.defaultDeliveryAddress;
+			if (vals.termsOfDelivery !== undefined && vals.termsOfDelivery !== '') deliveryDetails.termsOfDelivery = vals.termsOfDelivery;
+			if (vals.vatId !== undefined && vals.vatId !== '') deliveryDetails.vatId = vals.vatId;
+			if (vals.taxType !== undefined && vals.taxType !== '') deliveryDetails.taxType = vals.taxType;
+			if (vals.internalComment !== undefined && vals.internalComment !== '') deliveryDetails.internalComment = vals.internalComment;
+			if (vals.note !== undefined && vals.note !== '') deliveryDetails.note = vals.note;
+			if (Object.keys(deliveryDetails).length > 0) {
+				body.deliveryDetails = deliveryDetails;
+			}
+		}
+
+		return xentralRequest.call(this, 'POST', basePath, body as IDataObject, {}, 'v2');
 	}
 
 	if (operation === 'getAll') {
-		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
-		assertSafeId(customerId, 'customerId');
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		const response = await xentralRequest.call(this, 'GET', `customers/${customerId}/addresses`, {}, {}, 'v2');
-		const items = (response.data || []) as IDataObject[];
-		return limit ? items.slice(0, limit) : items;
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, basePath, {}, limit, maxPages, 'v2');
 	}
 
 	if (operation === 'update') {
-		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
-		assertSafeId(customerId, 'customerId');
 		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
 		assertSafeId(addressId, 'addressId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
-		if (updateFields.addressType !== undefined) body.type = updateFields.addressType;
-		if (updateFields.company !== undefined) body.company = updateFields.company;
-		if (updateFields.firstName !== undefined) body.firstName = updateFields.firstName;
-		if (updateFields.lastName !== undefined) body.lastName = updateFields.lastName;
-		if (updateFields.street !== undefined) body.street = updateFields.street;
-		if (updateFields.zipCode !== undefined) body.zip = updateFields.zipCode;
-		if (updateFields.city !== undefined) body.city = updateFields.city;
-		if (updateFields.state !== undefined) body.state = updateFields.state;
-		if (updateFields.country !== undefined) body.country = updateFields.country;
+
+		// Core fields on update
 		if (updateFields.name !== undefined) body.name = updateFields.name;
-		if (updateFields.addressSupplement !== undefined) body.addressSupplement = updateFields.addressSupplement;
+		if (updateFields.street !== undefined) body.street = updateFields.street;
+		if (updateFields.city !== undefined) body.city = updateFields.city;
+		if (updateFields.zip !== undefined) body.zip = updateFields.zip;
+		if (updateFields.country !== undefined) body.country = updateFields.country;
+
+		for (const field of ADDRESS_DIRECT_FIELDS) {
+			if (updateFields[field] !== undefined) {
+				body[field] = updateFields[field];
+			}
+		}
+
+		// Build contactDetails object from flat fields
+		const contactDetails: IDataObject = {};
+		for (const field of CONTACT_DETAIL_FIELDS) {
+			if (updateFields[field] !== undefined) {
+				contactDetails[field] = updateFields[field];
+			}
+		}
+		if (Object.keys(contactDetails).length > 0) {
+			body.contactDetails = contactDetails;
+		}
+
+		// Build deliveryDetails object from fixedCollection
+		const deliveryDetailsCollection = updateFields.deliveryDetails as IDataObject | undefined;
+		if (deliveryDetailsCollection?.deliveryDetailsValues) {
+			const vals = deliveryDetailsCollection.deliveryDetailsValues as IDataObject;
+			const deliveryDetails: IDataObject = {};
+			if (vals.defaultDeliveryAddress !== undefined) deliveryDetails.defaultDeliveryAddress = vals.defaultDeliveryAddress;
+			if (vals.termsOfDelivery !== undefined && vals.termsOfDelivery !== '') deliveryDetails.termsOfDelivery = vals.termsOfDelivery;
+			if (vals.vatId !== undefined && vals.vatId !== '') deliveryDetails.vatId = vals.vatId;
+			if (vals.taxType !== undefined && vals.taxType !== '') deliveryDetails.taxType = vals.taxType;
+			if (vals.internalComment !== undefined && vals.internalComment !== '') deliveryDetails.internalComment = vals.internalComment;
+			if (vals.note !== undefined && vals.note !== '') deliveryDetails.note = vals.note;
+			if (Object.keys(deliveryDetails).length > 0) {
+				body.deliveryDetails = deliveryDetails;
+			}
+		}
 
 		assertNonEmptyBody(body, 'address update');
-		return xentralRequest.call(this, 'PATCH', `customers/${customerId}/addresses/${addressId}`, body as IDataObject, {}, 'v2');
+		return xentralRequest.call(this, 'PATCH', `${basePath}/${addressId}`, body as IDataObject, {}, 'v2');
 	}
 
 	if (operation === 'delete') {
-		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
-		assertSafeId(customerId, 'customerId');
 		const addressId = this.getNodeParameter('addressId', itemIndex) as string;
 		assertSafeId(addressId, 'addressId');
-		return xentralRequest.call(this, 'DELETE', `customers/${customerId}/addresses/${addressId}`, {}, {}, 'v2');
+		return xentralRequest.call(this, 'DELETE', `${basePath}/${addressId}`, {}, {}, 'v2');
 	}
 
 	throw new Error(`Unknown address operation: ${operation}`);

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://unpkg.com/n8n-nodes-xentralx@0.9.5/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
+  <img src="https://unpkg.com/n8n-nodes-xentral@1.0.0/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
 </p>
 
-<h1 align="center">n8n-nodes-xentralx</h1>
+<h1 align="center">n8n-nodes-xentral</h1>
 
 <p align="center">
   <strong>The most comprehensive n8n community node for Xentral ERP</strong><br/>
@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/n8n-nodes-xentralx"><img src="https://img.shields.io/npm/v/n8n-nodes-xentralx?style=for-the-badge&color=CB3837&label=npm" alt="npm version" /></a>
-  <a href="https://www.npmjs.com/package/n8n-nodes-xentralx"><img src="https://img.shields.io/npm/dt/n8n-nodes-xentralx?style=for-the-badge&color=blue&label=downloads" alt="npm downloads" /></a>
+  <a href="https://www.npmjs.com/package/n8n-nodes-xentral"><img src="https://img.shields.io/npm/v/n8n-nodes-xentral?style=for-the-badge&color=CB3837&label=npm" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/n8n-nodes-xentral"><img src="https://img.shields.io/npm/dt/n8n-nodes-xentral?style=for-the-badge&color=blue&label=downloads" alt="npm downloads" /></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-FUCL-orange?style=for-the-badge" alt="License" /></a>
   <img src="https://img.shields.io/badge/Xentral-ERP-00C4B4?style=for-the-badge" alt="Xentral ERP" />
   <img src="https://img.shields.io/badge/n8n-Community_Node-FF6D5A?style=for-the-badge" alt="n8n Community Node" />
@@ -19,7 +19,7 @@
   <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/AI_Agent-Compatible-10A37F?style=for-the-badge" alt="AI Agent Compatible" />
   <img src="https://img.shields.io/badge/Resources-30-success?style=for-the-badge" alt="30 Resources" />
-  <img src="https://img.shields.io/badge/Operations-163-success?style=for-the-badge" alt="163 Operations" />
+  <img src="https://img.shields.io/badge/Operations-196-success?style=for-the-badge" alt="196 Operations" />
   <img src="https://img.shields.io/badge/Webhook_Events-58-success?style=for-the-badge" alt="58 Webhook Events" />
   <img src="https://img.shields.io/badge/API_Audit-Verified-brightgreen?style=for-the-badge" alt="API Audit Verified" />
   <img src="https://img.shields.io/badge/Maintained-Active-brightgreen?style=for-the-badge" alt="Actively Maintained" />
@@ -50,7 +50,7 @@ If you're using Xentral and looking to automate your business processes - offers
 
 | Node | Type | What it does |
 |------|------|-------------|
-| **Xentral** | Action Node | Full CRUD across 30 resources with 163 operations - customers, products, offers, orders, invoices, warehouse, shipping, and more |
+| **Xentral** | Action Node | Full CRUD across 30 resources with 196 operations - customers, products, offers, orders, invoices, warehouse, shipping, and more |
 | **Xentral Trigger** | Webhook Node | Real-time event listener for 58 Xentral event types - orders, products, customers, invoices, delivery notes, returns |
 
 **AI Agent ready** - Both nodes work with `usableAsTool: true`, so you can plug them directly into n8n AI Agent workflows for intelligent automation.
@@ -88,7 +88,7 @@ Real-time notifications for: Sales Orders, Products, Customers, Purchase Orders,
 
 Every single endpoint in this node has been tested against the live Xentral API:
 
-- **All 163 operations** verified to point to existing, working API routes
+- **All 196 operations** verified to point to existing, working API routes
 - **Zero 404 "Route not found" errors** on any non-feature-flag endpoint
 - **Correct field structures** validated for all create/update operations
 - **Security hardened** - ID sanitization, SSRF protection, endpoint validation
@@ -99,13 +99,13 @@ Every single endpoint in this node has been tested against the live Xentral API:
 
 ### From n8n (Recommended)
 1. Go to **Settings > Community Nodes**
-2. Enter `n8n-nodes-xentralx`
+2. Enter `n8n-nodes-xentral`
 3. Click **Install**
 
 ### Manual
 ```bash
 cd ~/.n8n/nodes
-npm install n8n-nodes-xentralx
+npm install n8n-nodes-xentral
 ```
 
 ---

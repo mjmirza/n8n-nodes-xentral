@@ -13,6 +13,12 @@ export const shippingMethodOperations: INodeProperties[] = [
 		},
 		options: [
 			{
+				name: 'Create',
+				value: 'create',
+				description: 'Create a new shipping method',
+				action: 'Create a shipping method',
+			},
+			{
 				name: 'Get',
 				value: 'get',
 				description: 'Get a shipping method by ID',
@@ -23,6 +29,12 @@ export const shippingMethodOperations: INodeProperties[] = [
 				value: 'getAll',
 				description: 'Get many shipping methods',
 				action: 'Get many shipping methods',
+			},
+			{
+				name: 'Update',
+				value: 'update',
+				description: 'Update a shipping method',
+				action: 'Update a shipping method',
 			},
 		],
 		default: 'getAll',

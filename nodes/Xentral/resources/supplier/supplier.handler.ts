@@ -20,29 +20,22 @@ export async function handleSupplier(
 	}
 
 	if (operation === 'update') {
+		// V1 Supplier Update: only supports tags
 		const supplierId = this.getNodeParameter('supplierId', itemIndex) as string;
 		assertSafeId(supplierId, 'supplierId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
-		const general: IDataObject = {};
-		const address: IDataObject = {};
 
-		if (updateFields.supplierName !== undefined) general.name = updateFields.supplierName;
-		if (updateFields.email !== undefined) general.email = updateFields.email;
-		if (updateFields.phone !== undefined) general.phone = updateFields.phone;
-		if (updateFields.fax !== undefined) general.fax = updateFields.fax;
-		if (updateFields.vatId !== undefined) general.vatNumber = updateFields.vatId;
-		if (updateFields.paymentMethod !== undefined) general.paymentMethod = updateFields.paymentMethod;
-		if (updateFields.language !== undefined) general.language = updateFields.language;
-		if (updateFields.street !== undefined) address.street = updateFields.street;
-		if (updateFields.zipCode !== undefined) address.zip = updateFields.zipCode;
-		if (updateFields.city !== undefined) address.city = updateFields.city;
-		if (updateFields.country !== undefined) address.country = updateFields.country;
-
-		if (Object.keys(address).length > 0) general.address = address;
-		if (Object.keys(general).length > 0) body.general = general;
-		if (updateFields.supplierType !== undefined) body.type = updateFields.supplierType;
+		// tags: comma-separated string to array
+		if (updateFields.tags !== undefined) {
+			const tagsStr = (updateFields.tags as string).trim();
+			if (tagsStr) {
+				body.tags = tagsStr.split(',').map((t: string) => t.trim());
+			} else {
+				body.tags = [];
+			}
+		}
 
 		assertNonEmptyBody(body, 'supplier update');
 		return xentralRequest.call(this, 'PATCH', `suppliers/${supplierId}`, body as IDataObject, {}, 'v1');

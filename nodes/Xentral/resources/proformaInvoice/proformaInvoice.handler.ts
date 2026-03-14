@@ -9,30 +9,75 @@ export async function handleProformaInvoice(
 	if (operation === 'create') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
 		assertSafeId(customerId, 'customerId');
-		const language = this.getNodeParameter('language', itemIndex, 'de') as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
 			address: { id: customerId },
-			language,
 		};
 
+		if (additionalFields.bodyIntroduction !== undefined) body.bodyIntroduction = additionalFields.bodyIntroduction;
+		if (additionalFields.bodyOutroduction !== undefined) body.bodyOutroduction = additionalFields.bodyOutroduction;
+		if (additionalFields.customerOrderNumber !== undefined) body.customerOrderNumber = additionalFields.customerOrderNumber;
+		if (additionalFields.deliveryDate !== undefined) body.deliveryDate = additionalFields.deliveryDate;
+		if (additionalFields.deliveryTerms !== undefined) body.deliveryTerms = additionalFields.deliveryTerms;
 		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
-		if (additionalFields.deliveryTime !== undefined) body.deliveryTime = additionalFields.deliveryTime;
-		if (additionalFields.paymentTerm !== undefined) body.paymentTerm = additionalFields.paymentTerm;
-		if (additionalFields.shippingMethod !== undefined) body.shippingMethod = additionalFields.shippingMethod;
-		if (additionalFields.shippingCost !== undefined) body.shippingCost = additionalFields.shippingCost;
-		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
-		if (additionalFields.headerText !== undefined) body.headerText = additionalFields.headerText;
-		if (additionalFields.footerText !== undefined) body.footerText = additionalFields.footerText;
+		if (additionalFields.internalComment !== undefined) body.internalComment = additionalFields.internalComment;
+		if (additionalFields.internalDesignation !== undefined) body.internalDesignation = additionalFields.internalDesignation;
+		if (additionalFields.language !== undefined) body.language = additionalFields.language;
+		if (additionalFields.useAlternativeDocumentTitle !== undefined) body.useAlternativeDocumentTitle = additionalFields.useAlternativeDocumentTitle;
+		if (additionalFields.vatId !== undefined) body.vatId = additionalFields.vatId;
 
-		return xentralRequest.call(this, 'POST', 'proformainvoices', body as IDataObject, {}, 'v3');
+		// Nested object refs
+		if (additionalFields.editorId !== undefined) {
+			assertSafeId(additionalFields.editorId as string, 'editorId');
+			body.editor = { id: additionalFields.editorId };
+		}
+		if (additionalFields.projectId !== undefined) {
+			assertSafeId(additionalFields.projectId as string, 'projectId');
+			body.project = { id: additionalFields.projectId };
+		}
+		if (additionalFields.salesOrderId !== undefined) {
+			assertSafeId(additionalFields.salesOrderId as string, 'salesOrderId');
+			body.salesOrder = { id: additionalFields.salesOrderId };
+		}
+
+		// Financials object (currency)
+		if (additionalFields.currency !== undefined) {
+			body.financials = { currency: additionalFields.currency };
+		}
+
+		// Document address (fixedCollection)
+		if (additionalFields.documentAddress !== undefined) {
+			const addr = (additionalFields.documentAddress as IDataObject).address as IDataObject;
+			if (addr !== undefined) body.documentAddress = addr;
+		}
+
+		// Tags (comma-separated string to array)
+		if (additionalFields.tags !== undefined && (additionalFields.tags as string) !== '') {
+			body.tags = (additionalFields.tags as string).split(',').map((t: string) => t.trim()).filter(Boolean).map(t => ({ title: t }));
+		}
+
+		// Sales ref
+		if (additionalFields.salesId !== undefined) {
+			assertSafeId(additionalFields.salesId as string, 'salesId');
+			body.sales = { id: additionalFields.salesId };
+		}
+
+		// Financials: tax.taxation
+		if (additionalFields.taxation !== undefined) {
+			body.financials = {
+				...(body.financials as IDataObject || {}),
+				tax: { taxation: additionalFields.taxation },
+			};
+		}
+
+		return xentralRequest.call(this, 'POST', 'proformaInvoices', body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'get') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
-		return xentralRequest.call(this, 'GET', `proformainvoices/${proformaInvoiceId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'GET', `proformaInvoices/${proformaInvoiceId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'getAll') {
@@ -54,7 +99,7 @@ export async function handleProformaInvoice(
 			query[`filter[${filterIndex}][value]`] = filters.customerId;
 			filterIndex++;
 		}
-		return xentralV3GetAll.call(this, 'proformainvoices', query, limit, maxPages);
+		return xentralV3GetAll.call(this, 'proformaInvoices', query, limit, maxPages);
 	}
 
 	if (operation === 'update') {
@@ -62,13 +107,66 @@ export async function handleProformaInvoice(
 		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 		assertNonEmptyBody(updateFields as IDataObject, 'proforma invoice update');
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}`, updateFields as IDataObject, {}, 'v3');
+
+		const body: IDataObject = {};
+
+		// Simple fields
+		const simpleFields = [
+			'bodyIntroduction', 'bodyOutroduction', 'customerOrderNumber', 'deliveryDate',
+			'deliveryTerms', 'documentDate', 'internalComment', 'internalDesignation',
+			'language', 'useAlternativeDocumentTitle', 'vatId',
+		];
+		for (const field of simpleFields) {
+			if (updateFields[field] !== undefined) body[field] = updateFields[field];
+		}
+
+		// Nested refs
+		if (updateFields.editorId !== undefined) {
+			assertSafeId(updateFields.editorId as string, 'editorId');
+			body.editor = { id: updateFields.editorId };
+		}
+		if (updateFields.projectId !== undefined) {
+			assertSafeId(updateFields.projectId as string, 'projectId');
+			body.project = { id: updateFields.projectId };
+		}
+
+		// Financials
+		if (updateFields.currency !== undefined) {
+			body.financials = { currency: updateFields.currency };
+		}
+
+		// Document address
+		if (updateFields.documentAddress !== undefined) {
+			const addr = (updateFields.documentAddress as IDataObject).address as IDataObject;
+			if (addr !== undefined) body.documentAddress = addr;
+		}
+
+		// Tags
+		if (updateFields.tags !== undefined && (updateFields.tags as string) !== '') {
+			body.tags = (updateFields.tags as string).split(',').map((t: string) => t.trim()).filter(Boolean).map(t => ({ title: t }));
+		}
+
+		// Sales ref
+		if (updateFields.salesId !== undefined) {
+			assertSafeId(updateFields.salesId as string, 'salesId');
+			body.sales = { id: updateFields.salesId };
+		}
+
+		// Financials: tax.taxation
+		if (updateFields.taxation !== undefined) {
+			body.financials = {
+				...(body.financials as IDataObject || {}),
+				tax: { taxation: updateFields.taxation },
+			};
+		}
+
+		return xentralRequest.call(this, 'PATCH', `proformaInvoices/${proformaInvoiceId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'delete') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
-		return xentralRequest.call(this, 'DELETE', `proformainvoices/${proformaInvoiceId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'DELETE', `proformaInvoices/${proformaInvoiceId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'addLineItem') {
@@ -84,12 +182,27 @@ export async function handleProformaInvoice(
 			quantity,
 		};
 
-		if (lineItemOptions.unitPrice !== undefined) body.unitPrice = lineItemOptions.unitPrice;
-		if (lineItemOptions.discount !== undefined) body.discount = lineItemOptions.discount;
-		if (lineItemOptions.description !== undefined) body.description = lineItemOptions.description;
-		if (lineItemOptions.position !== undefined) body.position = lineItemOptions.position;
+		// Simple line item fields
+		const lineSimpleFields = [
+			'countryOfOrigin', 'customerProductNumber', 'deliveryDate',
+			'deliveryDateAsCalendarWeek', 'description', 'discount', 'hsCode',
+			'internalComment', 'name', 'number', 'taxLegalNotice',
+		];
+		for (const field of lineSimpleFields) {
+			if (lineItemOptions[field] !== undefined) body[field] = lineItemOptions[field];
+		}
 
-		return xentralRequest.call(this, 'POST', `proformainvoices/${proformaInvoiceId}/lineItems`, body as IDataObject, {}, 'v3');
+		// Price object
+		if (lineItemOptions.priceAmount !== undefined) {
+			body.price = {
+				net: {
+					amount: lineItemOptions.priceAmount,
+					currency: (lineItemOptions.priceCurrency as string) || 'EUR',
+				},
+			};
+		}
+
+		return xentralRequest.call(this, 'POST', `proformaInvoices/${proformaInvoiceId}/lineItems`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {
@@ -99,7 +212,31 @@ export async function handleProformaInvoice(
 		assertSafeId(lineItemId, 'lineItemId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 		assertNonEmptyBody(updateFields as IDataObject, 'proforma invoice line item update');
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
+
+		const body: IDataObject = {};
+
+		const lineSimpleFields = [
+			'deliveryDate', 'deliveryDateAsCalendarWeek', 'description',
+			'discount', 'quantity', 'sort', 'taxLegalNotice',
+		];
+		for (const field of lineSimpleFields) {
+			if (updateFields[field] !== undefined) body[field] = updateFields[field];
+		}
+
+		// Product ref
+		if (updateFields.productId) body.product = { id: updateFields.productId };
+
+		// Price object
+		if (updateFields.priceAmount !== undefined) {
+			body.price = {
+				net: {
+					amount: updateFields.priceAmount,
+					currency: (updateFields.priceCurrency as string) || 'EUR',
+				},
+			};
+		}
+
+		return xentralRequest.call(this, 'PATCH', `proformaInvoices/${proformaInvoiceId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
@@ -107,51 +244,40 @@ export async function handleProformaInvoice(
 		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		assertSafeId(lineItemId, 'lineItemId');
-		return xentralRequest.call(this, 'DELETE', `proformainvoices/${proformaInvoiceId}/lineItems/${lineItemId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'DELETE', `proformaInvoices/${proformaInvoiceId}/lineItems/${lineItemId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'release') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/release`, {} as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'cancel') {
-		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
-		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/cancel`, {} as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'send') {
-		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
-		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/send`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `proformaInvoices/${proformaInvoiceId}/actions/release`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'logActivity') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
-		const body = this.getNodeParameter('activityData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/log-activity`, body as IDataObject, {}, 'v3');
+		const activityMessage = this.getNodeParameter('activityMessage', itemIndex) as string;
+		const body: IDataObject = { message: activityMessage };
+		return xentralRequest.call(this, 'PATCH', `proformaInvoices/${proformaInvoiceId}/actions/logActivity`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'setWriteProtection') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/set-write-protection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `proformaInvoices/${proformaInvoiceId}/actions/setWriteProtection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'removeWriteProtection') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
-		return xentralRequest.call(this, 'PATCH', `proformainvoices/${proformaInvoiceId}/actions/remove-write-protection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `proformaInvoices/${proformaInvoiceId}/actions/removeWriteProtection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'attachFile') {
 		const proformaInvoiceId = this.getNodeParameter('proformaInvoiceId', itemIndex) as string;
 		assertSafeId(proformaInvoiceId, 'proformaInvoiceId');
 		const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex, 'data') as string;
-		return xentralFileUpload.call(this, `proformainvoices/${proformaInvoiceId}/files`, binaryPropertyName, itemIndex);
+		return xentralFileUpload.call(this, `proformaInvoices/${proformaInvoiceId}/files`, binaryPropertyName, itemIndex);
 	}
 
 	throw new Error(`Unknown proformaInvoice operation: ${operation}`);

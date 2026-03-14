@@ -1,5 +1,128 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
+
+/**
+ * Build the nested body structure from flat n8n fields for invoice create/update.
+ */
+function buildInvoiceBody(fields: IDataObject): IDataObject {
+	const body: IDataObject = {};
+
+	// Simple string/date fields - pass through directly
+	const directFields = [
+		'bodyIntroduction', 'bodyOutroduction', 'costCenter', 'customerOrderNumber',
+		'deliveryDate', 'deliveryTerms', 'deviatingDebtorAccountNumber',
+		'documentDate', 'internalComment', 'internalDesignation', 'language',
+		'masterReferenceNumber', 'useAlternativeDocumentTitle', 'vatId',
+	];
+	for (const key of directFields) {
+		if (fields[key] !== undefined && fields[key] !== '') {
+			body[key] = fields[key];
+		}
+	}
+
+	// Boolean fields that should pass through even when false
+	const booleanFields = ['useAlternativeDocumentTitle', 'dunningSetManually'];
+	for (const key of booleanFields) {
+		if (fields[key] !== undefined) {
+			body[key] = fields[key];
+		}
+	}
+
+	// Nested object refs: wrap as { id: "..." }
+	if (fields.editorId) body.editor = { id: fields.editorId };
+	if (fields.projectId !== undefined) {
+		body.project = fields.projectId === '' ? null : { id: fields.projectId };
+	}
+
+	// Sales: { id: "..." }
+	if (fields.salesId) {
+		body.sales = { id: fields.salesId };
+	}
+
+	// Financials: { currency: "EUR", tax: { taxation: "domestic" } }
+	const financials: IDataObject = {};
+	if (fields.currency) financials.currency = fields.currency;
+	if (fields.taxation) financials.tax = { taxation: fields.taxation };
+	if (Object.keys(financials).length > 0) body.financials = financials;
+
+	// Document address (fixedCollection)
+	if (fields.documentAddress !== undefined) {
+		const fc = fields.documentAddress as IDataObject;
+		const addr = fc.address as IDataObject;
+		if (addr) body.documentAddress = addr;
+	}
+
+	// Tags: comma-separated string to array
+	if (fields.tags !== undefined && fields.tags !== '') {
+		body.tags = (fields.tags as string).split(',').map((t: string) => t.trim()).filter((t: string) => t !== '').map((t: string) => ({ title: t }));
+	}
+
+	// Dunning settings (complex objects passed as JSON strings)
+	if (fields.dunningManualSettingsJson !== undefined && fields.dunningManualSettingsJson !== '') {
+		const raw = fields.dunningManualSettingsJson as string;
+		if (raw === 'null') {
+			body.dunningManualSettings = null;
+		} else {
+			try {
+				body.dunningManualSettings = JSON.parse(raw);
+			} catch {
+				throw new Error('Invalid JSON in dunningManualSettings. Please provide valid JSON.');
+			}
+		}
+	}
+	if (fields.dunningSettingsJson !== undefined && fields.dunningSettingsJson !== '') {
+		try {
+			body.dunningSettings = JSON.parse(fields.dunningSettingsJson as string);
+		} catch {
+			throw new Error('Invalid JSON in dunningSettings. Please provide valid JSON.');
+		}
+	}
+
+	return body;
+}
+
+/**
+ * Build nested line item body from flat n8n fields.
+ */
+function buildLineItemBody(fields: IDataObject): IDataObject {
+	const body: IDataObject = {};
+
+	// Direct pass-through fields
+	const directFields = [
+		'countryOfOrigin', 'customerProductNumber', 'deliveryDate',
+		'description', 'hsCode', 'internalComment', 'name', 'number', 'taxLegalNotice',
+	];
+	for (const key of directFields) {
+		if (fields[key] !== undefined && fields[key] !== '') {
+			body[key] = fields[key];
+		}
+	}
+
+	// Boolean field
+	if (fields.deliveryDateAsCalendarWeek !== undefined) {
+		body.deliveryDateAsCalendarWeek = fields.deliveryDateAsCalendarWeek;
+	}
+
+	// Numeric fields that can be 0
+	if (fields.discount !== undefined) body.discount = fields.discount;
+	if (fields.quantity !== undefined) body.quantity = fields.quantity;
+	if (fields.sort !== undefined) body.sort = fields.sort;
+
+	// Product ref
+	if (fields.productId) body.product = { id: fields.productId };
+
+	// Price object: { net: { amount: X, currency: "EUR" } }
+	if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
+		body.price = {
+			net: {
+				amount: fields.priceAmount,
+				currency: fields.priceCurrency || 'EUR',
+			},
+		};
+	}
+
+	return body;
+}
 
 export async function handleInvoice(
 	this: IExecuteFunctions,
@@ -9,22 +132,21 @@ export async function handleInvoice(
 	if (operation === 'create') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
 		assertSafeId(customerId, 'customerId');
-		const language = this.getNodeParameter('language', itemIndex, 'de') as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = {
-			address: { id: customerId },
-			language,
-		};
-
-		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
-		if (additionalFields.dueDate !== undefined) body.dueDate = additionalFields.dueDate;
-		if (additionalFields.paymentTerm !== undefined) body.paymentTerm = additionalFields.paymentTerm;
-		if (additionalFields.headerText !== undefined) body.headerText = additionalFields.headerText;
-		if (additionalFields.footerText !== undefined) body.footerText = additionalFields.footerText;
-		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
+		const body = buildInvoiceBody(additionalFields);
+		body.address = { id: customerId };
 
 		return xentralRequest.call(this, 'POST', 'invoices', body as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'createFromSalesOrder') {
+		const salesOrderId = this.getNodeParameter('salesOrderId', itemIndex) as string;
+		assertSafeId(salesOrderId, 'salesOrderId');
+		const body: IDataObject = {
+			salesOrder: { id: salesOrderId },
+		};
+		return xentralRequest.call(this, 'POST', 'invoices/actions/createFromSalesOrder', body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'get') {
@@ -65,8 +187,9 @@ export async function handleInvoice(
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
 		assertSafeId(invoiceId, 'invoiceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		assertNonEmptyBody(updateFields as IDataObject, 'invoice update');
-		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}`, updateFields as IDataObject, {}, 'v3');
+		const body = buildInvoiceBody(updateFields);
+		assertNonEmptyBody(body as IDataObject, 'invoice update');
+		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'delete') {
@@ -83,15 +206,9 @@ export async function handleInvoice(
 		const quantity = this.getNodeParameter('quantity', itemIndex) as number;
 		const lineItemOptions = this.getNodeParameter('lineItemOptions', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = {
-			product: { id: productId },
-			quantity,
-		};
-
-		if (lineItemOptions.unitPrice !== undefined) body.unitPrice = lineItemOptions.unitPrice;
-		if (lineItemOptions.discount !== undefined) body.discount = lineItemOptions.discount;
-		if (lineItemOptions.description !== undefined) body.description = lineItemOptions.description;
-		if (lineItemOptions.position !== undefined) body.position = lineItemOptions.position;
+		const body = buildLineItemBody(lineItemOptions);
+		body.product = { id: productId };
+		body.quantity = quantity;
 
 		return xentralRequest.call(this, 'POST', `invoices/${invoiceId}/lineItems`, body as IDataObject, {}, 'v3');
 	}
@@ -102,8 +219,9 @@ export async function handleInvoice(
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		assertSafeId(lineItemId, 'lineItemId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		assertNonEmptyBody(updateFields as IDataObject, 'invoice line item update');
-		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
+		const body = buildLineItemBody(updateFields);
+		assertNonEmptyBody(body as IDataObject, 'invoice line item update');
+		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
@@ -118,6 +236,39 @@ export async function handleInvoice(
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
 		assertSafeId(invoiceId, 'invoiceId');
 		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}/actions/release`, {} as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'send') {
+		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
+		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}/actions/send`, {} as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'logActivity') {
+		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
+		const activityMessage = this.getNodeParameter('activityMessage', itemIndex) as string;
+		const body: IDataObject = { message: activityMessage };
+		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}/actions/logActivity`, body as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'setWriteProtection') {
+		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
+		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}/actions/setWriteProtection`, {} as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'removeWriteProtection') {
+		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
+		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}/actions/removeWriteProtection`, {} as IDataObject, {}, 'v3');
+	}
+
+	if (operation === 'attachFile') {
+		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
+		assertSafeId(invoiceId, 'invoiceId');
+		const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex, 'data') as string;
+		return xentralFileUpload.call(this, `invoices/${invoiceId}/files`, binaryPropertyName, itemIndex);
 	}
 
 	throw new Error(`Unknown invoice operation: ${operation}`);
