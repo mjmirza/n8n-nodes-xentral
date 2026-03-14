@@ -1,0 +1,175 @@
+{
+  "name": "Xentral Test: Customer CRUD + Address (V2 API)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "resource": "customer",
+        "operation": "create",
+        "salutation": "mr",
+        "name": "Test Customer API",
+        "additionalFields": {
+          "firstname": "Max",
+          "lastname": "Mustermann",
+          "email": "test@example.com",
+          "phone": "+49 123 456789",
+          "customerType": "b2b",
+          "number": "TEST-001"
+        }
+      },
+      "id": "node-create-customer",
+      "name": "Create Customer",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "customer",
+        "operation": "get",
+        "customerId": "={{ $json.id }}"
+      },
+      "id": "node-get-customer",
+      "name": "Get Customer",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "address",
+        "operation": "create",
+        "customerId": "={{ $('Create Customer').item.json.id }}",
+        "name": "Hauptadresse",
+        "street": "Musterstr. 42",
+        "city": "Berlin",
+        "zip": "10115",
+        "country": "DE",
+        "additionalFields": {
+          "type": "deliveryaddress",
+          "email": "shipping@example.com",
+          "phone": "+49 123 456789"
+        }
+      },
+      "id": "node-create-address",
+      "name": "Create Address",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "address",
+        "operation": "getAll",
+        "customerId": "={{ $('Create Customer').item.json.id }}",
+        "returnAll": true
+      },
+      "id": "node-get-addresses",
+      "name": "Get All Addresses",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [1120, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "customer",
+        "operation": "update",
+        "customerId": "={{ $('Create Customer').item.json.id }}",
+        "updateFields": {
+          "mobile": "+49 170 1234567",
+          "website": "https://example.com",
+          "language": "de"
+        }
+      },
+      "id": "node-update-customer",
+      "name": "Update Customer",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [1340, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "customer",
+        "operation": "delete",
+        "customerId": "={{ $('Create Customer').item.json.id }}"
+      },
+      "id": "node-delete-customer",
+      "name": "Delete Customer",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [1560, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Create Customer", "type": "main", "index": 0 }]]
+    },
+    "Create Customer": {
+      "main": [[{ "node": "Get Customer", "type": "main", "index": 0 }]]
+    },
+    "Get Customer": {
+      "main": [[{ "node": "Create Address", "type": "main", "index": 0 }]]
+    },
+    "Create Address": {
+      "main": [[{ "node": "Get All Addresses", "type": "main", "index": 0 }]]
+    },
+    "Get All Addresses": {
+      "main": [[{ "node": "Update Customer", "type": "main", "index": 0 }]]
+    },
+    "Update Customer": {
+      "main": [[{ "node": "Delete Customer", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-14T00:00:00.000Z",
+  "versionId": "1"
+}

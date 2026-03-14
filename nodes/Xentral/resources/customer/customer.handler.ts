@@ -272,7 +272,6 @@ export async function handleCustomer(
 
 		// Object refs
 		if (updateFields.accountManagerId !== undefined) body.accountManager = { id: updateFields.accountManagerId };
-		if (updateFields.projectId !== undefined) body.mainProject = { id: updateFields.projectId };
 		if (updateFields.salesManagerId !== undefined) body.salesManager = { id: updateFields.salesManagerId };
 		if (updateFields.mainProjectId !== undefined) body.mainProject = { id: updateFields.mainProjectId };
 		if (updateFields.fromShopId !== undefined) body.fromShop = { id: updateFields.fromShopId };

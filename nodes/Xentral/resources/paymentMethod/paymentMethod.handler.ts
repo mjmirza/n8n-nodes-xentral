@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll } from '../../transport';
+import { xentralV1PageGetAll } from '../../transport';
 
 export async function handlePaymentMethod(
 	this: IExecuteFunctions,

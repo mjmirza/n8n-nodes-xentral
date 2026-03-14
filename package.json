@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-xentral",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "The most comprehensive n8n community node for Xentral ERP - 30 resources, 196 operations, 58 webhook events. Full API audit verified. Built by next8n.",
 	"keywords": [
 		"n8n-community-node-package",
@@ -36,6 +36,7 @@
 	},
 	"files": [
 		"dist",
+		"examples",
 		"LICENSE"
 	],
 	"n8n": {

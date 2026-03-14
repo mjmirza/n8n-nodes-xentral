@@ -1,0 +1,248 @@
+{
+  "name": "Xentral Test: Product + Sales Price (V1 API)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "resource": "project",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": 1
+      },
+      "id": "node-get-project",
+      "name": "Get First Project",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "create",
+        "name": "Test Product API v1.0.4",
+        "projectId": "={{ $json.id }}",
+        "additionalFields": {
+          "number": "TEST-PROD-001",
+          "description": "Test product created via n8n-nodes-xentral",
+          "ean": "4260000000001",
+          "height": 10,
+          "heightUnit": "cm",
+          "width": 20,
+          "widthUnit": "cm",
+          "length": 30,
+          "lengthUnit": "cm",
+          "weight": 1.5,
+          "weightUnit": "kg",
+          "netWeight": 1.2,
+          "netWeightUnit": "kg",
+          "manufacturerName": "next8n GmbH",
+          "manufacturerNumber": "MFR-001",
+          "countryOfOrigin": "DE",
+          "isStockItem": true,
+          "tags": "test, api-verification, v1"
+        }
+      },
+      "id": "node-create-product",
+      "name": "Create Product",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "get",
+        "productId": "={{ $json.id }}"
+      },
+      "id": "node-get-product",
+      "name": "Get Product (Verify)",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "salesPrice",
+        "operation": "create",
+        "productId": "={{ $json.id }}",
+        "additionalFields": {
+          "priceAmount": 49.99,
+          "priceCurrency": "EUR",
+          "amount": 1,
+          "validFrom": "={{ $now.format('yyyy-MM-dd') }}",
+          "expiresAt": "2027-12-31",
+          "remark": "Standard retail price"
+        }
+      },
+      "id": "node-create-price",
+      "name": "Create Sales Price",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [1120, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "salesPrice",
+        "operation": "getAll",
+        "returnAll": true
+      },
+      "id": "node-get-prices",
+      "name": "Get All Sales Prices",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [1340, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "update",
+        "productId": "={{ $('Create Product').item.json.id }}",
+        "updateFields": {
+          "shortDescription": "Updated via n8n test workflow",
+          "discountPercentage": 10,
+          "isDiscountProduct": false
+        }
+      },
+      "id": "node-update-product",
+      "name": "Update Product",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [1560, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "search",
+        "searchTerm": "Test Product API v1.0.4"
+      },
+      "id": "node-search-product",
+      "name": "Search Product",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [1780, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "salesPrice",
+        "operation": "delete",
+        "salesPriceId": "={{ $('Create Sales Price').item.json.id }}"
+      },
+      "id": "node-delete-price",
+      "name": "Delete Sales Price",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [2000, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "delete",
+        "productId": "={{ $('Create Product').item.json.id }}"
+      },
+      "id": "node-delete-product",
+      "name": "Delete Product",
+      "type": "n8n-nodes-xentral.xentral",
+      "typeVersion": 1,
+      "position": [2220, 300],
+      "credentials": {
+        "xentralApi": {
+          "id": "",
+          "name": "Xentral API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Get First Project", "type": "main", "index": 0 }]]
+    },
+    "Get First Project": {
+      "main": [[{ "node": "Create Product", "type": "main", "index": 0 }]]
+    },
+    "Create Product": {
+      "main": [[{ "node": "Get Product (Verify)", "type": "main", "index": 0 }]]
+    },
+    "Get Product (Verify)": {
+      "main": [[{ "node": "Create Sales Price", "type": "main", "index": 0 }]]
+    },
+    "Create Sales Price": {
+      "main": [[{ "node": "Get All Sales Prices", "type": "main", "index": 0 }]]
+    },
+    "Get All Sales Prices": {
+      "main": [[{ "node": "Update Product", "type": "main", "index": 0 }]]
+    },
+    "Update Product": {
+      "main": [[{ "node": "Search Product", "type": "main", "index": 0 }]]
+    },
+    "Search Product": {
+      "main": [[{ "node": "Delete Sales Price", "type": "main", "index": 0 }]]
+    },
+    "Delete Sales Price": {
+      "main": [[{ "node": "Delete Product", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-14T00:00:00.000Z",
+  "versionId": "1"
+}
