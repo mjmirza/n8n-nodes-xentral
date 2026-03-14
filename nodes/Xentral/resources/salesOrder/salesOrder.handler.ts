@@ -57,6 +57,12 @@ export async function handleSalesOrder(
 			if (addr !== undefined) body.documentAddress = addr;
 		}
 
+		// Print settings (fixedCollection)
+		if (additionalFields.printSettings !== undefined) {
+			const ps = (additionalFields.printSettings as IDataObject).settings as IDataObject;
+			if (ps !== undefined) body.printSettings = ps;
+		}
+
 		return xentralRequest.call(this, 'POST', 'salesOrders', body as IDataObject, {}, 'v3');
 	}
 
@@ -143,6 +149,12 @@ export async function handleSalesOrder(
 			if (addr !== undefined) body.documentAddress = addr;
 		}
 
+		// Print settings (fixedCollection)
+		if (updateFields.printSettings !== undefined) {
+			const ps = (updateFields.printSettings as IDataObject).settings as IDataObject;
+			if (ps !== undefined) body.printSettings = ps;
+		}
+
 		assertNonEmptyBody(body, 'sales order update');
 		return xentralRequest.call(this, 'PATCH', `salesOrders/${salesOrderId}`, body as IDataObject, {}, 'v3');
 	}
@@ -178,6 +190,7 @@ export async function handleSalesOrder(
 		if (lineItemOptions.name !== undefined) body.name = lineItemOptions.name;
 		if (lineItemOptions.number !== undefined) body.number = lineItemOptions.number;
 		if (lineItemOptions.taxLegalNotice !== undefined) body.taxLegalNotice = lineItemOptions.taxLegalNotice;
+		if (lineItemOptions.hiddenOnPdf !== undefined) body.hiddenOnPdf = lineItemOptions.hiddenOnPdf;
 
 		// Price structure
 		if (lineItemOptions.priceAmount !== undefined) {
@@ -205,6 +218,7 @@ export async function handleSalesOrder(
 		if (updateFields.quantity !== undefined) body.quantity = updateFields.quantity;
 		if (updateFields.sort !== undefined) body.sort = updateFields.sort;
 		if (updateFields.taxLegalNotice !== undefined) body.taxLegalNotice = updateFields.taxLegalNotice;
+		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
 		if (updateFields.productId) body.product = { id: updateFields.productId };
 
 		// Price structure

@@ -49,6 +49,12 @@ export async function handleDeliveryNote(
 			if (addr !== undefined) body.documentAddress = addr;
 		}
 
+		// Print settings (fixedCollection)
+		if (additionalFields.printSettings !== undefined) {
+			const ps = (additionalFields.printSettings as IDataObject).settings as IDataObject;
+			if (ps !== undefined) body.printSettings = ps;
+		}
+
 		return xentralRequest.call(this, 'POST', 'deliveryNotes', body as IDataObject, {}, 'v3');
 	}
 
@@ -127,6 +133,12 @@ export async function handleDeliveryNote(
 			if (addr !== undefined) body.documentAddress = addr;
 		}
 
+		// Print settings (fixedCollection)
+		if (updateFields.printSettings !== undefined) {
+			const ps = (updateFields.printSettings as IDataObject).settings as IDataObject;
+			if (ps !== undefined) body.printSettings = ps;
+		}
+
 		assertNonEmptyBody(body, 'delivery note update');
 		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}`, body as IDataObject, {}, 'v3');
 	}
@@ -160,6 +172,7 @@ export async function handleDeliveryNote(
 		if (lineItemOptions.internalComment !== undefined) body.internalComment = lineItemOptions.internalComment;
 		if (lineItemOptions.name !== undefined) body.name = lineItemOptions.name;
 		if (lineItemOptions.number !== undefined) body.number = lineItemOptions.number;
+		if (lineItemOptions.hiddenOnPdf !== undefined) body.hiddenOnPdf = lineItemOptions.hiddenOnPdf;
 
 		return xentralRequest.call(this, 'POST', `deliveryNotes/${deliveryNoteId}/lineItems`, body as IDataObject, {}, 'v3');
 	}
@@ -179,6 +192,7 @@ export async function handleDeliveryNote(
 		if (updateFields.name !== undefined) body.name = updateFields.name;
 		if (updateFields.quantity !== undefined) body.quantity = updateFields.quantity;
 		if (updateFields.sort !== undefined) body.sort = updateFields.sort;
+		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
 		if (updateFields.productId) body.product = { id: updateFields.productId };
 
 		assertNonEmptyBody(body, 'delivery note line item update');
