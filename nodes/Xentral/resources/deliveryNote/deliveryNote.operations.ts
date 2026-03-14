@@ -48,7 +48,7 @@ export const deliveryNoteOperations: INodeProperties[] = [
 				description: 'Add a product line item to a delivery note',
 				action: 'Add line item to delivery note',
 			},
-	{
+			{
 				name: 'Update Line Item',
 				value: 'updateLineItem',
 				description: 'Update a line item of a delivery note',
@@ -59,6 +59,48 @@ export const deliveryNoteOperations: INodeProperties[] = [
 				value: 'deleteLineItem',
 				description: 'Delete a line item from a delivery note',
 				action: 'Delete line item from delivery note',
+			},
+			{
+				name: 'Release',
+				value: 'release',
+				description: 'Release a delivery note (freigeben)',
+				action: 'Release a delivery note',
+			},
+			{
+				name: 'Send',
+				value: 'send',
+				description: 'Send a delivery note to the customer',
+				action: 'Send a delivery note',
+			},
+			{
+				name: 'Cancel',
+				value: 'cancel',
+				description: 'Cancel a delivery note',
+				action: 'Cancel a delivery note',
+			},
+			{
+				name: 'Log Activity',
+				value: 'logActivity',
+				description: 'Log an activity on a delivery note',
+				action: 'Log activity on delivery note',
+			},
+			{
+				name: 'Set Write Protection',
+				value: 'setWriteProtection',
+				description: 'Set write protection on a delivery note',
+				action: 'Set write protection on delivery note',
+			},
+			{
+				name: 'Remove Write Protection',
+				value: 'removeWriteProtection',
+				description: 'Remove write protection from a delivery note',
+				action: 'Remove write protection from delivery note',
+			},
+			{
+				name: 'Attach File',
+				value: 'attachFile',
+				description: 'Attach a file to a delivery note',
+				action: 'Attach file to delivery note',
 			},
 		],
 		default: 'create',

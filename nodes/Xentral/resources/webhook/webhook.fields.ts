@@ -5,6 +5,20 @@ export const webhookFields: INodeProperties[] = [
 	//         webhook:create
 	// ----------------------------------
 	{
+		displayName: 'Name',
+		name: 'name',
+		type: 'string',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['webhook'],
+				operation: ['create'],
+			},
+		},
+		description: 'The name of the webhook',
+	},
+	{
 		displayName: 'URL',
 		name: 'url',
 		type: 'string',
@@ -19,25 +33,11 @@ export const webhookFields: INodeProperties[] = [
 		description: 'The URL the webhook will send events to',
 	},
 	{
-		displayName: 'Events',
-		name: 'events',
-		type: 'multiOptions',
-		options: [
-			{ name: 'Customer Created', value: 'customer.created' },
-			{ name: 'Customer Updated', value: 'customer.updated' },
-			{ name: 'Customer Deleted', value: 'customer.deleted' },
-			{ name: 'Product Created', value: 'product.created' },
-			{ name: 'Product Updated', value: 'product.updated' },
-			{ name: 'Product Deleted', value: 'product.deleted' },
-			{ name: 'Sales Order Created', value: 'salesOrder.created' },
-			{ name: 'Sales Order Updated', value: 'salesOrder.updated' },
-			{ name: 'Sales Order Deleted', value: 'salesOrder.deleted' },
-			{ name: 'Purchase Order Created', value: 'purchaseOrder.created' },
-			{ name: 'Purchase Order Updated', value: 'purchaseOrder.updated' },
-			{ name: 'Shipment Created', value: 'shipment.created' },
-			{ name: 'Shipment Updated', value: 'shipment.updated' },
-		],
-		default: [],
+		displayName: 'Signature Key',
+		name: 'signatureKey',
+		type: 'string',
+		typeOptions: { password: true },
+		default: '',
 		required: true,
 		displayOptions: {
 			show: {
@@ -45,21 +45,21 @@ export const webhookFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The events to listen for',
+		description: 'Secret key used for HMAC signature verification of webhook payloads',
 	},
 	{
-		displayName: 'Signature Key',
-		name: 'signatureKey',
+		displayName: 'Event IDs',
+		name: 'events',
 		type: 'string',
-		typeOptions: { password: true },
 		default: '',
+		required: true,
 		displayOptions: {
 			show: {
 				resource: ['webhook'],
 				operation: ['create'],
 			},
 		},
-		description: 'Secret key used for HMAC signature verification of webhook payloads',
+		description: 'Comma-separated list of event IDs using the full qualified format, e.g. "com.xentral.salesOrder.created.v1, com.xentral.customer.updated.v1"',
 	},
 
 	// ----------------------------------
@@ -129,29 +129,18 @@ export const webhookFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'URL',
-				name: 'url',
+				displayName: 'Event IDs',
+				name: 'events',
 				type: 'string',
 				default: '',
-				description: 'The URL the webhook will send events to',
+				description: 'Comma-separated list of event IDs using the full qualified format, e.g. "com.xentral.salesOrder.created.v1, com.xentral.customer.updated.v1"',
 			},
 			{
-				displayName: 'Events',
-				name: 'events',
-				type: 'multiOptions',
-				options: [
-					{ name: 'Customer Created', value: 'customer.created' },
-					{ name: 'Customer Updated', value: 'customer.updated' },
-					{ name: 'Customer Deleted', value: 'customer.deleted' },
-					{ name: 'Product Created', value: 'product.created' },
-					{ name: 'Product Updated', value: 'product.updated' },
-					{ name: 'Product Deleted', value: 'product.deleted' },
-					{ name: 'Sales Order Created', value: 'salesOrder.created' },
-					{ name: 'Sales Order Updated', value: 'salesOrder.updated' },
-					{ name: 'Sales Order Deleted', value: 'salesOrder.deleted' },
-				],
-				default: [],
-				description: 'The events to listen for',
+				displayName: 'Name',
+				name: 'name',
+				type: 'string',
+				default: '',
+				description: 'The name of the webhook',
 			},
 			{
 				displayName: 'Signature Key',
@@ -160,6 +149,13 @@ export const webhookFields: INodeProperties[] = [
 				typeOptions: { password: true },
 				default: '',
 				description: 'Secret key used for HMAC signature verification',
+			},
+			{
+				displayName: 'URL',
+				name: 'url',
+				type: 'string',
+				default: '',
+				description: 'The URL the webhook will send events to',
 			},
 		],
 	},

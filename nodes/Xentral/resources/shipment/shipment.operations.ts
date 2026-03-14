@@ -24,13 +24,7 @@ export const shipmentOperations: INodeProperties[] = [
 				description: 'Get a shipment by ID',
 				action: 'Get a shipment',
 			},
-			{
-				name: 'Get Many',
-				value: 'getAll',
-				description: 'Get many deliveries',
-				action: 'Get many deliveries',
-			},
 		],
-		default: 'getAll',
+		default: 'get',
 	},
 ];

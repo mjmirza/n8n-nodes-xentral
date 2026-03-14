@@ -33,7 +33,7 @@ export const supplierOperations: INodeProperties[] = [
 			{
 				name: 'Update',
 				value: 'update',
-				description: 'Update a supplier',
+				description: 'Update a supplier (tags only via V1 API)',
 				action: 'Update a supplier',
 			},
 		],

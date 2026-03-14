@@ -49,24 +49,6 @@ export const proformaInvoiceOperations: INodeProperties[] = [
 				action: 'Add line item to proforma invoice',
 			},
 			{
-				name: 'Release',
-				value: 'release',
-				description: 'Release a proforma invoice (freigeben)',
-				action: 'Release a proforma invoice',
-			},
-			{
-				name: 'Send',
-				value: 'send',
-				description: 'Send a proforma invoice to the customer',
-				action: 'Send a proforma invoice',
-			},
-			{
-				name: 'Cancel',
-				value: 'cancel',
-				description: 'Cancel a proforma invoice',
-				action: 'Cancel a proforma invoice',
-			},
-	{
 				name: 'Update Line Item',
 				value: 'updateLineItem',
 				description: 'Update a line item of a proforma invoice',
@@ -77,6 +59,12 @@ export const proformaInvoiceOperations: INodeProperties[] = [
 				value: 'deleteLineItem',
 				description: 'Delete a line item from a proforma invoice',
 				action: 'Delete line item from proforma invoice',
+			},
+			{
+				name: 'Release',
+				value: 'release',
+				description: 'Release a proforma invoice (freigeben)',
+				action: 'Release a proforma invoice',
 			},
 			{
 				name: 'Log Activity',

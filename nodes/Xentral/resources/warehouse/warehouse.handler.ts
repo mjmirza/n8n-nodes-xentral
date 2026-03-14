@@ -7,23 +7,22 @@ export async function handleWarehouse(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const name = assertNonEmpty(this.getNodeParameter('warehouseName', itemIndex) as string, 'Warehouse Name');
+		const designation = assertNonEmpty(this.getNodeParameter('designation', itemIndex) as string, 'Designation');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
-			designation: name,
-			description: additionalFields.description !== undefined ? additionalFields.description : undefined,
-			street: additionalFields.street !== undefined ? additionalFields.street : undefined,
-			zip: additionalFields.zipCode !== undefined ? additionalFields.zipCode : undefined,
-			city: additionalFields.city !== undefined ? additionalFields.city : undefined,
-			country: additionalFields.country !== undefined ? additionalFields.country : undefined,
-			isDefault: additionalFields.isDefault !== undefined ? additionalFields.isDefault : undefined,
+			designation,
 		};
 
-		// Clean undefined values
-		Object.keys(body).forEach((key) => {
-			if (body[key] === undefined) delete body[key];
-		});
+		// Address object ref: spec expects { id: "..." }
+		if (additionalFields.addressId !== undefined && additionalFields.addressId !== '') {
+			body.address = { id: additionalFields.addressId };
+		}
+
+		// Project object ref
+		if (additionalFields.projectId) {
+			body.project = { id: additionalFields.projectId };
+		}
 
 		return xentralRequest.call(this, 'POST', 'warehouses', body as IDataObject, {}, 'v1');
 	}
@@ -41,13 +40,17 @@ export async function handleWarehouse(
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {};
-		if (updateFields.warehouseName !== undefined) body.designation = updateFields.warehouseName;
-		if (updateFields.description !== undefined) body.description = updateFields.description;
-		if (updateFields.street !== undefined) body.street = updateFields.street;
-		if (updateFields.zipCode !== undefined) body.zip = updateFields.zipCode;
-		if (updateFields.city !== undefined) body.city = updateFields.city;
-		if (updateFields.country !== undefined) body.country = updateFields.country;
-		if (updateFields.isDefault !== undefined) body.isDefault = updateFields.isDefault;
+		if (updateFields.designation !== undefined) body.designation = updateFields.designation;
+
+		// Address object ref: spec expects { id: "..." }
+		if (updateFields.addressId !== undefined && updateFields.addressId !== '') {
+			body.address = { id: updateFields.addressId };
+		}
+
+		// Project object ref
+		if (updateFields.projectId) {
+			body.project = { id: updateFields.projectId };
+		}
 
 		assertNonEmptyBody(body, 'warehouse update');
 		return xentralRequest.call(this, 'PATCH', `warehouses/${warehouseId}`, body as IDataObject, {}, 'v1');

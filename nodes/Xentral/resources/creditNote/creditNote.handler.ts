@@ -1,6 +1,108 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
 
+/**
+ * Build the nested body structure from flat n8n fields for credit note create/update.
+ */
+function buildCreditNoteBody(fields: IDataObject): IDataObject {
+	const body: IDataObject = {};
+
+	// Simple string/date fields - pass through directly
+	const directFields = [
+		'bodyIntroduction', 'bodyOutroduction', 'costCenter',
+		'deliveryDate', 'deliveryTerms', 'documentDate',
+		'internalComment', 'internalDesignation', 'language', 'vatId',
+	];
+	for (const key of directFields) {
+		if (fields[key] !== undefined && fields[key] !== '') {
+			body[key] = fields[key];
+		}
+	}
+
+	// Nested object refs: wrap as { id: "..." }
+	if (fields.editorId) body.editor = { id: fields.editorId };
+	if (fields.projectId !== undefined) {
+		body.project = fields.projectId === '' ? null : { id: fields.projectId };
+	}
+
+	// Sales: { id: "..." }
+	if (fields.salesId) {
+		body.sales = { id: fields.salesId };
+	}
+
+	// Financials: { currency: "EUR", tax: { taxation: "domestic" } }
+	const financials: IDataObject = {};
+	if (fields.currency) financials.currency = fields.currency;
+	if (fields.taxation) financials.tax = { taxation: fields.taxation };
+	if (Object.keys(financials).length > 0) body.financials = financials;
+
+	// Document address (fixedCollection)
+	if (fields.documentAddress !== undefined) {
+		const fc = fields.documentAddress as IDataObject;
+		const addr = fc.address as IDataObject;
+		if (addr) body.documentAddress = addr;
+	}
+
+	// Tags: comma-separated string to array
+	if (fields.tags !== undefined && fields.tags !== '') {
+		body.tags = (fields.tags as string).split(',').map((t: string) => t.trim()).filter((t: string) => t !== '').map((t: string) => ({ title: t }));
+	}
+
+	// Debt status (complex object passed as JSON string, create only)
+	if (fields.debtStatusJson !== undefined && fields.debtStatusJson !== '') {
+		try {
+			body.debtStatus = JSON.parse(fields.debtStatusJson as string);
+		} catch {
+			throw new Error('Invalid JSON in debtStatus. Please provide valid JSON.');
+		}
+	}
+
+	return body;
+}
+
+/**
+ * Build nested line item body from flat n8n fields.
+ */
+function buildLineItemBody(fields: IDataObject): IDataObject {
+	const body: IDataObject = {};
+
+	// Direct pass-through fields
+	const directFields = [
+		'countryOfOrigin', 'customerProductNumber', 'deliveryDate',
+		'description', 'hsCode', 'internalComment', 'name', 'number', 'taxLegalNotice',
+	];
+	for (const key of directFields) {
+		if (fields[key] !== undefined && fields[key] !== '') {
+			body[key] = fields[key];
+		}
+	}
+
+	// Boolean field
+	if (fields.deliveryDateAsCalendarWeek !== undefined) {
+		body.deliveryDateAsCalendarWeek = fields.deliveryDateAsCalendarWeek;
+	}
+
+	// Numeric fields that can be 0
+	if (fields.discount !== undefined) body.discount = fields.discount;
+	if (fields.quantity !== undefined) body.quantity = fields.quantity;
+	if (fields.sort !== undefined) body.sort = fields.sort;
+
+	// Product ref
+	if (fields.productId) body.product = { id: fields.productId };
+
+	// Price object: { net: { amount: X, currency: "EUR" } }
+	if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
+		body.price = {
+			net: {
+				amount: fields.priceAmount,
+				currency: fields.priceCurrency || 'EUR',
+			},
+		};
+	}
+
+	return body;
+}
+
 export async function handleCreditNote(
 	this: IExecuteFunctions,
 	operation: string,
@@ -9,27 +111,18 @@ export async function handleCreditNote(
 	if (operation === 'create') {
 		const customerId = this.getNodeParameter('customerId', itemIndex) as string;
 		assertSafeId(customerId, 'customerId');
-		const language = this.getNodeParameter('language', itemIndex, 'de') as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = {
-			address: { id: customerId },
-			language,
-		};
+		const body = buildCreditNoteBody(additionalFields);
+		body.address = { id: customerId };
 
-		if (additionalFields.documentDate !== undefined) body.documentDate = additionalFields.documentDate;
-		if (additionalFields.reason !== undefined) body.reason = additionalFields.reason;
-		if (additionalFields.headerText !== undefined) body.headerText = additionalFields.headerText;
-		if (additionalFields.footerText !== undefined) body.footerText = additionalFields.footerText;
-		if (additionalFields.internalNote !== undefined) body.internalNote = additionalFields.internalNote;
-
-		return xentralRequest.call(this, 'POST', 'creditnotes', body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', 'creditNotes', body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'get') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		assertSafeId(creditNoteId, 'creditNoteId');
-		return xentralRequest.call(this, 'GET', `creditnotes/${creditNoteId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'GET', `creditNotes/${creditNoteId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'getAll') {
@@ -51,21 +144,28 @@ export async function handleCreditNote(
 			query[`filter[${filterIndex}][value]`] = filters.customerId;
 			filterIndex++;
 		}
-		return xentralV3GetAll.call(this, 'creditnotes', query, limit, maxPages);
+		if (filters.createdAfter !== undefined && filters.createdAfter !== '') {
+			query[`filter[${filterIndex}][key]`] = 'createdAfter';
+			query[`filter[${filterIndex}][op]`] = 'gte';
+			query[`filter[${filterIndex}][value]`] = filters.createdAfter;
+			filterIndex++;
+		}
+		return xentralV3GetAll.call(this, 'creditNotes', query, limit, maxPages);
 	}
 
 	if (operation === 'update') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		assertSafeId(creditNoteId, 'creditNoteId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		assertNonEmptyBody(updateFields as IDataObject, 'credit note update');
-		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}`, updateFields as IDataObject, {}, 'v3');
+		const body = buildCreditNoteBody(updateFields);
+		assertNonEmptyBody(body as IDataObject, 'credit note update');
+		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'delete') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		assertSafeId(creditNoteId, 'creditNoteId');
-		return xentralRequest.call(this, 'DELETE', `creditnotes/${creditNoteId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'DELETE', `creditNotes/${creditNoteId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'addLineItem') {
@@ -76,17 +176,11 @@ export async function handleCreditNote(
 		const quantity = this.getNodeParameter('quantity', itemIndex) as number;
 		const lineItemOptions = this.getNodeParameter('lineItemOptions', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = {
-			product: { id: productId },
-			quantity,
-		};
+		const body = buildLineItemBody(lineItemOptions);
+		body.product = { id: productId };
+		body.quantity = quantity;
 
-		if (lineItemOptions.unitPrice !== undefined) body.unitPrice = lineItemOptions.unitPrice;
-		if (lineItemOptions.discount !== undefined) body.discount = lineItemOptions.discount;
-		if (lineItemOptions.description !== undefined) body.description = lineItemOptions.description;
-		if (lineItemOptions.position !== undefined) body.position = lineItemOptions.position;
-
-		return xentralRequest.call(this, 'POST', `creditnotes/${creditNoteId}/lineItems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `creditNotes/${creditNoteId}/lineItems`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {
@@ -95,8 +189,9 @@ export async function handleCreditNote(
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		assertSafeId(lineItemId, 'lineItemId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		assertNonEmptyBody(updateFields as IDataObject, 'credit note line item update');
-		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/lineItems/${lineItemId}`, updateFields as IDataObject, {}, 'v3');
+		const body = buildLineItemBody(updateFields);
+		assertNonEmptyBody(body as IDataObject, 'credit note line item update');
+		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
@@ -104,51 +199,40 @@ export async function handleCreditNote(
 		assertSafeId(creditNoteId, 'creditNoteId');
 		const lineItemId = this.getNodeParameter('lineItemId', itemIndex) as string;
 		assertSafeId(lineItemId, 'lineItemId');
-		return xentralRequest.call(this, 'DELETE', `creditnotes/${creditNoteId}/lineItems/${lineItemId}`, {}, {}, 'v3');
+		return xentralRequest.call(this, 'DELETE', `creditNotes/${creditNoteId}/lineItems/${lineItemId}`, {}, {}, 'v3');
 	}
 
 	if (operation === 'release') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		assertSafeId(creditNoteId, 'creditNoteId');
-		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/release`, {} as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'cancel') {
-		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
-		assertSafeId(creditNoteId, 'creditNoteId');
-		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/cancel`, {} as IDataObject, {}, 'v3');
-	}
-
-	if (operation === 'send') {
-		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
-		assertSafeId(creditNoteId, 'creditNoteId');
-		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/send`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/actions/release`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'logActivity') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		assertSafeId(creditNoteId, 'creditNoteId');
-		const body = this.getNodeParameter('activityData', itemIndex, {}) as IDataObject;
-		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/log-activity`, body as IDataObject, {}, 'v3');
+		const activityMessage = this.getNodeParameter('activityMessage', itemIndex) as string;
+		const body: IDataObject = { message: activityMessage };
+		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/actions/logActivity`, body as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'setWriteProtection') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		assertSafeId(creditNoteId, 'creditNoteId');
-		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/set-write-protection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/actions/setWriteProtection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'removeWriteProtection') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		assertSafeId(creditNoteId, 'creditNoteId');
-		return xentralRequest.call(this, 'PATCH', `creditnotes/${creditNoteId}/actions/remove-write-protection`, {} as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}/actions/removeWriteProtection`, {} as IDataObject, {}, 'v3');
 	}
 
 	if (operation === 'attachFile') {
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		assertSafeId(creditNoteId, 'creditNoteId');
 		const binaryPropertyName = this.getNodeParameter('binaryPropertyName', itemIndex, 'data') as string;
-		return xentralFileUpload.call(this, `creditnotes/${creditNoteId}/files`, binaryPropertyName, itemIndex);
+		return xentralFileUpload.call(this, `creditNotes/${creditNoteId}/files`, binaryPropertyName, itemIndex);
 	}
 
 	throw new Error(`Unknown creditNote operation: ${operation}`);

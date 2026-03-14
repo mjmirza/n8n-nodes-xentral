@@ -2,7 +2,7 @@ import type { INodeProperties } from 'n8n-workflow';
 
 export const supplierFields: INodeProperties[] = [
 	// ----------------------------------
-	//         supplier:get
+	//         supplier:get / update
 	// ----------------------------------
 	{
 		displayName: 'Supplier ID',
@@ -20,7 +20,7 @@ export const supplierFields: INodeProperties[] = [
 	},
 
 	// ----------------------------------
-	//         supplier:getAll
+	//         supplier:getAll / search
 	// ----------------------------------
 	{
 		displayName: 'Return All',
@@ -70,7 +70,7 @@ export const supplierFields: INodeProperties[] = [
 	},
 
 	// ----------------------------------
-	//         supplier:update
+	//         supplier:update (V1 API - tags only)
 	// ----------------------------------
 	{
 		displayName: 'Update Fields',
@@ -86,84 +86,11 @@ export const supplierFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Supplier Type',
-				name: 'supplierType',
-				type: 'options',
-				options: [
-					{ name: 'Company', value: 'company' },
-					{ name: 'Individual', value: 'individual' },
-				],
-				default: 'company',
-				description: 'Change the supplier type',
-			},
-			{
-				displayName: 'Name',
-				name: 'supplierName',
+				displayName: 'Tags',
+				name: 'tags',
 				type: 'string',
 				default: '',
-			},
-			{
-				displayName: 'Email',
-				name: 'email',
-				type: 'string',
-				placeholder: 'name@email.com',
-				default: '',
-			},
-			{
-				displayName: 'Phone',
-				name: 'phone',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Fax',
-				name: 'fax',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Street',
-				name: 'street',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'ZIP Code',
-				name: 'zipCode',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'City',
-				name: 'city',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Country',
-				name: 'country',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'VAT ID',
-				name: 'vatId',
-				type: 'string',
-				default: '',
-				description: 'VAT identification number',
-			},
-			{
-				displayName: 'Payment Method',
-				name: 'paymentMethod',
-				type: 'string',
-				default: '',
-			},
-			{
-				displayName: 'Language',
-				name: 'language',
-				type: 'string',
-				default: '',
-				description: 'ISO 639-1 language code',
+				description: 'Comma-separated list of tags to set on the supplier',
 			},
 		],
 	},

@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty } from '../../transport';
+import { xentralRequest, assertSafeId } from '../../transport';
 
 export async function handleShipment(
 	this: IExecuteFunctions,
@@ -7,15 +7,38 @@ export async function handleShipment(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const type = assertNonEmpty(this.getNodeParameter('shipmentType', itemIndex) as string, 'Shipment Type');
+		const deliveryNoteId = this.getNodeParameter('deliveryNoteId', itemIndex) as string;
+		assertSafeId(deliveryNoteId, 'deliveryNoteId');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = { type };
+		const body: IDataObject = {
+			deliveryNote: { id: deliveryNoteId },
+			type: 'deliveryNote',
+		};
 
-		if (additionalFields.salesOrderId !== undefined) body.salesOrderId = additionalFields.salesOrderId;
-		if (additionalFields.carrier !== undefined) body.carrier = additionalFields.carrier;
-		if (additionalFields.trackingNumber !== undefined) body.trackingNumber = additionalFields.trackingNumber;
-		if (additionalFields.weight !== undefined) body.weight = additionalFields.weight;
+		// Direct fields
+		const directFields = [
+			'parcelCount',
+			'sendTrackingMail',
+			'sentAt',
+			'trackingLink',
+			'trackingNumber',
+			'updateDeliveryNoteShippingMethod',
+			'weight',
+		];
+
+		for (const key of directFields) {
+			if (additionalFields[key] !== undefined && additionalFields[key] !== '') {
+				body[key] = additionalFields[key];
+			}
+		}
+
+		// Shipping method ref (nullable)
+		if (additionalFields.shippingMethodId !== undefined) {
+			body.shippingMethod = additionalFields.shippingMethodId !== ''
+				? { id: additionalFields.shippingMethodId }
+				: null;
+		}
 
 		return xentralRequest.call(this, 'POST', 'shipments', body as IDataObject, {}, 'v1');
 	}
@@ -24,13 +47,6 @@ export async function handleShipment(
 		const shipmentId = this.getNodeParameter('shipmentId', itemIndex) as string;
 		assertSafeId(shipmentId, 'shipmentId');
 		return xentralRequest.call(this, 'GET', `shipments/${shipmentId}`, {}, {}, 'v1');
-	}
-
-	if (operation === 'getAll') {
-		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
-		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
-		return xentralV1PageGetAll.call(this, 'shipments', {}, limit, maxPages);
 	}
 
 	throw new Error(`Unknown shipment operation: ${operation}`);

@@ -1,4 +1,4 @@
-# n8n-nodes-xentralx -- Comprehensive Audit Report
+# n8n-nodes-xentral -- Comprehensive Audit Report
 
 **Date:** 2026-03-13
 **Package Version:** 0.7.0

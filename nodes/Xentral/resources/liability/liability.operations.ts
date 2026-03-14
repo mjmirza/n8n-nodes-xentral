@@ -36,6 +36,12 @@ export const liabilityOperations: INodeProperties[] = [
 				description: 'Release a liability',
 				action: 'Release a liability',
 			},
+			{
+				name: 'Upload Document',
+				value: 'uploadDocument',
+				description: 'Upload a document to a liability',
+				action: 'Upload document to liability',
+			},
 		],
 		default: 'getAll',
 	},

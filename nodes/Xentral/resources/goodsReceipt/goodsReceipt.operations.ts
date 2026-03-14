@@ -21,7 +21,7 @@ export const goodsReceiptOperations: INodeProperties[] = [
 			{
 				name: 'Create for Return',
 				value: 'createForReturn',
-				description: 'Create a goods receipt for a return',
+				description: 'Create a goods receipt for a return order',
 				action: 'Create goods receipt for return',
 			},
 		],

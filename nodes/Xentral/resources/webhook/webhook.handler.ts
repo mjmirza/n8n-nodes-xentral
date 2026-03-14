@@ -1,5 +1,17 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
+
+/**
+ * Convert a comma-separated string of event IDs into the array-of-objects
+ * format required by the Xentral webhook API: [{id: "com.xentral.salesOrder.created.v1"}, ...]
+ */
+function parseEventIds(eventsRaw: string): IDataObject[] {
+	return eventsRaw
+		.split(',')
+		.map((e) => e.trim())
+		.filter((e) => e.length > 0)
+		.map((id) => ({ id }));
+}
 
 export async function handleWebhook(
 	this: IExecuteFunctions,
@@ -7,16 +19,22 @@ export async function handleWebhook(
 	itemIndex: number,
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
-		const url = this.getNodeParameter('url', itemIndex) as string;
-		const events = this.getNodeParameter('events', itemIndex) as string[];
-		const signatureKey = this.getNodeParameter('signatureKey', itemIndex, '') as string;
+		const name = assertNonEmpty(this.getNodeParameter('name', itemIndex) as string, 'Name');
+		const url = assertNonEmpty(this.getNodeParameter('url', itemIndex) as string, 'URL');
+		const signatureKey = assertNonEmpty(this.getNodeParameter('signatureKey', itemIndex) as string, 'Signature Key');
+		const eventsRaw = assertNonEmpty(this.getNodeParameter('events', itemIndex) as string, 'Event IDs');
+
+		const events = parseEventIds(eventsRaw);
+		if (events.length === 0) {
+			throw new Error('At least one event ID is required');
+		}
 
 		const body: IDataObject = {
+			name,
 			url,
-			events,
+			signatureKey,
+			events: events as unknown as IDataObject[],
 		};
-
-		if (signatureKey) body.signatureKey = signatureKey;
 
 		return xentralRequest.call(this, 'POST', 'webhooks', body, {}, 'v1');
 	}
@@ -41,9 +59,17 @@ export async function handleWebhook(
 
 		const body: IDataObject = {};
 
+		if (updateFields.name !== undefined) body.name = updateFields.name;
 		if (updateFields.url !== undefined) body.url = updateFields.url;
-		if (updateFields.events !== undefined) body.events = updateFields.events;
 		if (updateFields.signatureKey !== undefined) body.signatureKey = updateFields.signatureKey;
+
+		if (updateFields.events !== undefined) {
+			const events = parseEventIds(updateFields.events as string);
+			if (events.length === 0) {
+				throw new Error('At least one event ID is required when updating events');
+			}
+			body.events = events as unknown as IDataObject[];
+		}
 
 		assertNonEmptyBody(body, 'webhook update');
 		return xentralRequest.call(this, 'PATCH', `webhooks/${webhookId}`, body, {}, 'v1');

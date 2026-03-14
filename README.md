@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://unpkg.com/n8n-nodes-xentralx@0.9.5/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
+  <img src="https://unpkg.com/n8n-nodes-xentral@1.0.0/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
 </p>
 
-<h1 align="center">n8n-nodes-xentralx</h1>
+<h1 align="center">n8n-nodes-xentral</h1>
 
 <p align="center">
   <strong>The most comprehensive n8n community node for Xentral ERP</strong><br/>
@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/n8n-nodes-xentralx"><img src="https://img.shields.io/npm/v/n8n-nodes-xentralx?style=for-the-badge&color=CB3837&label=npm" alt="npm version" /></a>
-  <a href="https://www.npmjs.com/package/n8n-nodes-xentralx"><img src="https://img.shields.io/npm/dt/n8n-nodes-xentralx?style=for-the-badge&color=blue&label=downloads" alt="npm downloads" /></a>
+  <a href="https://www.npmjs.com/package/n8n-nodes-xentral"><img src="https://img.shields.io/npm/v/n8n-nodes-xentral?style=for-the-badge&color=CB3837&label=npm" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/n8n-nodes-xentral"><img src="https://img.shields.io/npm/dt/n8n-nodes-xentral?style=for-the-badge&color=blue&label=downloads" alt="npm downloads" /></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-FUCL-orange?style=for-the-badge" alt="License" /></a>
   <img src="https://img.shields.io/badge/Xentral-ERP-00C4B4?style=for-the-badge" alt="Xentral ERP" />
   <img src="https://img.shields.io/badge/n8n-Community_Node-FF6D5A?style=for-the-badge" alt="n8n Community Node" />
@@ -99,13 +99,13 @@ Every single endpoint in this node has been tested against the live Xentral API:
 
 ### From n8n (Recommended)
 1. Go to **Settings > Community Nodes**
-2. Enter `n8n-nodes-xentralx`
+2. Enter `n8n-nodes-xentral`
 3. Click **Install**
 
 ### Manual
 ```bash
 cd ~/.n8n/nodes
-npm install n8n-nodes-xentralx
+npm install n8n-nodes-xentral
 ```
 
 ---
