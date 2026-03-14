@@ -171,7 +171,7 @@ export const offerFields: INodeProperties[] = [
 				description: 'Text shown at the top of the offer document body',
 			},
 			{
-				displayName: 'Body Outroduction',
+				displayName: 'Closing Text',
 				name: 'bodyOutroduction',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -357,7 +357,7 @@ export const offerFields: INodeProperties[] = [
 				description: 'Print settings for the document',
 			},
 			{
-				displayName: 'Sales ID',
+				displayName: 'Sales Representative ID',
 				name: 'salesId',
 				type: 'string',
 				default: '',
@@ -381,7 +381,7 @@ export const offerFields: INodeProperties[] = [
 				displayName: 'Taxation',
 				name: 'taxation',
 				type: 'options',
-				default: '',
+				default: 'domestic',
 				options: [
 					{ name: 'Domestic', value: 'domestic' },
 					{ name: 'EU', value: 'eu' },
@@ -697,7 +697,7 @@ export const offerFields: INodeProperties[] = [
 				description: 'Text shown at the top of the offer document body',
 			},
 			{
-				displayName: 'Body Outroduction',
+				displayName: 'Closing Text',
 				name: 'bodyOutroduction',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -876,7 +876,7 @@ export const offerFields: INodeProperties[] = [
 				description: 'Print settings for the document',
 			},
 			{
-				displayName: 'Sales ID',
+				displayName: 'Sales Representative ID',
 				name: 'salesId',
 				type: 'string',
 				default: '',
@@ -893,7 +893,7 @@ export const offerFields: INodeProperties[] = [
 				displayName: 'Taxation',
 				name: 'taxation',
 				type: 'options',
-				default: '',
+				default: 'domestic',
 				options: [
 					{ name: 'Domestic', value: 'domestic' },
 					{ name: 'EU', value: 'eu' },

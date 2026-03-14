@@ -75,6 +75,7 @@ export const contactFields: INodeProperties[] = [
 				name: 'department',
 				type: 'string',
 				default: '',
+				description: 'Department name',
 			},
 			{
 				displayName: 'Email',
@@ -201,6 +202,7 @@ export const contactFields: INodeProperties[] = [
 				name: 'subDepartment',
 				type: 'string',
 				default: '',
+				description: 'Sub-department name',
 			},
 			{
 				displayName: 'Title',
@@ -317,6 +319,7 @@ export const contactFields: INodeProperties[] = [
 				name: 'department',
 				type: 'string',
 				default: '',
+				description: 'Department name',
 			},
 			{
 				displayName: 'Email',
@@ -450,6 +453,7 @@ export const contactFields: INodeProperties[] = [
 				name: 'subDepartment',
 				type: 'string',
 				default: '',
+				description: 'Sub-department name',
 			},
 			{
 				displayName: 'Title',

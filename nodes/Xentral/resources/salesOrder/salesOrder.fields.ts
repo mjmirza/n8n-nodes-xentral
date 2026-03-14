@@ -40,7 +40,7 @@ export const salesOrderFields: INodeProperties[] = [
 				description: 'Introductory text shown at the top of the document',
 			},
 			{
-				displayName: 'Body Outroduction',
+				displayName: 'Closing Text',
 				name: 'bodyOutroduction',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -80,7 +80,6 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'deviatingShipToAddress',
 				type: 'fixedCollection',
 				default: {},
-				description: 'A different shipping address if not the customer address',
 				options: [
 					{
 						displayName: 'Address',
@@ -205,7 +204,6 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'documentAddress',
 				type: 'fixedCollection',
 				default: {},
-				description: 'Override the document address (printed on the document)',
 				options: [
 					{
 						displayName: 'Address',
@@ -383,7 +381,7 @@ export const salesOrderFields: INodeProperties[] = [
 				description: 'ID of the project this sales order belongs to',
 			},
 			{
-				displayName: 'Sales ID',
+				displayName: 'Sales Representative ID',
 				name: 'salesId',
 				type: 'string',
 				default: '',
@@ -430,7 +428,7 @@ export const salesOrderFields: INodeProperties[] = [
 				displayName: 'Taxation',
 				name: 'taxation',
 				type: 'options',
-				default: '',
+				default: 'domestic',
 				options: [
 					{ name: 'Domestic', value: 'domestic' },
 					{ name: 'EU', value: 'eu' },
@@ -739,7 +737,7 @@ export const salesOrderFields: INodeProperties[] = [
 				description: 'Introductory text shown at the top of the document',
 			},
 			{
-				displayName: 'Body Outroduction',
+				displayName: 'Closing Text',
 				name: 'bodyOutroduction',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -758,6 +756,7 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'costCenter',
 				type: 'string',
 				default: '',
+				description: 'Cost center for accounting',
 			},
 			{
 				displayName: 'Currency',
@@ -771,6 +770,7 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'deliveryTerms',
 				type: 'string',
 				default: '',
+				description: 'Delivery terms',
 			},
 			{
 				displayName: 'Deviating Ship-To Address',
@@ -788,6 +788,7 @@ export const salesOrderFields: INodeProperties[] = [
 								type: 'string',
 								default: '',
 								required: true,
+								description: 'Product/item name',
 							},
 							{
 								displayName: 'Street',
@@ -911,6 +912,7 @@ export const salesOrderFields: INodeProperties[] = [
 								type: 'string',
 								default: '',
 								required: true,
+								description: 'Product/item name',
 							},
 							{
 								displayName: 'Street',
@@ -1023,6 +1025,7 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'documentDate',
 				type: 'dateTime',
 				default: '',
+				description: 'Document date in ISO 8601 format',
 			},
 			{
 				displayName: 'Editor ID',
@@ -1037,42 +1040,49 @@ export const salesOrderFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 3 },
 				default: '',
+				description: 'Internal comment, not visible to customer',
 			},
 			{
 				displayName: 'Internal Designation',
 				name: 'internalDesignation',
 				type: 'string',
 				default: '',
+				description: 'Internal designation',
 			},
 			{
 				displayName: 'Language',
 				name: 'language',
 				type: 'string',
 				default: '',
+				description: 'Document language (e.g. de, en)',
 			},
 			{
 				displayName: 'Master Reference Number',
 				name: 'masterReferenceNumber',
 				type: 'string',
 				default: '',
+				description: 'Master reference number for linked documents',
 			},
 			{
 				displayName: 'Preferred Warehouse ID',
 				name: 'preferredWarehouseId',
 				type: 'string',
 				default: '',
+				description: 'ID of preferred warehouse',
 			},
 			{
 				displayName: 'Project ID',
 				name: 'projectId',
 				type: 'string',
 				default: '',
+				description: 'Project ID',
 			},
 			{
-				displayName: 'Sales ID',
+				displayName: 'Sales Representative ID',
 				name: 'salesId',
 				type: 'string',
 				default: '',
+				description: 'Sales representative ID',
 			},
 			{
 				displayName: 'Print Settings',
@@ -1115,7 +1125,7 @@ export const salesOrderFields: INodeProperties[] = [
 				displayName: 'Taxation',
 				name: 'taxation',
 				type: 'options',
-				default: '',
+				default: 'domestic',
 				options: [
 					{ name: 'Domestic', value: 'domestic' },
 					{ name: 'EU', value: 'eu' },
@@ -1129,6 +1139,7 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'vatId',
 				type: 'string',
 				default: '',
+				description: 'VAT identification number',
 			},
 		],
 	},
@@ -1168,24 +1179,28 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'deliveryDate',
 				type: 'dateTime',
 				default: '',
+				description: 'Expected delivery date',
 			},
 			{
 				displayName: 'Delivery Date as Calendar Week',
 				name: 'deliveryDateAsCalendarWeek',
 				type: 'boolean',
 				default: false,
+				description: 'Whether delivery date is a calendar week',
 			},
 			{
 				displayName: 'Description',
 				name: 'description',
 				type: 'string',
 				default: '',
+				description: 'Line item description text',
 			},
 			{
 				displayName: 'Discount (%)',
 				name: 'discount',
 				type: 'number',
 				default: 0,
+				description: 'Discount percentage',
 				typeOptions: { numberPrecision: 2 },
 			},
 			{
@@ -1207,12 +1222,14 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'name',
 				type: 'string',
 				default: '',
+				description: 'Product/item name',
 			},
 			{
 				displayName: 'Price Amount',
 				name: 'priceAmount',
 				type: 'number',
 				default: 0,
+				description: 'Unit price amount',
 				typeOptions: { numberPrecision: 2 },
 			},
 			{
@@ -1220,18 +1237,21 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'priceCurrency',
 				type: 'string',
 				default: 'EUR',
+				description: 'Price currency code (e.g. EUR)',
 			},
 			{
 				displayName: 'Product ID',
 				name: 'productId',
 				type: 'string',
 				default: '',
+				description: 'Product ID',
 			},
 			{
 				displayName: 'Quantity',
 				name: 'quantity',
 				type: 'number',
 				default: 1,
+				description: 'Quantity',
 				typeOptions: { minValue: 1 },
 			},
 			{
@@ -1246,6 +1266,7 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'taxLegalNotice',
 				type: 'string',
 				default: '',
+				description: 'Tax legal notice text',
 			},
 		],
 	},

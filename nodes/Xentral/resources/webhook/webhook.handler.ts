@@ -55,23 +55,26 @@ export async function handleWebhook(
 	if (operation === 'update') {
 		const webhookId = this.getNodeParameter('webhookId', itemIndex) as string;
 		assertSafeId(webhookId, 'webhookId');
-		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
-		const body: IDataObject = {};
+		const name = assertNonEmpty(this.getNodeParameter('name', itemIndex) as string, 'Name');
+		const url = assertNonEmpty(this.getNodeParameter('url', itemIndex) as string, 'URL');
+		const eventsRaw = assertNonEmpty(this.getNodeParameter('events', itemIndex) as string, 'Event IDs');
 
-		if (updateFields.name !== undefined) body.name = updateFields.name;
-		if (updateFields.url !== undefined) body.url = updateFields.url;
-		if (updateFields.signatureKey !== undefined) body.signatureKey = updateFields.signatureKey;
-
-		if (updateFields.events !== undefined) {
-			const events = parseEventIds(updateFields.events as string);
-			if (events.length === 0) {
-				throw new Error('At least one event ID is required when updating events');
-			}
-			body.events = events as unknown as IDataObject[];
+		const events = parseEventIds(eventsRaw);
+		if (events.length === 0) {
+			throw new Error('At least one event ID is required when updating events');
 		}
 
-		assertNonEmptyBody(body, 'webhook update');
+		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
+
+		const body: IDataObject = {
+			name,
+			url,
+			events: events as unknown as IDataObject[],
+		};
+
+		if (updateFields.signatureKey !== undefined) body.signatureKey = updateFields.signatureKey;
+
 		return xentralRequest.call(this, 'PATCH', `webhooks/${webhookId}`, body, {}, 'v1');
 	}
 
