@@ -171,7 +171,7 @@ export const creditNoteFields: INodeProperties[] = [
 				description: 'Text shown at the top of the credit note document body',
 			},
 			{
-				displayName: 'Body Outroduction',
+				displayName: 'Closing Text',
 				name: 'bodyOutroduction',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -301,7 +301,7 @@ export const creditNoteFields: INodeProperties[] = [
 				description: 'ID of the associated project',
 			},
 			{
-				displayName: 'Sales ID',
+				displayName: 'Sales Representative ID',
 				name: 'salesId',
 				type: 'string',
 				default: '',
@@ -318,7 +318,7 @@ export const creditNoteFields: INodeProperties[] = [
 				displayName: 'Taxation',
 				name: 'taxation',
 				type: 'options',
-				default: '',
+				default: 'domestic',
 				options: [
 					{ name: 'Domestic', value: 'domestic' },
 					{ name: 'EU', value: 'eu' },
@@ -620,7 +620,7 @@ export const creditNoteFields: INodeProperties[] = [
 				description: 'Text shown at the top of the credit note document body',
 			},
 			{
-				displayName: 'Body Outroduction',
+				displayName: 'Closing Text',
 				name: 'bodyOutroduction',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -736,7 +736,7 @@ export const creditNoteFields: INodeProperties[] = [
 				description: 'ID of the associated project. Set empty to remove.',
 			},
 			{
-				displayName: 'Sales ID',
+				displayName: 'Sales Representative ID',
 				name: 'salesId',
 				type: 'string',
 				default: '',
@@ -753,7 +753,7 @@ export const creditNoteFields: INodeProperties[] = [
 				displayName: 'Taxation',
 				name: 'taxation',
 				type: 'options',
-				default: '',
+				default: 'domestic',
 				options: [
 					{ name: 'Domestic', value: 'domestic' },
 					{ name: 'EU', value: 'eu' },

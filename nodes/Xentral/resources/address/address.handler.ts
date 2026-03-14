@@ -29,6 +29,7 @@ export async function handleAddress(
 		const city = assertNonEmpty(this.getNodeParameter('city', itemIndex) as string, 'City');
 		const zip = assertNonEmpty(this.getNodeParameter('zip', itemIndex) as string, 'ZIP Code');
 		const country = assertNonEmpty(this.getNodeParameter('country', itemIndex) as string, 'Country');
+		const type = assertNonEmpty(this.getNodeParameter('type', itemIndex) as string, 'Address Type');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
@@ -37,6 +38,7 @@ export async function handleAddress(
 			city,
 			zip,
 			country,
+			type,
 		};
 
 		for (const field of ADDRESS_DIRECT_FIELDS) {

@@ -34,7 +34,7 @@ export const shippingMethodFields: INodeProperties[] = [
 			{
 				displayName: 'Carrier Credentials (JSON)',
 				name: 'carrierCredentials',
-				type: 'string',
+				type: 'json',
 				default: '',
 				description: 'Carrier credentials as JSON string',
 			},
@@ -187,7 +187,7 @@ export const shippingMethodFields: INodeProperties[] = [
 			{
 				displayName: 'Carrier Credentials (JSON)',
 				name: 'carrierCredentials',
-				type: 'string',
+				type: 'json',
 				default: '',
 				description: 'Carrier credentials as JSON string',
 			},

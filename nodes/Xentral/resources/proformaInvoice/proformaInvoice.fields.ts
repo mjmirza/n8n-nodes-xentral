@@ -171,7 +171,7 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				description: 'Text shown at the top of the proforma invoice document body',
 			},
 			{
-				displayName: 'Body Outroduction',
+				displayName: 'Closing Text',
 				name: 'bodyOutroduction',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -301,7 +301,7 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				description: 'Print settings for the document',
 			},
 			{
-				displayName: 'Sales ID',
+				displayName: 'Sales Representative ID',
 				name: 'salesId',
 				type: 'string',
 				default: '',
@@ -318,7 +318,7 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				displayName: 'Taxation',
 				name: 'taxation',
 				type: 'options',
-				default: '',
+				default: 'domestic',
 				options: [
 					{ name: 'Domestic', value: 'domestic' },
 					{ name: 'EU', value: 'eu' },
@@ -618,7 +618,7 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				description: 'Text shown at the top of the document body',
 			},
 			{
-				displayName: 'Body Outroduction',
+				displayName: 'Closing Text',
 				name: 'bodyOutroduction',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -741,7 +741,7 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				description: 'Print settings for the document',
 			},
 			{
-				displayName: 'Sales ID',
+				displayName: 'Sales Representative ID',
 				name: 'salesId',
 				type: 'string',
 				default: '',
@@ -758,7 +758,7 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				displayName: 'Taxation',
 				name: 'taxation',
 				type: 'options',
-				default: '',
+				default: 'domestic',
 				options: [
 					{ name: 'Domestic', value: 'domestic' },
 					{ name: 'EU', value: 'eu' },

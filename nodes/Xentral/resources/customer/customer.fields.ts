@@ -61,7 +61,7 @@ export const customerFields: INodeProperties[] = [
 			{
 				displayName: 'Additional Contact Data',
 				name: 'additionalContactData',
-				type: 'string',
+				type: 'json',
 				default: '',
 				description: 'JSON array of {label, value} objects for additional contact data (contactDetails.additionalData)',
 			},
@@ -96,7 +96,7 @@ export const customerFields: INodeProperties[] = [
 			{
 				displayName: 'Custom Fields',
 				name: 'customFields',
-				type: 'string',
+				type: 'json',
 				default: '',
 				description: 'JSON array of {id, value} objects for custom fields',
 			},
@@ -151,6 +151,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'department',
 				type: 'string',
 				default: '',
+				description: 'Department name',
 			},
 			{
 				displayName: 'Deviating Customer Number',
@@ -179,6 +180,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'firstname',
 				type: 'string',
 				default: '',
+				description: 'First name',
 			},
 			{
 				displayName: 'Fixed Payment Terms',
@@ -234,6 +236,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'lastname',
 				type: 'string',
 				default: '',
+				description: 'Last name',
 			},
 			{
 				displayName: 'Mobile',
@@ -394,6 +397,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'subDepartment',
 				type: 'string',
 				default: '',
+				description: 'Sub-department name',
 			},
 			{
 				displayName: 'Subscription Payment Method',
@@ -555,7 +559,7 @@ export const customerFields: INodeProperties[] = [
 			{
 				displayName: 'Additional Contact Data',
 				name: 'additionalContactData',
-				type: 'string',
+				type: 'json',
 				default: '',
 				description: 'JSON array of {label, value} objects for additional contact data (contactDetails.additionalData)',
 			},
@@ -606,6 +610,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'contactPerson',
 				type: 'string',
 				default: '',
+				description: 'Contact person name',
 			},
 			{
 				displayName: 'Credit Limit',
@@ -617,7 +622,7 @@ export const customerFields: INodeProperties[] = [
 			{
 				displayName: 'Custom Fields',
 				name: 'customFields',
-				type: 'string',
+				type: 'json',
 				default: '',
 				description: 'JSON array of {id, value} objects for custom fields',
 			},
@@ -672,12 +677,14 @@ export const customerFields: INodeProperties[] = [
 				name: 'department',
 				type: 'string',
 				default: '',
+				description: 'Department name',
 			},
 			{
 				displayName: 'Deviating Customer Number',
 				name: 'deviatingCustomerNumber',
 				type: 'string',
 				default: '',
+				description: 'Alternative customer number',
 			},
 			{
 				displayName: 'Email',
@@ -699,6 +706,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'firstname',
 				type: 'string',
 				default: '',
+				description: 'First name',
 			},
 			{
 				displayName: 'Fixed Payment Terms',
@@ -775,6 +783,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'lastname',
 				type: 'string',
 				default: '',
+				description: 'Last name',
 			},
 			{
 				displayName: 'Latitude',
@@ -879,18 +888,21 @@ export const customerFields: INodeProperties[] = [
 				name: 'primaryBankAccountBic',
 				type: 'string',
 				default: '',
+				description: 'Bank BIC/SWIFT code',
 			},
 			{
 				displayName: 'Primary Bank Account Owner',
 				name: 'primaryBankAccountOwner',
 				type: 'string',
 				default: '',
+				description: 'Bank account owner name',
 			},
 			{
 				displayName: 'Primary Bank Account IBAN',
 				name: 'primaryBankAccountIban',
 				type: 'string',
 				default: '',
+				description: 'Bank IBAN',
 			},
 			{
 				displayName: 'Sales Manager ID',
@@ -910,6 +922,7 @@ export const customerFields: INodeProperties[] = [
 					{ name: 'Other', value: 'other' },
 				],
 				default: 'company',
+				description: 'Salutation (e.g. mr, mrs)',
 			},
 			{
 				displayName: 'Salutation Phrase',
@@ -986,6 +999,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'subDepartment',
 				type: 'string',
 				default: '',
+				description: 'Sub-department name',
 			},
 			{
 				displayName: 'Subscription Payment Method',

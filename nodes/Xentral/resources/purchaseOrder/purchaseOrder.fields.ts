@@ -40,7 +40,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 				description: 'Introductory text shown at the top of the document',
 			},
 			{
-				displayName: 'Body Outroduction',
+				displayName: 'Closing Text',
 				name: 'bodyOutroduction',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -94,7 +94,6 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'documentAddress',
 				type: 'fixedCollection',
 				default: {},
-				description: 'Override the document address (printed on the document)',
 				options: [
 					{
 						displayName: 'Address',
@@ -312,7 +311,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 				displayName: 'Taxation',
 				name: 'taxation',
 				type: 'options',
-				default: '',
+				default: 'domestic',
 				options: [
 					{ name: 'Domestic', value: 'domestic' },
 					{ name: 'EU', value: 'eu' },
@@ -599,7 +598,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 				description: 'Introductory text shown at the top of the document',
 			},
 			{
-				displayName: 'Body Outroduction',
+				displayName: 'Closing Text',
 				name: 'bodyOutroduction',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -611,18 +610,21 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'confirmationType',
 				type: 'string',
 				default: '',
+				description: 'Confirmation type',
 			},
 			{
 				displayName: 'Confirmed Delivery Date',
 				name: 'confirmedDeliveryDate',
 				type: 'dateTime',
 				default: '',
+				description: 'Confirmed delivery date',
 			},
 			{
 				displayName: 'Cost Center',
 				name: 'costCenter',
 				type: 'string',
 				default: '',
+				description: 'Cost center for accounting',
 			},
 			{
 				displayName: 'Currency',
@@ -636,12 +638,14 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'deliveryTerms',
 				type: 'string',
 				default: '',
+				description: 'Delivery terms',
 			},
 			{
 				displayName: 'Desired Delivery Date',
 				name: 'desiredDeliveryDate',
 				type: 'dateTime',
 				default: '',
+				description: 'Desired delivery date',
 			},
 			{
 				displayName: 'Document Address',
@@ -659,6 +663,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 								type: 'string',
 								default: '',
 								required: true,
+								description: 'Product/item name',
 							},
 							{
 								displayName: 'Street',
@@ -771,6 +776,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'documentDate',
 				type: 'dateTime',
 				default: '',
+				description: 'Document date in ISO 8601 format',
 			},
 			{
 				displayName: 'Editor ID',
@@ -785,18 +791,21 @@ export const purchaseOrderFields: INodeProperties[] = [
 				type: 'string',
 				typeOptions: { rows: 3 },
 				default: '',
+				description: 'Internal comment, not visible to customer',
 			},
 			{
 				displayName: 'Internal Designation',
 				name: 'internalDesignation',
 				type: 'string',
 				default: '',
+				description: 'Internal designation',
 			},
 			{
 				displayName: 'Language',
 				name: 'language',
 				type: 'string',
 				default: '',
+				description: 'Document language (e.g. de, en)',
 			},
 			{
 				displayName: 'Print Settings',
@@ -847,6 +856,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'projectId',
 				type: 'string',
 				default: '',
+				description: 'Project ID',
 			},
 			{
 				displayName: 'Tags',
@@ -859,7 +869,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 				displayName: 'Taxation',
 				name: 'taxation',
 				type: 'options',
-				default: '',
+				default: 'domestic',
 				options: [
 					{ name: 'Domestic', value: 'domestic' },
 					{ name: 'EU', value: 'eu' },
@@ -873,12 +883,14 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'useAlternativeDocumentTitle',
 				type: 'boolean',
 				default: false,
+				description: 'Whether to use an alternative document title',
 			},
 			{
 				displayName: 'VAT ID',
 				name: 'vatId',
 				type: 'string',
 				default: '',
+				description: 'VAT identification number',
 			},
 		],
 	},
@@ -918,30 +930,35 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'deliveryDate',
 				type: 'dateTime',
 				default: '',
+				description: 'Expected delivery date',
 			},
 			{
 				displayName: 'Delivery Date as Calendar Week',
 				name: 'deliveryDateAsCalendarWeek',
 				type: 'boolean',
 				default: false,
+				description: 'Whether delivery date is a calendar week',
 			},
 			{
 				displayName: 'Description',
 				name: 'description',
 				type: 'string',
 				default: '',
+				description: 'Line item description text',
 			},
 			{
 				displayName: 'Name',
 				name: 'name',
 				type: 'string',
 				default: '',
+				description: 'Product/item name',
 			},
 			{
 				displayName: 'Price Amount',
 				name: 'priceAmount',
 				type: 'number',
 				default: 0,
+				description: 'Unit price amount',
 				typeOptions: { numberPrecision: 2 },
 			},
 			{
@@ -949,18 +966,21 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'priceCurrency',
 				type: 'string',
 				default: 'EUR',
+				description: 'Price currency code (e.g. EUR)',
 			},
 			{
 				displayName: 'Product ID',
 				name: 'productId',
 				type: 'string',
 				default: '',
+				description: 'Product ID',
 			},
 			{
 				displayName: 'Quantity',
 				name: 'quantity',
 				type: 'number',
 				default: 1,
+				description: 'Quantity',
 				typeOptions: { minValue: 1 },
 			},
 			{
@@ -975,6 +995,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'taxLegalNotice',
 				type: 'string',
 				default: '',
+				description: 'Tax legal notice text',
 			},
 		],
 	},

@@ -116,6 +116,48 @@ export const webhookFields: INodeProperties[] = [
 	//         webhook:update
 	// ----------------------------------
 	{
+		displayName: 'Name',
+		name: 'name',
+		type: 'string',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['webhook'],
+				operation: ['update'],
+			},
+		},
+		description: 'The name of the webhook',
+	},
+	{
+		displayName: 'URL',
+		name: 'url',
+		type: 'string',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['webhook'],
+				operation: ['update'],
+			},
+		},
+		description: 'The URL the webhook will send events to',
+	},
+	{
+		displayName: 'Event IDs',
+		name: 'events',
+		type: 'string',
+		default: '',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['webhook'],
+				operation: ['update'],
+			},
+		},
+		description: 'Comma-separated list of event IDs using the full qualified format, e.g. "com.xentral.salesOrder.created.v1, com.xentral.customer.updated.v1"',
+	},
+	{
 		displayName: 'Update Fields',
 		name: 'updateFields',
 		type: 'collection',
@@ -129,33 +171,12 @@ export const webhookFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Event IDs',
-				name: 'events',
-				type: 'string',
-				default: '',
-				description: 'Comma-separated list of event IDs using the full qualified format, e.g. "com.xentral.salesOrder.created.v1, com.xentral.customer.updated.v1"',
-			},
-			{
-				displayName: 'Name',
-				name: 'name',
-				type: 'string',
-				default: '',
-				description: 'The name of the webhook',
-			},
-			{
 				displayName: 'Signature Key',
 				name: 'signatureKey',
 				type: 'string',
 				typeOptions: { password: true },
 				default: '',
 				description: 'Secret key used for HMAC signature verification',
-			},
-			{
-				displayName: 'URL',
-				name: 'url',
-				type: 'string',
-				default: '',
-				description: 'The URL the webhook will send events to',
 			},
 		],
 	},
