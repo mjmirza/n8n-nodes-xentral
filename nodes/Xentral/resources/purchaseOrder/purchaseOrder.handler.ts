@@ -170,6 +170,7 @@ export async function handlePurchaseOrder(
 		if (lineItemOptions.name !== undefined) body.name = lineItemOptions.name;
 		if (lineItemOptions.number !== undefined) body.number = lineItemOptions.number;
 		if (lineItemOptions.taxLegalNotice !== undefined) body.taxLegalNotice = lineItemOptions.taxLegalNotice;
+		if (lineItemOptions.hiddenOnPdf !== undefined) body.hiddenOnPdf = lineItemOptions.hiddenOnPdf;
 
 		// Price structure
 		if (lineItemOptions.priceAmount !== undefined) {
@@ -195,6 +196,7 @@ export async function handlePurchaseOrder(
 		if (updateFields.quantity !== undefined) body.quantity = updateFields.quantity;
 		if (updateFields.sort !== undefined) body.sort = updateFields.sort;
 		if (updateFields.taxLegalNotice !== undefined) body.taxLegalNotice = updateFields.taxLegalNotice;
+		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
 		if (updateFields.productId) body.product = { id: updateFields.productId };
 
 		// Price structure

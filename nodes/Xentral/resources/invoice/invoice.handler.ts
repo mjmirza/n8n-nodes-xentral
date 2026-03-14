@@ -57,6 +57,12 @@ function buildInvoiceBody(fields: IDataObject): IDataObject {
 		body.tags = (fields.tags as string).split(',').map((t: string) => t.trim()).filter((t: string) => t !== '').map((t: string) => ({ title: t }));
 	}
 
+	// Print settings (fixedCollection)
+	if (fields.printSettings !== undefined) {
+		const ps = (fields.printSettings as IDataObject).settings as IDataObject;
+		if (ps !== undefined) body.printSettings = ps;
+	}
+
 	// Dunning settings (complex objects passed as JSON strings)
 	if (fields.dunningManualSettingsJson !== undefined && fields.dunningManualSettingsJson !== '') {
 		const raw = fields.dunningManualSettingsJson as string;
@@ -107,6 +113,9 @@ function buildLineItemBody(fields: IDataObject): IDataObject {
 	if (fields.discount !== undefined) body.discount = fields.discount;
 	if (fields.quantity !== undefined) body.quantity = fields.quantity;
 	if (fields.sort !== undefined) body.sort = fields.sort;
+
+	// Boolean fields
+	if (fields.hiddenOnPdf !== undefined) body.hiddenOnPdf = fields.hiddenOnPdf;
 
 	// Product ref
 	if (fields.productId) body.product = { id: fields.productId };

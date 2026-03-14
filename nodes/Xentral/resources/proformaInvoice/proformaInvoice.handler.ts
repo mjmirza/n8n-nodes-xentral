@@ -71,6 +71,12 @@ export async function handleProformaInvoice(
 			};
 		}
 
+		// Print settings (fixedCollection)
+		if (additionalFields.printSettings !== undefined) {
+			const ps = (additionalFields.printSettings as IDataObject).settings as IDataObject;
+			if (ps !== undefined) body.printSettings = ps;
+		}
+
 		return xentralRequest.call(this, 'POST', 'proformaInvoices', body as IDataObject, {}, 'v3');
 	}
 
@@ -159,6 +165,12 @@ export async function handleProformaInvoice(
 			};
 		}
 
+		// Print settings (fixedCollection)
+		if (updateFields.printSettings !== undefined) {
+			const ps = (updateFields.printSettings as IDataObject).settings as IDataObject;
+			if (ps !== undefined) body.printSettings = ps;
+		}
+
 		assertNonEmptyBody(body as IDataObject, 'proforma invoice update');
 
 		return xentralRequest.call(this, 'PATCH', `proformaInvoices/${proformaInvoiceId}`, body as IDataObject, {}, 'v3');
@@ -193,6 +205,8 @@ export async function handleProformaInvoice(
 			if (lineItemOptions[field] !== undefined) body[field] = lineItemOptions[field];
 		}
 
+		if (lineItemOptions.hiddenOnPdf !== undefined) body.hiddenOnPdf = lineItemOptions.hiddenOnPdf;
+
 		// Price object
 		if (lineItemOptions.priceAmount !== undefined) {
 			body.price = {
@@ -225,6 +239,7 @@ export async function handleProformaInvoice(
 
 		// Product ref
 		if (updateFields.productId) body.product = { id: updateFields.productId };
+		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
 
 		// Price object
 		if (updateFields.priceAmount !== undefined) {

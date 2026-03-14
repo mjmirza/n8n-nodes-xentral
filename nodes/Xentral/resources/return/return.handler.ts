@@ -68,6 +68,12 @@ export async function handleReturn(
 			body.sales = { id: additionalFields.salesId };
 		}
 
+		// Print settings (fixedCollection)
+		if (additionalFields.printSettings !== undefined) {
+			const ps = (additionalFields.printSettings as IDataObject).settings as IDataObject;
+			if (ps !== undefined) body.printSettings = ps;
+		}
+
 		return xentralRequest.call(this, 'POST', 'returnOrders', body as IDataObject, {}, 'v3');
 	}
 
@@ -183,6 +189,12 @@ export async function handleReturn(
 			body.sales = { id: updateFields.salesId };
 		}
 
+		// Print settings (fixedCollection)
+		if (updateFields.printSettings !== undefined) {
+			const ps = (updateFields.printSettings as IDataObject).settings as IDataObject;
+			if (ps !== undefined) body.printSettings = ps;
+		}
+
 		assertNonEmptyBody(body as IDataObject, 'return order update');
 
 		return xentralRequest.call(this, 'PATCH', `returnOrders/${returnId}`, body as IDataObject, {}, 'v3');
@@ -215,6 +227,7 @@ export async function handleReturn(
 		for (const field of lineSimpleFields) {
 			if (lineItemOptions[field] !== undefined) body[field] = lineItemOptions[field];
 		}
+		if (lineItemOptions.hiddenOnPdf !== undefined) body.hiddenOnPdf = lineItemOptions.hiddenOnPdf;
 
 		// returnReason as object or null
 		if (lineItemOptions.returnReason !== undefined && (lineItemOptions.returnReason as string) !== '') {
@@ -245,6 +258,7 @@ export async function handleReturn(
 		for (const field of lineSimpleFields) {
 			if (updateFields[field] !== undefined) body[field] = updateFields[field];
 		}
+		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
 
 		// Product ref
 		if (updateFields.productId !== undefined) {
