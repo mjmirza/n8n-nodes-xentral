@@ -9,13 +9,12 @@ import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, asser
 function buildOfferBody(fields: IDataObject): IDataObject {
 	const body: IDataObject = {};
 
-	// Simple string/boolean/date fields - pass through directly
+	// Simple string/date fields - pass through directly
 	const directFields = [
 		'bodyIntroduction', 'bodyOutroduction', 'costCenter', 'customerReference',
-		'deliveryTerms', 'desiredDeliveryDate', 'desiredDeliveryDateAsCalendarWeek',
+		'deliveryTerms', 'desiredDeliveryDate',
 		'documentDate', 'internalComment', 'internalDesignation', 'language',
-		'manualShippingCostApproval', 'plannedOrderDate', 'useAlternativeDocumentTitle',
-		'validUntilDate', 'vatId',
+		'plannedOrderDate', 'validUntilDate', 'vatId',
 	];
 	for (const key of directFields) {
 		if (fields[key] !== undefined && fields[key] !== '') {

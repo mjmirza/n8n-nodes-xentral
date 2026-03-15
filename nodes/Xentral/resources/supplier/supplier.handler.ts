@@ -31,7 +31,7 @@ export async function handleSupplier(
 		if (updateFields.tags !== undefined) {
 			const tagsStr = (updateFields.tags as string).trim();
 			if (tagsStr) {
-				body.tags = tagsStr.split(',').map((t: string) => t.trim());
+				body.tags = tagsStr.split(',').map((t: string) => ({ name: t.trim() }));
 			} else {
 				body.tags = [];
 			}
