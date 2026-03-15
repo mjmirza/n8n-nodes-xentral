@@ -72,6 +72,7 @@ export const shipmentFields: INodeProperties[] = [
 				name: 'trackingNumber',
 				type: 'string',
 				default: '',
+				description: 'The carrier tracking number for this shipment',
 			},
 			{
 				displayName: 'Update Delivery Note Shipping Method',
