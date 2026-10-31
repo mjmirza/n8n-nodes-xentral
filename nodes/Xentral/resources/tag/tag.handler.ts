@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, assertNonEmpty, assertSafeId } from '../../transport';
+import { xentralRequest, assertNonEmpty } from '../../transport';
 
 export async function handleTag(
 	this: IExecuteFunctions,
