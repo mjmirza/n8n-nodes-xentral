@@ -31,7 +31,7 @@
 		"dev": "tsc --watch",
 		"format": "prettier nodes credentials --write",
 		"lint": "eslint nodes credentials --ext .ts",
-		"test": "npm run build && node --test test/",
+		"test": "npm run build && node --test test/*.test.mjs",
 		"prepublishOnly": "cp README.md README.dev.md && cp README.npm.md README.md && npm run build",
 		"postpublish": "mv README.dev.md README.md"
 	},
