@@ -3,3 +3,6 @@ dist/
 .env
 .npmrc
 *.js.map
+
+# Client-specific data - NEVER publish
+clients/

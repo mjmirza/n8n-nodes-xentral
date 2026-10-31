@@ -1,0 +1,22 @@
+# Source files (only dist/ is published)
+nodes/
+credentials/
+specs/
+*.ts
+tsconfig.json
+gulpfile.js
+
+# Client data - NEVER publish
+clients/
+
+# Development files
+.env
+.npmrc
+*.js.map
+IMPLEMENTATION_PLAN.md
+AUDIT_REPORT.md
+SECURITY_AUDIT.md
+API_REFERENCE.md
+
+# Examples stay local only
+examples/

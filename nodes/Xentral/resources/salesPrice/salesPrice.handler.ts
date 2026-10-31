@@ -28,7 +28,7 @@ function buildSalesPriceBody(fields: IDataObject): IDataObject {
 	const priceCurrency = fields.priceCurrency as string | undefined;
 	if (priceAmount !== undefined || priceCurrency !== undefined) {
 		const price: IDataObject = {};
-		if (priceAmount !== undefined) price.amount = String(priceAmount);
+		if (priceAmount !== undefined) price.amount = priceAmount;
 		if (priceCurrency !== undefined) price.currency = priceCurrency;
 		// If only amount is given, default currency to EUR
 		if (priceAmount !== undefined && priceCurrency === undefined) {
