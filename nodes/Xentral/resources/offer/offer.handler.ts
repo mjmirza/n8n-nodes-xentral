@@ -87,27 +87,26 @@ function buildOfferBody(fields: IDataObject): IDataObject {
 function buildLineItemBody(fields: IDataObject): IDataObject {
 	const body: IDataObject = {};
 
-	// Direct pass-through fields
-	const directFields = [
+	// String pass-through fields
+	const stringFields = [
 		'countryOfOrigin', 'customerProductNumber', 'deliveryDate',
-		'deliveryDateAsCalendarWeek', 'description', 'discount', 'hsCode',
-		'internalComment', 'name', 'number', 'taxLegalNotice', 'quantity', 'sort',
+		'description', 'hsCode', 'internalComment', 'name', 'number', 'taxLegalNotice',
 	];
-	for (const key of directFields) {
+	for (const key of stringFields) {
 		if (fields[key] !== undefined && fields[key] !== '') {
 			body[key] = fields[key];
 		}
 	}
 
-	// Boolean field
-	if (fields.deliveryDateAsCalendarWeek !== undefined) {
-		body.deliveryDateAsCalendarWeek = fields.deliveryDateAsCalendarWeek;
-	}
-
-	// Numeric fields that can be 0
+	// Numeric fields (can be 0, so check undefined only)
 	if (fields.discount !== undefined) body.discount = fields.discount;
 	if (fields.quantity !== undefined) body.quantity = fields.quantity;
 	if (fields.sort !== undefined) body.sort = fields.sort;
+
+	// Boolean fields
+	if (fields.deliveryDateAsCalendarWeek !== undefined) {
+		body.deliveryDateAsCalendarWeek = fields.deliveryDateAsCalendarWeek;
+	}
 
 	// Boolean fields
 	if (fields.hiddenOnPdf !== undefined) body.hiddenOnPdf = fields.hiddenOnPdf;

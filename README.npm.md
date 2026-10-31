@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/AI_Agent-Compatible-10A37F?style=for-the-badge" alt="AI Agent Compatible" />
   <img src="https://img.shields.io/badge/Resources-30-success?style=for-the-badge" alt="30 Resources" />
   <img src="https://img.shields.io/badge/Operations-196-success?style=for-the-badge" alt="196 Operations" />
-  <img src="https://img.shields.io/badge/Webhook_Events-58-success?style=for-the-badge" alt="58 Webhook Events" />
+  <img src="https://img.shields.io/badge/Webhook_Events-58-success?style=for-the-badge" alt="73 Webhook Events" />
   <img src="https://img.shields.io/badge/API_Audit-Verified-brightgreen?style=for-the-badge" alt="API Audit Verified" />
   <img src="https://img.shields.io/badge/Maintained-Active-brightgreen?style=for-the-badge" alt="Actively Maintained" />
   <img src="https://img.shields.io/badge/Built_on-Official_Xentral_API-00C4B4?style=for-the-badge" alt="Official Xentral API" />
@@ -51,7 +51,7 @@ If you're using Xentral and looking to automate your business processes - offers
 | Node | Type | What it does |
 |------|------|-------------|
 | **Xentral** | Action Node | Full CRUD across 30 resources with 196 operations - customers, products, offers, orders, invoices, warehouse, shipping, and more |
-| **Xentral Trigger** | Webhook Node | Real-time event listener for 58 Xentral event types - orders, products, customers, invoices, delivery notes, returns |
+| **Xentral Trigger** | Webhook Node | Real-time event listener for 73 Xentral event types - orders, products, customers, invoices, delivery notes, returns |
 
 **AI Agent ready** - Both nodes work with `usableAsTool: true`, so you can plug them directly into n8n AI Agent workflows for intelligent automation.
 
@@ -78,9 +78,9 @@ Liability, Payment Method, Payment Terms Group, Shipping Method, Delivery Terms,
 
 ---
 
-## 58 Webhook Trigger Events
+## 73 Webhook Trigger Events
 
-Real-time notifications for: Sales Orders, Products, Customers, Purchase Orders, Returns, Delivery Notes, Invoices, Credit Notes, Sales/Purchase Prices - including created, updated, deleted, released, sent, dispatched, archived, and more.
+Real-time notifications for: Sales Orders, Products, Customers, Purchase Orders, Returns, Delivery Notes, Invoices, Credit Notes, Sales/Purchase Prices, **Goods Receipts, Production, Sales Order Reservations** - including created, updated, deleted, released, sent, dispatched, archived, started, completed, confirmed, and more.
 
 ---
 

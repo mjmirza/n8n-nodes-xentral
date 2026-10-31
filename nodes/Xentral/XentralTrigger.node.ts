@@ -134,6 +134,24 @@ export class XentralTrigger implements INodeType {
 					// Credit Note events (unverified - may not be supported by all Xentral instances)
 					{ name: 'Credit Note - Created (unverified)', value: 'creditNote.created' },
 					{ name: 'Credit Note - Updated (unverified)', value: 'creditNote.updated' },
+					// Goods Receipt events (added 2026-03-18 — Xentral API update)
+					{ name: 'Goods Receipt - Created', value: 'goodsReceipt.created' },
+					{ name: 'Goods Receipt - Updated', value: 'goodsReceipt.updated' },
+					{ name: 'Goods Receipt - Deleted', value: 'goodsReceipt.deleted' },
+					{ name: 'Goods Receipt - Completed', value: 'goodsReceipt.completed' },
+					// Production events (added 2026-03-18 — Xentral API update)
+					{ name: 'Production - Created', value: 'production.created' },
+					{ name: 'Production - Updated', value: 'production.updated' },
+					{ name: 'Production - Deleted', value: 'production.deleted' },
+					{ name: 'Production - Released', value: 'production.released' },
+					{ name: 'Production - Started', value: 'production.started' },
+					{ name: 'Production - Completed', value: 'production.completed' },
+					{ name: 'Production - Canceled', value: 'production.canceled' },
+					// Customer Order Reservation events (added 2026-03-18 — Xentral API update)
+					{ name: 'Sales Order Reservation - Created', value: 'salesOrderReservation.created' },
+					{ name: 'Sales Order Reservation - Updated', value: 'salesOrderReservation.updated' },
+					{ name: 'Sales Order Reservation - Deleted', value: 'salesOrderReservation.deleted' },
+					{ name: 'Sales Order Reservation - Confirmed', value: 'salesOrderReservation.confirmed' },
 				],
 				description: 'The Xentral event to listen for',
 			},

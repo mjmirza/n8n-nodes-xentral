@@ -1,7 +1,7 @@
 {
 	"name": "n8n-nodes-xentral",
-	"version": "1.0.7",
-	"description": "The most comprehensive n8n community node for Xentral ERP - 30 resources, 196 operations, 58 webhook events. Full API audit verified. Built by next8n.",
+	"version": "1.0.10",
+	"description": "The most comprehensive n8n community node for Xentral ERP - 30 resources, 196 operations, 73 webhook events. Full API audit verified. Built by next8n.",
 	"keywords": [
 		"n8n-community-node-package",
 		"n8n",
@@ -24,19 +24,19 @@
 	"homepage": "https://next8n.com",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/mjmirza/n8n-nodes-xentral.git"
+		"url": ""
 	},
 	"scripts": {
 		"build": "tsc && gulp build:icons",
 		"dev": "tsc --watch",
 		"format": "prettier nodes credentials --write",
 		"lint": "eslint nodes credentials --ext .ts",
+		"test": "npm run build && node --test test/*.test.mjs",
 		"prepublishOnly": "cp README.md README.dev.md && cp README.npm.md README.md && npm run build",
 		"postpublish": "mv README.dev.md README.md"
 	},
 	"files": [
 		"dist",
-		"examples",
 		"LICENSE"
 	],
 	"n8n": {
