@@ -1,5 +1,6 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
+import { runProductSearch } from './product.search';
 
 /**
  * Build the product body from a flat field map (used for both create and update).
@@ -262,11 +263,12 @@ export async function handleProduct(
 		const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex, 50) as number);
 		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
-		return xentralV1PageGetAll.call(this, 'products', {
-			'filter[0][key]': 'name',
-			'filter[0][op]': 'contains',
-			'filter[0][value]': searchTerm,
-		}, limit, maxPages);
+		// Matches article number, EAN and name, as the field description promises.
+		return runProductSearch(
+			(query, pageLimit) => xentralV1PageGetAll.call(this, 'products', query, pageLimit, maxPages),
+			searchTerm,
+			limit,
+		);
 	}
 
 	throw new Error(`Unknown product operation: ${operation}`);
