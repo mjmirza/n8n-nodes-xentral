@@ -21,10 +21,13 @@
 		"name": "Mirza Iqbal / next8n",
 		"url": "https://next8n.com"
 	},
-	"homepage": "https://next8n.com",
+	"homepage": "https://github.com/mjmirza/n8n-nodes-xentral#readme",
+	"bugs": {
+		"url": "https://github.com/mjmirza/n8n-nodes-xentral/issues"
+	},
 	"repository": {
 		"type": "git",
-		"url": ""
+		"url": "git+https://github.com/mjmirza/n8n-nodes-xentral.git"
 	},
 	"scripts": {
 		"build": "tsc && gulp build:icons",
@@ -32,8 +35,8 @@
 		"format": "prettier nodes credentials --write",
 		"lint": "eslint nodes credentials --ext .ts",
 		"test": "npm run build && node --test test/*.test.mjs",
-		"prepublishOnly": "cp README.md README.dev.md && cp README.npm.md README.md && npm run build",
-		"postpublish": "mv README.dev.md README.md"
+		"prepublishOnly": "cp README.md .readme-dev.bak && cp docs/npm-readme.md README.md && npm run build",
+		"postpublish": "mv .readme-dev.bak README.md"
 	},
 	"files": [
 		"dist",
