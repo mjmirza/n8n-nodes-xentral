@@ -23,7 +23,16 @@ function buildShippingMethodBody(node: INode, fields: IDataObject, name?: string
 			carrier.id = fields.carrierId;
 		}
 		if (fields.carrierCredentials !== undefined && fields.carrierCredentials !== '') {
-			carrier.credentials = fields.carrierCredentials;
+			// Xentral expects a credentials object. The node field holds JSON text.
+			if (typeof fields.carrierCredentials === 'string') {
+				try {
+					carrier.credentials = JSON.parse(fields.carrierCredentials);
+				} catch {
+					throw new NodeOperationError(node, 'Invalid JSON in carrier credentials. Please provide valid JSON.');
+				}
+			} else {
+				carrier.credentials = fields.carrierCredentials;
+			}
 		}
 		if (fields.carrierExtraField1 !== undefined && fields.carrierExtraField1 !== ''
 			|| fields.carrierExtraField2 !== undefined && fields.carrierExtraField2 !== '') {

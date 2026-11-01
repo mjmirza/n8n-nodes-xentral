@@ -11,6 +11,13 @@ const ADDRESS_DIRECT_FIELDS = [
 	'type',
 ] as const;
 
+// Fields each V2 address type accepts on create, from the anyOf branches of the spec.
+const CREATE_FIELDS_BY_TYPE: Record<string, string[]> = {
+	masterdata: ['addressSupplement', 'city', 'country', 'state', 'street', 'type', 'zip'],
+	billingaddress: ['addressSupplement', 'city', 'contactDetails', 'country', 'department', 'name', 'salutation', 'state', 'street', 'subDepartment', 'type', 'zip'],
+	deliveryaddress: ['addressSupplement', 'city', 'contactDetails', 'country', 'deliveryDetails', 'department', 'name', 'salutation', 'state', 'street', 'subDepartment', 'type', 'zip'],
+};
+
 // Fields that belong in the contactDetails object
 const CONTACT_DETAIL_FIELDS = ['email', 'phone', 'gln'] as const;
 
@@ -24,22 +31,25 @@ export async function handleAddress(
 	const basePath = `customers/${customerId}/addresses`;
 
 	if (operation === 'create') {
-		const name = assertNonEmpty(this.getNodeParameter('name', itemIndex) as string, 'Name');
+		const type = assertNonEmpty(this.getNodeParameter('type', itemIndex) as string, 'Address Type');
+		// A masterdata address has no name. Billing and delivery addresses require one.
+		const name = type === 'masterdata'
+			? undefined
+			: assertNonEmpty(this.getNodeParameter('name', itemIndex) as string, 'Name');
 		const street = assertNonEmpty(this.getNodeParameter('street', itemIndex) as string, 'Street');
 		const city = assertNonEmpty(this.getNodeParameter('city', itemIndex) as string, 'City');
 		const zip = assertNonEmpty(this.getNodeParameter('zip', itemIndex) as string, 'ZIP Code');
 		const country = assertNonEmpty(this.getNodeParameter('country', itemIndex) as string, 'Country');
-		const type = assertNonEmpty(this.getNodeParameter('type', itemIndex) as string, 'Address Type');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
-			name,
 			street,
 			city,
 			zip,
 			country,
 			type,
 		};
+		if (name !== undefined) body.name = name;
 
 		for (const field of ADDRESS_DIRECT_FIELDS) {
 			if (additionalFields[field] !== undefined) {
@@ -71,6 +81,14 @@ export async function handleAddress(
 			if (vals.note !== undefined && vals.note !== '') deliveryDetails.note = vals.note;
 			if (Object.keys(deliveryDetails).length > 0) {
 				body.deliveryDetails = deliveryDetails;
+			}
+		}
+
+		// Each address type has a closed schema (additionalProperties false). Send only what it allows.
+		const allowed = CREATE_FIELDS_BY_TYPE[String(body.type)];
+		if (allowed) {
+			for (const key of Object.keys(body)) {
+				if (!allowed.includes(key)) delete body[key];
 			}
 		}
 

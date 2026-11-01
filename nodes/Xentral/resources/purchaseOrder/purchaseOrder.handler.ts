@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
 
 export async function handlePurchaseOrder(
 	this: IExecuteFunctions,
@@ -170,7 +170,7 @@ export async function handlePurchaseOrder(
 		if (lineItemOptions.name !== undefined) body.name = lineItemOptions.name;
 		if (lineItemOptions.number !== undefined) body.number = lineItemOptions.number;
 		if (lineItemOptions.taxLegalNotice !== undefined) body.taxLegalNotice = lineItemOptions.taxLegalNotice;
-		if (lineItemOptions.hiddenOnPdf !== undefined) body.hiddenOnPdf = lineItemOptions.hiddenOnPdf;
+		applyLineItemHidden(body, lineItemOptions);
 
 		// Price structure
 		if (lineItemOptions.priceAmount !== undefined) {
@@ -196,7 +196,7 @@ export async function handlePurchaseOrder(
 		if (updateFields.quantity !== undefined) body.quantity = updateFields.quantity;
 		applyLineItemPosition(body, updateFields);
 		if (updateFields.taxLegalNotice !== undefined) body.taxLegalNotice = updateFields.taxLegalNotice;
-		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
+		applyLineItemHidden(body, updateFields);
 		if (updateFields.productId) body.product = { id: updateFields.productId };
 
 		// Price structure
@@ -205,6 +205,8 @@ export async function handlePurchaseOrder(
 			body.price = { net: { amount: updateFields.priceAmount, currency } };
 		}
 
+		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
+		if (sortOnly) return sortOnly;
 		assertNonEmptyBody(body, 'purchase order line item update');
 		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
 	}
