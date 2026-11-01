@@ -83,8 +83,8 @@ function buildLineItemBody(fields: IDataObject, isAdd = false): IDataObject {
 			body[key] = fields[key];
 		}
 	}
-	// The field promises "empty to clear", so an empty delivery date on an update sends null.
-	if (!isAdd && fields.deliveryDate === '') body.deliveryDate = null;
+	// An expression that returns null clears the delivery date. An empty value is ignored, as before 1.4.5.
+	if (!isAdd && fields.deliveryDate === null) body.deliveryDate = null;
 
 	// Boolean field
 	if (fields.deliveryDateAsCalendarWeek !== undefined) {

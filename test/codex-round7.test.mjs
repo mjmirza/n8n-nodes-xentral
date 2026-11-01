@@ -257,19 +257,24 @@ test('[r7-8] an empty address Country is left out, a set one must be a two-lette
 	await assert.rejects(() => handleOffer.call(bad, 'create', 0), /two-letter/);
 });
 
-test('[r7-9] an empty Delivery Date on an update clears it, on line items and the invoice', async () => {
-	for (const [handler, ids, param] of LINE_ITEMS.filter(([h]) => [handleOffer, handleInvoice, handleCreditNote, handleProformaInvoice].includes(h))) {
-		const ctx = context({ ...ids, lineItemId: '2', [param]: { deliveryDate: '' } });
-		await handler.call(ctx, 'updateLineItem', 0);
-		assert.equal(ctx.calls[0].body.deliveryDate, null, handler.name);
-		assert.ok('deliveryDate' in ctx.calls[0].body);
+test('[r7-9] Delivery Date: an empty value is ignored as in 1.4.4, an expression returning null clears it', async () => {
+	const docs = LINE_ITEMS.filter(([h]) => [handleOffer, handleInvoice, handleCreditNote, handleProformaInvoice].includes(h));
+	for (const [handler, ids, param] of docs) {
+		const empty = context({ ...ids, lineItemId: '2', [param]: { deliveryDate: '', quantity: 1 } });
+		await handler.call(empty, 'updateLineItem', 0);
+		assert.equal('deliveryDate' in empty.calls[0].body, false, handler.name);
+		const cleared = context({ ...ids, lineItemId: '2', [param]: { deliveryDate: null } });
+		await handler.call(cleared, 'updateLineItem', 0);
+		assert.equal(cleared.calls[0].body.deliveryDate, null, handler.name);
 	}
-	const invoice = context({ invoiceId: '1', updateFields: { deliveryDate: '' } });
-	await handleInvoice.call(invoice, 'update', 0);
-	assert.equal(invoice.calls[0].body.deliveryDate, null);
-	const add = context({ offerId: '1', productId: '5', quantity: 1, lineItemOptions: { deliveryDate: '' } });
-	await handleOffer.call(add, 'addLineItem', 0);
-	assert.equal('deliveryDate' in add.calls[0].body, false);
+	for (const [handler, idParam] of [[handleInvoice, 'invoiceId'], [handleProformaInvoice, 'proformaInvoiceId']]) {
+		const empty = context({ [idParam]: '1', updateFields: { deliveryDate: '', vatId: 'DE1' } });
+		await handler.call(empty, 'update', 0);
+		assert.equal('deliveryDate' in empty.calls[0].body, false, handler.name);
+		const cleared = context({ [idParam]: '1', updateFields: { deliveryDate: null } });
+		await handler.call(cleared, 'update', 0);
+		assert.equal(cleared.calls[0].body.deliveryDate, null, handler.name);
+	}
 });
 
 function apiCallContext(params) {
@@ -671,4 +676,41 @@ test('[r7-32] Return Create From Delivery Note checks the line item shape Xentra
 	}
 	const item = docSpec.components.schemas.ReturnLineItemInput;
 	assert.deepEqual(item.required, ['id', 'quantity', 'returnReason']);
+});
+
+// ---------- 14. eighth pre-release review ----------
+
+test('[r7-33] Custom API Call Full Response keeps cursors and meta in one item, off keeps the 1.4.4 split', async () => {
+	const response = { data: [{ id: 1 }, { id: 2 }], extra: { cursor: { nextCursor: 'abc' } } };
+	const run = async (fullResponse) => {
+		const params = { resource: 'customApiCall', operation: 'request', method: 'GET', apiVersion: 'v1', path: 'customers', responseFormat: 'json' };
+		if (fullResponse !== undefined) params.fullResponse = fullResponse;
+		const ctx = {
+			getNode: () => ({ name: 'Xentral', typeVersion: 2, parameters: {} }),
+			getNodeParameter: (name, _i, fallback) => (name in params ? params[name] : fallback),
+			getCredentials: async () => ({ instanceUrl: 'acme.xentral.com', accessToken: '2|token' }),
+			getInputData: () => [{ json: {} }],
+			continueOnFail: () => false,
+			helpers: { httpRequest: async () => response },
+		};
+		return (await new Xentral().execute.call(ctx))[0];
+	};
+	const full = await run(true);
+	assert.equal(full.length, 1);
+	assert.equal(full[0].json.extra.cursor.nextCursor, 'abc');
+	assert.equal((await run(undefined)).length, 2);
+});
+
+test('[r7-34] with a configured signing key, a failed webhook listing stops activation instead of risking a duplicate', async () => {
+	const make = (signatureKey) => ({
+		getNodeWebhookUrl: () => 'https://n8n.example.com/webhook/x',
+		getNodeParameter: (name, fallback) => (name === 'event' ? 'salesOrder.created' : name === 'signatureKey' ? signatureKey : fallback),
+		getWorkflowStaticData: () => ({}),
+		getNode: () => ({ name: 'Trigger' }),
+		getCredentials: async () => ({ instanceUrl: 'acme.xentral.com', accessToken: '2|token' }),
+		logger: { warn: () => {} },
+		helpers: { httpRequest: async () => { throw httpError(403); } },
+	});
+	await assert.rejects(() => new XentralTrigger().webhookMethods.default.checkExists.call(make('m'.repeat(32))), /could not be listed/);
+	assert.equal(await new XentralTrigger().webhookMethods.default.checkExists.call(make('')), false);
 });

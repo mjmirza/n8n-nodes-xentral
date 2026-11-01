@@ -113,6 +113,7 @@ Choose the **Custom API Call** resource to call any Xentral endpoint with your s
 | Body | JSON, shown for POST, PATCH, PUT and DELETE. A DELETE sends it only when it is not empty, for bulk deletes. n8n's HTTP helper never sends a body with GET, so a GET endpoint that reads one (the product label download options) runs with its defaults |
 | Content Type | `application/json` by default. Some endpoints need a vendor type such as `application/vnd.xentral.minimal+json` |
 | Accept | Empty by default, which asks for JSON, or any type in Text and File mode. Set `application/pdf` to download a document such as an invoice as PDF |
+| Full Response | Off by default, which splits the data array into items. On returns the whole JSON body as one item, keeping pagination cursors and meta such as totalResults |
 | Response Format | JSON by default. Text returns the body in `data`. File keeps a download such as a CSV or ZIP export as binary data in the field you name |
 
 The path must be relative, must start with a resource that exists in the Xentral API, and must not contain `..`, a full URL, a query string or an unfilled `{placeholder}`. Anything else is rejected before a request is sent.
@@ -271,7 +272,9 @@ npm run lint    # n8n verification rule set, must report zero problems
 - The trigger now remembers which Xentral instance it registered its webhook on, and only deletes it there. A webhook registered by an older version is read back first and deleted only when it still points at this node's URL. A stored webhook from another instance is never adopted with the old signing key.
 - On activation the trigger first removes a webhook it kept from such a failed delete. If that removal fails too, activation stops with an error rather than registering a second webhook.
 - An empty Country in an address override is left out. A set Country must be a two-letter code (any case).
-- An empty Delivery Date in an update now clears the date (sends `null`) on Invoice and Proforma Invoice, and on Offer, Invoice, Credit Note and Proforma Invoice line items.
+- To clear a Delivery Date on an Invoice or Proforma Invoice update or a line item update, use an expression that returns null. An empty value is still ignored.
+- If you set your own Signature Key on the trigger, the credential must be allowed to list webhooks, or activation stops with an error. With an empty Signature Key nothing changes.
+- Custom API Call has a Full Response option for endpoints whose response carries a cursor or meta next to the data.
 - The trigger also stops activation when a webhook for the same URL and event that it does not own cannot be deleted.
 - Product Age Rating None now clears the rating instead of being ignored.
 - Liability Status no longer lists Cancelled. Xentral has no such status and a saved Cancelled always failed. It still fails, with the same message, so pick Pending or Paid.

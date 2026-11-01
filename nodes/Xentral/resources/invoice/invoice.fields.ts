@@ -712,7 +712,7 @@ export const invoiceFields: INodeProperties[] = [
 				name: 'deliveryDate',
 				type: 'string',
 				default: '',
-				description: 'Delivery date (ISO 8601 date string, or empty to clear)',
+				description: 'Delivery date (ISO 8601 date string). An expression that returns null clears it.',
 			},
 			{
 				displayName: 'Delivery Terms',
@@ -922,7 +922,7 @@ export const invoiceFields: INodeProperties[] = [
 				name: 'deliveryDate',
 				type: 'string',
 				default: '',
-				description: 'Delivery date for this line item (ISO 8601 date string, or empty to clear)',
+				description: 'Delivery date for this line item (ISO 8601 date string). An expression that returns null clears it.',
 			},
 			{
 				displayName: 'Delivery Date as Calendar Week',

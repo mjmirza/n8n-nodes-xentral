@@ -365,7 +365,15 @@ export class XentralTrigger implements INodeType {
 				} catch (error) {
 					// A webhook that could not be replaced must stop activation, not fall through to a new one.
 					if (error instanceof NodeOperationError) throw new NodeOperationError(this.getNode(), error.message);
-					// Listing can fail (missing scope, transient error). Treat as not existing so n8n creates it.
+					// With a configured signing key, an unseen older registration would pass verification too and run
+					// every event twice, so activation stops. A generated key is new, so an old registration cannot pass.
+					const configuredKey = (this.getNodeParameter('signatureKey', '') as string) || '';
+					if (configuredKey.length >= 20) {
+						throw new NodeOperationError(
+							this.getNode(),
+							`Xentral webhooks could not be listed, so a registration using this signing key might already exist. Allow the credential to read webhooks, or leave Signature Key empty. ${(error as Error).message}`,
+						);
+					}
 					this.logger.warn(`Xentral: could not list webhooks, a new one will be created. ${(error as Error).message}`);
 				}
 

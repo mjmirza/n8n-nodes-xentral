@@ -79,7 +79,13 @@ export async function handleCustomApiCall(
 	const headers = Object.keys(headerMap).length > 0 ? headerMap : undefined;
 	const responseFormat = this.getNodeParameter('responseFormat', itemIndex, 'json') as string;
 	if (responseFormat !== 'text' && responseFormat !== 'file') {
-		return xentralRequest.call(this, method as IHttpRequestMethods, resolved.path, body, query, resolved.version, headers);
+		const result = await xentralRequest.call(this, method as IHttpRequestMethods, resolved.path, body, query, resolved.version, headers);
+		if (this.getNodeParameter('fullResponse', itemIndex, false) === true) {
+			// One item with the whole body, so cursors and meta are not lost when the data array is split.
+			const json = result !== null && typeof result === 'object' && !Array.isArray(result) ? (result as IDataObject) : { data: result };
+			return new ExecutionItemResult({ json }) as unknown as IDataObject;
+		}
+		return result;
 	}
 
 	const response = await xentralRequest.call(

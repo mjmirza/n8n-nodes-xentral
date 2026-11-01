@@ -10,7 +10,7 @@
 - The trigger keeps its webhook ID and signing key when the webhook delete fails, so a later deactivation can retry it. A 404 or 410 still clears them.
 - The trigger removes a webhook kept from a failed delete before it registers a new one, and only on the Xentral instance it was registered on, so a stored ID never removes another registration. A webhook stored by an older version is read back first and removed only when it still points at this node's URL. A registration on another instance is never adopted with the stored signing key. If that removal fails (anything but 404 or 410), activation stops with a clear error instead of leaving two active registrations.
 - Address overrides leave an empty Country out, and still send an explicit `null` to clear it on update. A set Country is upper-cased and must be a two-letter code, as the schema's `^[A-Z]{2}$` requires.
-- An empty Delivery Date on an Offer, Invoice, Credit Note or Proforma Invoice line item update, and on an Invoice or Proforma Invoice update, sends `null` and clears the date, as the field promises. It failed with "No fields provided" or was ignored.
+- Delivery Date on Offer, Invoice, Credit Note and Proforma Invoice line item updates, and on Invoice and Proforma Invoice updates, is cleared by an expression that returns null. An empty value is ignored, as before, so saved workflows with an empty fallback keep their dates. The help text no longer says "empty to clear". Proforma Invoice no longer sends an empty string as the date, which Xentral rejected.
 - Hand-written operations whose endpoint Xentral marks beta (Production, Proforma Invoice, Delivery Note, Return writes, Invoice Create From Sales Order) show the beta notice.
 
 - The trigger stops activation when a matching webhook it does not own cannot be deleted, instead of registering a second one beside it.
@@ -22,12 +22,14 @@
 - The trigger starts the workflow only for deliveries of its own event type. A delivery of another type is answered 200 and dropped. A delivery without a type still runs, as before.
 - Return Create From Delivery Note checks that each line item has the delivery note line item `id`, a numeric `quantity` and a `returnReason` with an `id`, and that there is at least one, before the request. The help text described a `product` shape Xentral rejects.
 - An address override set to `null` by an expression clears it again, as in 1.4.4. Offer Update clears its ship-to override the same way.
+- With a configured Signature Key, the trigger stops activation when it cannot list webhooks, because an unseen older registration with the same key would run every event twice. With a generated key it still creates a new registration, as before.
 - The trigger adopts the registration it owns when several exist for its URL and event, and removes the others. Before, it could delete its own registration's sibling, forget its own, and create a third.
 - The Sent filter on Sales Order and Return uses `isDocumentSent`, because their status has no `sent` value.
 - Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 
 ### Added
 - Product Update has a Clear Empty Fields option. When on, an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason or Region of Origin clears the field, and an empty Country of Origin is sent as null. Off by default, so saved workflows keep ignoring empty values.
+- Custom API Call has a Full Response option that returns the whole JSON body as one item, keeping pagination cursors and meta such as `totalResults`. Off by default, so the data array is still split into items.
 - Custom API Call has an Accept option, for example `application/pdf` to download a document PDF in File mode.
 
 ### Release

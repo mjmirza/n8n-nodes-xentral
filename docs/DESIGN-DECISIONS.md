@@ -27,8 +27,8 @@ turning "empty" into "clear" would silently erase data after an upgrade. The nod
 only where the field itself says so or where the user opts in.
 
 - Product Update ignores empty values unless the Clear Empty Fields option is on.
-- Delivery Date on Invoice and Proforma Invoice updates and on line item updates clears when empty,
-  because those fields promise "empty to clear" in their help text. The Proforma Invoice update sent the
-  empty string as the date before 1.4.5, which is not a valid date, so no working workflow relied on it.
+- Delivery Date on Invoice and Proforma Invoice updates and on line item updates is cleared by an expression
+  that returns null. An empty value is ignored, as in 1.4.4. Proforma Invoice used to send the empty string,
+  which is not a date and which Xentral rejected, so leaving it out breaks no working workflow.
 - Age Rating None is an explicit choice in a dropdown, so it sends the empty rating.
 - An expression that returns null clears price validity dates and address overrides.

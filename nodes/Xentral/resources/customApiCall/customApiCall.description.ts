@@ -107,6 +107,14 @@ export const customApiCallFields: INodeProperties[] = [
 		description: 'How to read the response. Use File for downloads such as accounting exports.',
 	},
 	{
+		displayName: 'Full Response',
+		name: 'fullResponse',
+		type: 'boolean',
+		default: false,
+		displayOptions: { show: { resource: ['customApiCall'], operation: ['request'], responseFormat: ['json'] } },
+		description: 'Whether to return the whole response body as one item, keeping pagination cursors and meta such as totalResults. Off splits the data array into items, as before.',
+	},
+	{
 		displayName: 'Put Output File in Field',
 		name: 'binaryPropertyName',
 		type: 'string',
