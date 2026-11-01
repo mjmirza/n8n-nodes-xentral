@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 /**
  * Build the purchase price body from a flat field map.
@@ -43,11 +43,18 @@ function buildPurchasePriceBody(fields: IDataObject): IDataObject {
 
 	for (const key of directFields) {
 		if (fields[key] !== undefined && fields[key] !== '') {
-			body[key] = fields[key];
+			body[key] = key === 'validFrom' || key === 'expiresAt' ? toApiDate(String(fields[key])) : fields[key];
 		}
 	}
 
 	return body;
+}
+
+/** The v2 schema uses format date (YYYY-MM-DD). n8n date pickers produce full ISO timestamps. */
+export function toApiDate(value: string | undefined): string {
+	const v = (value || '').trim();
+	if (!v) return '';
+	return /^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0, 10) : v;
 }
 
 export async function handlePurchasePrice(
@@ -61,8 +68,9 @@ export async function handlePurchasePrice(
 		const fromQuantity = this.getNodeParameter('fromQuantity', itemIndex) as number;
 		const priceAmount = this.getNodeParameter('priceAmount', itemIndex) as number;
 		const priceCurrency = this.getNodeParameter('priceCurrency', itemIndex, 'EUR') as string;
-		const validFrom = assertNonEmpty(this.getNodeParameter('validFrom', itemIndex) as string, 'Valid From');
-		const expiresAt = assertNonEmpty(this.getNodeParameter('expiresAt', itemIndex) as string, 'Expires At');
+		// Both dates are optional and nullable in the v2 schema, so an open-ended price needs neither.
+		const validFrom = this.getNodeParameter('validFrom', itemIndex, '') as string;
+		const expiresAt = this.getNodeParameter('expiresAt', itemIndex, '') as string;
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body = buildPurchasePriceBody({

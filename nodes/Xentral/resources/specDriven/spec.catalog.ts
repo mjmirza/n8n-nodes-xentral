@@ -17,9 +17,15 @@ export const SPEC_CATALOG: SpecResource[] = [
 					"customerId"
 				],
 				"pager": "none",
-				"body": "optional",
+				"body": "required",
 				"contentType": "application/json",
-				"requiredKeys": [],
+				"requiredKeys": [
+					"type",
+					"street",
+					"city",
+					"country"
+				],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Create address"
 			},
@@ -37,6 +43,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Delete address"
 			},
@@ -54,6 +61,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "View address"
 			},
@@ -70,6 +78,10 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"filter",
+					"page"
+				],
 				"beta": false,
 				"summary": "List addresses"
 			},
@@ -87,6 +99,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Update address"
 			}
@@ -116,6 +129,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 					"city",
 					"country"
 				],
+				"queryKeys": [],
 				"beta": true,
 				"summary": "Create delivery address V3"
 			},
@@ -133,6 +147,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": true,
 				"summary": "Delete delivery address V3"
 			},
@@ -150,6 +165,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": true,
 				"summary": "View delivery address V3"
 			},
@@ -166,6 +182,13 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"filter",
+					"sort",
+					"perPage",
+					"page",
+					"cursor"
+				],
 				"beta": true,
 				"summary": "Paginated list of delivery addresses for a customer V3"
 			},
@@ -183,6 +206,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": true,
 				"summary": "Update delivery address V3"
 			}
@@ -204,6 +228,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Create product category"
 			},
@@ -220,6 +245,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Delete product category"
 			},
@@ -236,6 +262,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "View product category"
 			},
@@ -250,6 +277,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "List product categories"
 			},
@@ -266,6 +294,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Update product category"
 			}
@@ -289,6 +318,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "View product free field"
 			},
@@ -303,6 +333,11 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"filter",
+					"page",
+					"order"
+				],
 				"beta": false,
 				"summary": "List product free fields"
 			},
@@ -319,6 +354,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Update product free field"
 			}
@@ -340,6 +376,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Create product media"
 			},
@@ -356,6 +393,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "View product media"
 			},
@@ -370,6 +408,10 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"page",
+					"filter"
+				],
 				"beta": false,
 				"summary": "List product media"
 			}
@@ -391,6 +433,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Create product merchandise group"
 			},
@@ -407,6 +450,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Delete product merchandise group"
 			},
@@ -423,6 +467,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "View product merchandise group"
 			},
@@ -437,6 +482,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "List product merchandise groups"
 			},
@@ -453,6 +499,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Update product merchandise group"
 			}
@@ -478,6 +525,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"requiredKeys": [
 					"name"
 				],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Create product option"
 			},
@@ -495,6 +543,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Create multiple product option values"
 			},
@@ -513,6 +562,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Delete product option value"
 			},
@@ -529,6 +579,10 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"page",
+					"order"
+				],
 				"beta": false,
 				"summary": "List product options"
 			},
@@ -547,6 +601,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "View product option value"
 			},
@@ -564,6 +619,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "List product option values"
 			},
@@ -581,6 +637,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Update product option"
 			},
@@ -599,6 +656,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Update product option value"
 			}
@@ -622,6 +680,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"requiredKeys": [
 					"report"
 				],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Create report"
 			},
@@ -638,6 +697,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Create report export"
 			},
@@ -654,6 +714,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Delete report"
 			},
@@ -670,6 +731,9 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"preview"
+				],
 				"beta": false,
 				"summary": "Execute report query"
 			},
@@ -686,6 +750,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "View report"
 			},
@@ -700,6 +765,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "List reports"
 			},
@@ -717,6 +783,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "View report export"
 			},
@@ -733,6 +800,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "List report exports"
 			},
@@ -749,6 +817,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "List report schedules"
 			},
@@ -767,6 +836,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"requiredKeys": [
 					"report"
 				],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Update report"
 			}
@@ -794,6 +864,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 					"quantity",
 					"price"
 				],
+				"queryKeys": [],
 				"beta": true,
 				"summary": "Create supplier invoice line item V3"
 			},
@@ -812,6 +883,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"requiredKeys": [
 					"purchaseOrder"
 				],
+				"queryKeys": [],
 				"beta": true,
 				"summary": "Assign purchase order to supplier invoice V3"
 			},
@@ -828,6 +900,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"requiredKeys": [
 					"supplier"
 				],
+				"queryKeys": [],
 				"beta": true,
 				"summary": "Create supplier invoice V3"
 			},
@@ -844,6 +917,9 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"include"
+				],
 				"beta": true,
 				"summary": "View supplier invoice V3"
 			},
@@ -858,6 +934,14 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"filter",
+					"sort",
+					"include",
+					"perPage",
+					"page",
+					"cursor"
+				],
 				"beta": true,
 				"summary": "List supplier invoices V3"
 			}
@@ -883,6 +967,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 					"email",
 					"password"
 				],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Create user"
 			},
@@ -899,6 +984,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Delete user"
 			},
@@ -915,6 +1001,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": true,
 				"summary": "View user"
 			},
@@ -929,6 +1016,11 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"filter",
+					"page",
+					"order"
+				],
 				"beta": false,
 				"summary": "List users V2"
 			},
@@ -945,6 +1037,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": true,
 				"summary": "List user permissions"
 			},
@@ -961,6 +1054,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "optional",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "Update user"
 			}
@@ -984,6 +1078,10 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"page",
+					"order"
+				],
 				"beta": false,
 				"summary": "View purchase prices"
 			},
@@ -1000,6 +1098,10 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"page",
+					"order"
+				],
 				"beta": false,
 				"summary": "View sales prices"
 			},
@@ -1016,6 +1118,7 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [],
 				"beta": false,
 				"summary": "View stock details of a product"
 			},
@@ -1032,6 +1135,10 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"page",
+					"order"
+				],
 				"beta": false,
 				"summary": "View storage locations"
 			},
@@ -1048,6 +1155,10 @@ export const SPEC_CATALOG: SpecResource[] = [
 				"body": "none",
 				"contentType": "application/json",
 				"requiredKeys": [],
+				"queryKeys": [
+					"filter",
+					"order"
+				],
 				"beta": false,
 				"summary": "List product texts"
 			}
