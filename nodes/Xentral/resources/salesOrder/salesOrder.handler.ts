@@ -28,8 +28,12 @@ export async function handleSalesOrder(
 		if (additionalFields.vatId !== undefined) body.vatId = additionalFields.vatId;
 
 		// Object-wrapped ID references
+		// The saved warehouse field keeps the key it always sent; storage location is a separate field.
 		if (additionalFields.commissionConsignmentWarehouseId) {
-			body.commissionConsignmentStorageLocation = { id: additionalFields.commissionConsignmentWarehouseId };
+			body.commissionConsignmentWarehouse = { id: additionalFields.commissionConsignmentWarehouseId };
+		}
+		if (additionalFields.commissionConsignmentStorageLocationId) {
+			body.commissionConsignmentStorageLocation = { id: additionalFields.commissionConsignmentStorageLocationId };
 		}
 		if (additionalFields.editorId) body.editor = { id: additionalFields.editorId };
 		if (additionalFields.preferredWarehouseId) body.preferredWarehouse = { id: additionalFields.preferredWarehouseId };
@@ -120,8 +124,12 @@ export async function handleSalesOrder(
 		if (updateFields.vatId !== undefined) body.vatId = updateFields.vatId;
 
 		// Object-wrapped ID references
+		// The saved warehouse field keeps the key it always sent; storage location is a separate field.
 		if (updateFields.commissionConsignmentWarehouseId) {
-			body.commissionConsignmentStorageLocation = { id: updateFields.commissionConsignmentWarehouseId };
+			body.commissionConsignmentWarehouse = { id: updateFields.commissionConsignmentWarehouseId };
+		}
+		if (updateFields.commissionConsignmentStorageLocationId) {
+			body.commissionConsignmentStorageLocation = { id: updateFields.commissionConsignmentStorageLocationId };
 		}
 		if (updateFields.editorId) body.editor = { id: updateFields.editorId };
 		if (updateFields.preferredWarehouseId) body.preferredWarehouse = { id: updateFields.preferredWarehouseId };

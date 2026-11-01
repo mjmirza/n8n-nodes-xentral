@@ -38,11 +38,11 @@ function buildContactBody(fields: IDataObject): IDataObject {
 	if (fields.country !== undefined) address.country = fields.country;
 	if (Object.keys(address).length > 0) body.address = address;
 
-	// groups: comma-separated string to array of {id}
+	// groups: comma-separated string to the array of id strings Xentral expects
 	if (fields.groups !== undefined) {
 		const groupStr = (fields.groups as string).trim();
 		if (groupStr) {
-			body.groups = groupStr.split(',').map((g: string) => ({ id: g.trim() }));
+			body.groups = groupStr.split(',').map((g: string) => g.trim()).filter((g: string) => g !== '');
 		}
 	}
 

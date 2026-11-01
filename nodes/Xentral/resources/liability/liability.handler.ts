@@ -1,6 +1,15 @@
-import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import type { IExecuteFunctions, IDataObject, INode } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, xentralFileUpload, assertSafeId } from '../../transport';
+
+// Xentral accepts open or paid. Saved workflows hold the old uppercase values, mapped here;
+// a partially paid liability is still open.
+function liabilityStatus(node: INode, value: unknown): string {
+	const v = String(value ?? '').trim();
+	const mapped: Record<string, string> = { PENDING: 'open', PARTIALLY_PAID: 'open', PAID: 'paid', OPEN: 'open', open: 'open', paid: 'paid' };
+	if (mapped[v]) return mapped[v];
+	throw new NodeOperationError(node, `Liability status "${v}" is not supported. Xentral accepts open or paid.`);
+}
 
 export async function handleLiability(
 	this: IExecuteFunctions,
@@ -25,6 +34,7 @@ export async function handleLiability(
 		for (const field of simpleFields) {
 			if (additionalFields[field] !== undefined) body[field] = additionalFields[field];
 		}
+		if (body.status !== undefined) body.status = liabilityStatus(this.getNode(), body.status);
 
 		// Project ref
 		if (additionalFields.projectId !== undefined) {

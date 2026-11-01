@@ -3,6 +3,15 @@ import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV1CursorGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 import { runCustomerSearch } from './customer.search';
 
+// autoCreateDocuments takes both, delivery_note or invoice. The explicit type wins; the old
+// boolean maps true to both and leaves the setting untouched when false.
+function autoCreateDocumentsValue(fields: IDataObject): string | undefined {
+	const type = fields.autoCreateDocumentsType;
+	if (typeof type === 'string' && type !== '') return type;
+	if (fields.autoCreateDocuments === true) return 'both';
+	return undefined;
+}
+
 export async function handleCustomer(
 	this: IExecuteFunctions,
 	operation: string,
@@ -59,7 +68,8 @@ export async function handleCustomer(
 		// documentDelivery object
 		const documentDelivery: IDataObject = {};
 		if (additionalFields.amountInvoicePrints !== undefined) documentDelivery.amountInvoicePrints = additionalFields.amountInvoicePrints;
-		if (additionalFields.autoCreateDocuments !== undefined) documentDelivery.autoCreateDocuments = additionalFields.autoCreateDocuments;
+		const autoCreate = autoCreateDocumentsValue(additionalFields);
+		if (autoCreate !== undefined) documentDelivery.autoCreateDocuments = autoCreate;
 		if (additionalFields.invoiceAlwaysPaper !== undefined) documentDelivery.invoiceAlwaysPaper = additionalFields.invoiceAlwaysPaper;
 		if (additionalFields.preferFax !== undefined) documentDelivery.preferFax = additionalFields.preferFax;
 		if (Object.keys(documentDelivery).length > 0) body.documentDelivery = documentDelivery;
@@ -204,7 +214,8 @@ export async function handleCustomer(
 		// documentDelivery object
 		const documentDelivery: IDataObject = {};
 		if (updateFields.amountInvoicePrints !== undefined) documentDelivery.amountInvoicePrints = updateFields.amountInvoicePrints;
-		if (updateFields.autoCreateDocuments !== undefined) documentDelivery.autoCreateDocuments = updateFields.autoCreateDocuments;
+		const autoCreate = autoCreateDocumentsValue(updateFields);
+		if (autoCreate !== undefined) documentDelivery.autoCreateDocuments = autoCreate;
 		if (updateFields.invoiceAlwaysPaper !== undefined) documentDelivery.invoiceAlwaysPaper = updateFields.invoiceAlwaysPaper;
 		if (updateFields.preferFax !== undefined) documentDelivery.preferFax = updateFields.preferFax;
 		if (Object.keys(documentDelivery).length > 0) body.documentDelivery = documentDelivery;
