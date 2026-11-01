@@ -934,9 +934,16 @@ test('[r7-46] empty dates are left out of every node-built request', async () =>
 	const ret = context({ returnId: '1', updateFields: { documentDate: '', internalComment: 'x' } });
 	await handleReturn.call(ret, 'update', 0);
 	assert.equal('documentDate' in ret.calls[0].body, false);
-	const production = context({ productId: '5', quantity: 1, additionalFields: { documentDate: '' } });
+	const production = context({ produceProductId: '5', produceQuantity: 1, additionalFields: {
+		documentDate: '', productionStartDate: '', productionEndDate: '', stockProvisioningDate: '', stockRetrievalDate: '',
+	} });
 	await handleProduction.call(production, 'create', 0);
 	assert.equal('documentDate' in production.calls[0].body, false);
+	assert.deepEqual(production.calls[0].body.produceProduct, { id: '5' });
+	assert.equal(production.calls[0].body.produceQuantity, 1);
+	for (const field of ['productionStartDate', 'productionEndDate', 'stockProvisioningDate', 'stockRetrievalDate']) {
+		assert.equal(field in production.calls[0].body, false, field);
+	}
 	const custom = apiCallContext({ method: 'POST', apiVersion: 'v3', path: 'proformaInvoices', body: '{"documentDate":""}' });
 	await handleCustomApiCall.call(custom, 'request', 0);
 	assert.equal(custom.calls[0].body.documentDate, '');

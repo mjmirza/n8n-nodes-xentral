@@ -407,7 +407,10 @@ const DOCUMENT_DATE_KEYS = ['documentDate', 'deliveryDate', 'desiredDeliveryDate
 
 /** An empty string is not a date. It is left out, so an empty expression fallback never invalidates a request. */
 export function dropEmptyDates(body: IDataObject): IDataObject {
-	for (const key of DOCUMENT_DATE_KEYS) {
+	for (const key of [
+		...DOCUMENT_DATE_KEYS,
+		'productionStartDate', 'productionEndDate', 'stockProvisioningDate', 'stockRetrievalDate',
+	]) {
 		if (body[key] === '') delete body[key];
 	}
 	return body;
