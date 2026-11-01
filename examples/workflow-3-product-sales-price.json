@@ -71,7 +71,7 @@
       "parameters": {
         "resource": "product",
         "operation": "get",
-        "productId": "={{ $json.id }}"
+        "productId": "={{ $('Create Product').item.json.id }}"
       },
       "id": "node-get-product",
       "name": "Get Product (Verify)",
@@ -89,7 +89,7 @@
       "parameters": {
         "resource": "salesPrice",
         "operation": "create",
-        "productId": "={{ $json.id }}",
+        "productId": "={{ $('Create Product').item.json.id }}",
         "additionalFields": {
           "priceAmount": 49.99,
           "priceCurrency": "EUR",
@@ -142,6 +142,7 @@
       },
       "id": "node-update-product",
       "name": "Update Product",
+      "executeOnce": true,
       "type": "n8n-nodes-xentral.xentral",
       "typeVersion": 1,
       "position": [1560, 300],
@@ -178,6 +179,7 @@
       },
       "id": "node-delete-price",
       "name": "Delete Sales Price",
+      "executeOnce": true,
       "type": "n8n-nodes-xentral.xentral",
       "typeVersion": 1,
       "position": [2000, 300],
@@ -196,6 +198,7 @@
       },
       "id": "node-delete-product",
       "name": "Delete Product",
+      "executeOnce": true,
       "type": "n8n-nodes-xentral.xentral",
       "typeVersion": 1,
       "position": [2220, 300],

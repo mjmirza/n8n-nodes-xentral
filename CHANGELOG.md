@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+Examples and tests only. The example workflows are not part of the npm package, so no release.
+
+### Fixed
+- Workflow 1 runs Update Customer and Delete Customer once after listing addresses. Workflow 3 runs Update Product, Delete Sales Price and Delete Product once after listing sales prices and searching products, preventing repeated deletes from stopping cleanup with a 404. Product IDs come from Create Product, and the sales price delete keeps the ID from Create Sales Price.
+
+### Added
+- Regression check [r9-1] audits every example workflow for multi-item reads with unguarded downstream writes, including writes reached through intermediate nodes.
+
 ## [1.4.6] - 2026-11-01
 
 ### Fixed
