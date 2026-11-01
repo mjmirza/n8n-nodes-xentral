@@ -102,6 +102,15 @@ import { handleDeliveryTerms } from './resources/deliveryTerms/deliveryTerms.han
 import { handleEmployee } from './resources/employee/employee.handler';
 import { handleSalesChannel } from './resources/salesChannel/salesChannel.handler';
 import { handleTag } from './resources/tag/tag.handler';
+import { handleCustomApiCall } from './resources/customApiCall/customApiCall.handler';
+import { customApiCallFields, customApiCallOperations } from './resources/customApiCall/customApiCall.description';
+import { runSpecOperation } from './resources/specDriven/spec.handler';
+import {
+	SPEC_RESOURCES,
+	specFieldsAll,
+	specOperations,
+	specResourceOptions,
+} from './resources/specDriven/spec.description';
 
 const resourceHandlers: Record<string, (this: IExecuteFunctions, op: string, i: number) => Promise<IDataObject | IDataObject[]>> = {
 	customer: handleCustomer,
@@ -134,7 +143,53 @@ const resourceHandlers: Record<string, (this: IExecuteFunctions, op: string, i: 
 	employee: handleEmployee,
 	salesChannel: handleSalesChannel,
 	tag: handleTag,
+	customApiCall: handleCustomApiCall,
 };
+
+for (const specResource of SPEC_RESOURCES) {
+	resourceHandlers[specResource.resource] = function (this: IExecuteFunctions, op: string, i: number) {
+		return runSpecOperation.call(this, specResource.resource, op, i);
+	};
+}
+
+const baseResourceOptions = [
+	{ name: 'Address', value: 'address' },
+	{ name: 'Contact', value: 'contact' },
+	{ name: 'Credit Note', value: 'creditNote' },
+	{ name: 'Customer', value: 'customer' },
+	{ name: 'Delivery Note', value: 'deliveryNote' },
+	{ name: 'Delivery Term', value: 'deliveryTerms' },
+	{ name: 'Employee', value: 'employee' },
+	{ name: 'Goods Receipt', value: 'goodsReceipt' },
+	{ name: 'Invoice', value: 'invoice' },
+	{ name: 'Liability', value: 'liability' },
+	{ name: 'Offer', value: 'offer' },
+	{ name: 'Payment Method', value: 'paymentMethod' },
+	{ name: 'Payment Terms Group', value: 'paymentTermsGroup' },
+	{ name: 'Product', value: 'product' },
+	{ name: 'Production', value: 'production' },
+	{ name: 'Proforma Invoice', value: 'proformaInvoice' },
+	{ name: 'Project', value: 'project' },
+	{ name: 'Purchase Order', value: 'purchaseOrder' },
+	{ name: 'Purchase Price', value: 'purchasePrice' },
+	{ name: 'Return', value: 'return' },
+	{ name: 'Sales Channel', value: 'salesChannel' },
+	{ name: 'Sales Order', value: 'salesOrder' },
+	{ name: 'Sales Price', value: 'salesPrice' },
+	{ name: 'Shipment', value: 'shipment' },
+	{ name: 'Shipping Method', value: 'shippingMethod' },
+	{ name: 'Storage Location', value: 'storageLocation' },
+	{ name: 'Supplier', value: 'supplier' },
+	{ name: 'Tag', value: 'tag' },
+	{ name: 'Warehouse', value: 'warehouse' },
+	{ name: 'Webhook', value: 'webhook' },
+];
+
+const RESOURCE_OPTIONS = [
+	...baseResourceOptions,
+	{ name: 'Custom API Call', value: 'customApiCall' },
+	...specResourceOptions,
+].sort((a, b) => a.name.localeCompare(b.name));
 
 export class Xentral implements INodeType {
 	description: INodeTypeDescription = {
@@ -142,7 +197,8 @@ export class Xentral implements INodeType {
 		name: 'xentral',
 		icon: { light: 'file:xentral.svg', dark: 'file:xentral.dark.svg' },
 		group: ['transform'],
-		version: 1,
+		version: [1, 2],
+		defaultVersion: 2,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		description: 'Interact with Xentral ERP API',
 		defaults: {
@@ -163,38 +219,7 @@ export class Xentral implements INodeType {
 				name: 'resource',
 				type: 'options',
 				noDataExpression: true,
-				options: [
-					{ name: 'Address', value: 'address' },
-					{ name: 'Contact', value: 'contact' },
-					{ name: 'Credit Note', value: 'creditNote' },
-					{ name: 'Customer', value: 'customer' },
-					{ name: 'Delivery Note', value: 'deliveryNote' },
-					{ name: 'Delivery Term', value: 'deliveryTerms' },
-					{ name: 'Employee', value: 'employee' },
-					{ name: 'Goods Receipt', value: 'goodsReceipt' },
-					{ name: 'Invoice', value: 'invoice' },
-					{ name: 'Liability', value: 'liability' },
-					{ name: 'Offer', value: 'offer' },
-					{ name: 'Payment Method', value: 'paymentMethod' },
-					{ name: 'Payment Terms Group', value: 'paymentTermsGroup' },
-					{ name: 'Product', value: 'product' },
-					{ name: 'Production', value: 'production' },
-					{ name: 'Proforma Invoice', value: 'proformaInvoice' },
-					{ name: 'Project', value: 'project' },
-					{ name: 'Purchase Order', value: 'purchaseOrder' },
-					{ name: 'Purchase Price', value: 'purchasePrice' },
-					{ name: 'Return', value: 'return' },
-					{ name: 'Sales Channel', value: 'salesChannel' },
-					{ name: 'Sales Order', value: 'salesOrder' },
-					{ name: 'Sales Price', value: 'salesPrice' },
-					{ name: 'Shipment', value: 'shipment' },
-					{ name: 'Shipping Method', value: 'shippingMethod' },
-					{ name: 'Storage Location', value: 'storageLocation' },
-					{ name: 'Supplier', value: 'supplier' },
-					{ name: 'Tag', value: 'tag' },
-					{ name: 'Warehouse', value: 'warehouse' },
-					{ name: 'Webhook', value: 'webhook' },
-				],
+				options: RESOURCE_OPTIONS,
 				default: 'customer',
 			},
 			// Global pagination control (applies to all resources with getAll/search)
@@ -244,6 +269,8 @@ export class Xentral implements INodeType {
 			...employeeOperations,
 			...salesChannelOperations,
 			...tagOperations,
+			...customApiCallOperations,
+			...specOperations,
 			// Fields
 			...addressFields,
 			...contactFields,
@@ -275,6 +302,8 @@ export class Xentral implements INodeType {
 			...employeeFields,
 			...salesChannelFields,
 			...tagFields,
+			...customApiCallFields,
+			...specFieldsAll,
 		],
 	};
 
