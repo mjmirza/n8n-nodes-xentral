@@ -200,7 +200,7 @@ const { handleCustomApiCall } = require('../dist/nodes/Xentral/resources/customA
 const { Xentral } = require('../dist/nodes/Xentral/Xentral.node.js');
 const { HANDWRITTEN_BETA_OPERATIONS } = require('../dist/nodes/Xentral/resources/betaNotices.js');
 
-function createContext(stored, deleteError) {
+function createContext(stored, deleteError, remoteUrl = 'https://n8n.example.com/webhook/x') {
 	const calls = [];
 	return {
 		calls,
@@ -214,6 +214,7 @@ function createContext(stored, deleteError) {
 			httpRequest: async (options) => {
 				calls.push(options);
 				if (options.method === 'DELETE' && deleteError) throw deleteError;
+				if (options.method === 'GET') return { data: { id: '42', url: remoteUrl, events: [] } };
 				return options.method === 'POST' ? { data: { id: 99 } } : {};
 			},
 		},
@@ -224,8 +225,8 @@ test('[r7-7] create removes a webhook kept from a failed delete before registeri
 	const stored = { webhookId: '42', signatureKey: 'k'.repeat(32) };
 	const ctx = createContext(stored);
 	await new XentralTrigger().webhookMethods.default.create.call(ctx);
-	assert.deepEqual(ctx.calls.map((c) => c.method), ['DELETE', 'POST']);
-	assert.ok(ctx.calls[0].url.endsWith('/webhooks/42'));
+	assert.deepEqual(ctx.calls.map((c) => c.method), ['GET', 'DELETE', 'POST']);
+	assert.ok(ctx.calls[1].url.endsWith('/webhooks/42'));
 	assert.equal(stored.webhookId, 99);
 	const gone = { webhookId: '42', signatureKey: 'k'.repeat(32) };
 	const goneCtx = createContext(gone, httpError(404));
@@ -301,14 +302,20 @@ test('[r7-10] Custom API Call sends the Accept header it is given, so File mode 
 });
 
 test('[r7-11] Custom API Call sends a non-empty GET body, an empty one is not sent', async () => {
-	const ctx = apiCallContext({ method: 'GET', apiVersion: 'v1', path: 'products/5/printLabel', body: '{"printingLabel":"3","quantity":2}' });
+	const ctx = apiCallContext({ method: 'GET', apiVersion: 'v1', path: 'products/5/printLabel', getBody: '{"printingLabel":"3","quantity":2}' });
 	await handleCustomApiCall.call(ctx, 'request', 0);
 	assert.deepEqual(ctx.calls[0].body, { printingLabel: '3', quantity: 2 });
 	const empty = apiCallContext({ method: 'GET', apiVersion: 'v1', path: 'products/5' });
 	await handleCustomApiCall.call(empty, 'request', 0);
 	assert.equal('body' in empty.calls[0], false);
-	const bodyField = new Xentral().description.properties.find((p) => p.name === 'body' && p.displayOptions?.show?.resource?.includes('customApiCall'));
-	assert.ok(bodyField.displayOptions.show.method.includes('GET'));
+	const props = new Xentral().description.properties;
+	const bodyField = props.find((p) => p.name === 'body' && p.displayOptions?.show?.resource?.includes('customApiCall'));
+	assert.equal(bodyField.displayOptions.show.method.includes('GET'), false);
+	assert.deepEqual(props.find((p) => p.name === 'getBody').displayOptions.show.method, ['GET']);
+	// A Body kept from another method in a saved GET call is neither parsed nor sent.
+	const saved = apiCallContext({ method: 'GET', apiVersion: 'v1', path: 'products/5', body: 'not json' });
+	await handleCustomApiCall.call(saved, 'request', 0);
+	assert.equal('body' in saved.calls[0], false);
 });
 
 test('[r7-12] every hand-written operation on a Xentral beta endpoint shows the beta notice', async () => {
@@ -410,4 +417,30 @@ test('[r7-16] product option examples match the schema, plain text option values
 	const ctx = context({ productId: '5', updateFields: { options: '[{"name":"Color","values":["Red",{"name":"Blue","sort":2}]}]' } });
 	await handleProduct.call(ctx, 'update', 0);
 	assert.deepEqual(ctx.calls[0].body.options, [{ name: 'Color', values: [{ name: 'Red' }, { name: 'Blue', sort: 2 }] }]);
+});
+
+test('[r7-17] a stored webhook that now points elsewhere is never deleted, on activation or deactivation', async () => {
+	const stored = { webhookId: '42', signatureKey: 'k'.repeat(32) };
+	const ctx = createContext(stored, undefined, 'https://other.example.com/hook');
+	await new XentralTrigger().webhookMethods.default.create.call(ctx);
+	assert.deepEqual(ctx.calls.map((c) => c.method), ['GET', 'POST']);
+	const off = { webhookId: '42', signatureKey: 'k'.repeat(32) };
+	const offCtx = createContext(off, undefined, 'https://other.example.com/hook');
+	assert.equal(await new XentralTrigger().webhookMethods.default.delete.call(offCtx), true);
+	assert.deepEqual(offCtx.calls.map((c) => c.method), ['GET']);
+	assert.equal('webhookId' in off, false);
+});
+
+test('[r7-18] an explicit null Country or Type in an address update is still sent to clear it', async () => {
+	const ctx = context({ invoiceId: '1', updateFields: { documentAddress: { address: { name: 'ACME', country: null, type: null } } } });
+	await handleInvoice.call(ctx, 'update', 0);
+	assert.deepEqual(ctx.calls[0].body.documentAddress, { name: 'ACME', country: null, type: null });
+});
+
+test('[r7-17] deactivation deletes the stored webhook when it still points at this node', async () => {
+	const stored = { webhookId: '42', signatureKey: 'k'.repeat(32) };
+	const ctx = createContext(stored);
+	assert.equal(await new XentralTrigger().webhookMethods.default.delete.call(ctx), true);
+	assert.deepEqual(ctx.calls.map((c) => c.method), ['GET', 'DELETE']);
+	assert.equal('webhookId' in stored, false);
 });

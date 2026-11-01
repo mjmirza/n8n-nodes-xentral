@@ -108,7 +108,7 @@ Choose the **Custom API Call** resource to call any Xentral endpoint with your s
 | API Version | V1, V2 or V3. A path that starts with `/api/v2/` or similar sets the version |
 | Path | The part after `/api/<version>/`, for example `posJournals` |
 | Query Parameters | JSON, for example filters or pagination |
-| Body | JSON. GET and DELETE send it only when it is not empty, for example product label options or a bulk delete |
+| Body | JSON. A DELETE sends it only when it is not empty, for bulk deletes. GET has its own Body field, sent only when not empty, for example product label options |
 | Content Type | `application/json` by default. Some endpoints need a vendor type such as `application/vnd.xentral.minimal+json` |
 | Accept | Empty by default, which asks for JSON, or any type in Text and File mode. Set `application/pdf` to download a document such as an invoice as PDF |
 | Response Format | JSON by default. Text returns the body in `data`. File keeps a download such as a CSV or ZIP export as binary data in the field you name |
@@ -266,13 +266,14 @@ npm run lint    # n8n verification rule set, must report zero problems
 - Address overrides on documents leave Type out when it is empty. A set Type must be mrs, mr, company or other (any case). Any other value now stops the item with a clear error before the request, where Xentral used to reject it.
 - A line item update that sets only Price Currency now sends it. Before, it failed with "No fields provided" or the currency was dropped.
 - When the trigger cannot delete its webhook on deactivation (anything but 404 or 410), it keeps the webhook ID and signing key. The next activation adopts the webhook and the next deactivation retries the delete.
+- Deactivation reads the stored webhook back first and deletes it only if it still points at this node's URL, so it costs one extra request.
 - On activation the trigger first removes a webhook it kept from such a failed delete. If that removal fails too, activation stops with an error rather than registering a second webhook.
 - An empty Country in an address override is left out. A set Country must be a two-letter code (any case).
 - An empty Delivery Date in an update now clears the date (sends `null`) on Invoice and Proforma Invoice, and on Offer, Invoice, Credit Note and Proforma Invoice line items.
 - The trigger also stops activation when a webhook for the same URL and event that it does not own cannot be deleted.
 - Product Age Rating None now clears the rating instead of being ignored.
 - Liability Status no longer lists Cancelled. Xentral has no such status and a saved Cancelled always failed. It still fails, with the same message, so pick Pending or Paid.
-- Custom API Call shows Body for GET too. An empty body is still not sent, so saved GET calls behave as before.
+- Custom API Call has a separate Body field for GET. Saved GET calls never send the Body field of the other methods, and an empty GET body is not sent, so they behave as before.
 
 ## Compatibility
 

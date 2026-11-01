@@ -31,24 +31,44 @@ function generateSignatureKey(): string {
 }
 
 /**
+ * Deletes the stored webhook only when it still points at this node's URL, so a stored ID never removes
+ * another registration (for example after the credential moved to another instance). A 404 or 410
+ * means it is already gone; any other failure is returned as the message.
+ */
+async function deleteOwnWebhook(this: IHookFunctions, id: string): Promise<{ failed?: string }> {
+	const failure = (error: unknown) =>
+		[404, 410].includes(errorStatus(error) ?? 0) ? {} : { failed: (error as Error).message || 'unknown error' };
+	let remote: IDataObject;
+	try {
+		const response = await xentralRequest.call(this, 'GET', `webhooks/${id}`, {}, {}, 'v1');
+		remote = ((response?.data as IDataObject) ?? response ?? {}) as IDataObject;
+	} catch (error) {
+		return failure(error);
+	}
+	if (remote.url !== this.getNodeWebhookUrl('default')) return {};
+	try {
+		await xentralRequest.call(this, 'DELETE', `webhooks/${id}`, {}, {}, 'v1');
+	} catch (error) {
+		return failure(error);
+	}
+	return {};
+}
+
+/**
  * A registration kept from a failed delete must go before a new one is created, or both stay active
- * and both pass signature checks. A 404 or 410 means it is already gone; any other failure stops here.
+ * and both pass signature checks. If it cannot be removed, activation stops here.
  */
 async function removeStoredWebhook(this: IHookFunctions, webhookData: IDataObject): Promise<void> {
 	const storedId = webhookData.webhookId;
 	if (storedId === undefined || storedId === null || String(storedId) === '') return;
 	const id = String(storedId);
 	if (/^[a-zA-Z0-9_-]+$/.test(id)) {
-		try {
-			await xentralRequest.call(this, 'DELETE', `webhooks/${id}`, {}, {}, 'v1');
-		} catch (error) {
-			const status = errorStatus(error);
-			if (status !== 404 && status !== 410) {
-				throw new NodeOperationError(
-					this.getNode(),
-					`Xentral webhook ${id} from an earlier activation could not be removed, so no second one was created. ${(error as Error).message || ''}`.trim(),
-				);
-			}
+		const { failed } = await deleteOwnWebhook.call(this, id);
+		if (failed !== undefined) {
+			throw new NodeOperationError(
+				this.getNode(),
+				`Xentral webhook ${id} from an earlier activation could not be removed, so no second one was created. ${failed}`,
+			);
 		}
 	}
 	delete webhookData.webhookId;
@@ -362,20 +382,13 @@ export class XentralTrigger implements INodeType {
 					// A stored ID that can never be a valid path segment cannot be deleted, so it is dropped.
 					this.logger.warn('Xentral: the stored webhook ID is not valid and was discarded.');
 				} else if (webhookId) {
-					try {
-						assertSafeId(String(webhookId), 'webhookId');
-						await xentralRequest.call(this, 'DELETE', `webhooks/${webhookId}`, {}, {}, 'v1');
-					} catch (error) {
-						const status = errorStatus(error);
-						if (status !== 404 && status !== 410) {
-							// Keep the registration ID and signing key, so the next activation adopts the webhook
-							// and the next deactivation retries the delete instead of orphaning it.
-							this.logger.warn(
-								`Xentral: failed to delete webhook ${webhookId}, it is kept for a retry. ${(error as Error).message || 'unknown error'}`,
-							);
-							return false;
-						}
-						// Already gone on the Xentral side, so the stored state can be cleared.
+					// Gone or pointing elsewhere: nothing of ours is left to delete, so the state is cleared.
+					const { failed } = await deleteOwnWebhook.call(this, String(webhookId));
+					if (failed !== undefined) {
+						// Keep the registration ID and signing key, so the next activation adopts the webhook
+						// and the next deactivation retries the delete instead of orphaning it.
+						this.logger.warn(`Xentral: failed to delete webhook ${webhookId}, it is kept for a retry. ${failed}`);
+						return false;
 					}
 				}
 

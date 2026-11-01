@@ -73,8 +73,16 @@ export const customApiCallFields: INodeProperties[] = [
 		name: 'body',
 		type: 'json',
 		default: '{}',
-		displayOptions: { show: { resource: ['customApiCall'], operation: ['request'], method: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT'] } },
-		description: 'JSON request body. For GET and DELETE it is sent only when not empty, for example the label options of a product label download or the ID list of a bulk delete.',
+		displayOptions: { show: { resource: ['customApiCall'], operation: ['request'], method: ['DELETE', 'PATCH', 'POST', 'PUT'] } },
+		description: 'JSON request body. For DELETE it is sent only when not empty, for example the ID list of a bulk delete.',
+	},
+	{
+		displayName: 'Body',
+		name: 'getBody',
+		type: 'json',
+		default: '{}',
+		displayOptions: { show: { resource: ['customApiCall'], operation: ['request'], method: ['GET'] } },
+		description: 'JSON request body for a GET, sent only when not empty, for example the label options of a product label download',
 	},
 	{
 		displayName: 'Content Type',

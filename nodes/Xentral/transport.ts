@@ -282,7 +282,9 @@ export const DOCUMENT_ADDRESS_TYPES = ['mrs', 'mr', 'company', 'other'];
 export function documentAddress(address: IDataObject): IDataObject {
 	const result: IDataObject = { ...address };
 	const type = result.type;
-	if (type === undefined || type === null || String(type).trim() === '') {
+	if (type === null) {
+		// An explicit null clears it on update, as the schema allows.
+	} else if (type === undefined || String(type).trim() === '') {
 		delete result.type;
 	} else {
 		const normalized = String(type).trim().toLowerCase();
@@ -293,7 +295,9 @@ export function documentAddress(address: IDataObject): IDataObject {
 	}
 	// Country must match ^[A-Z]{2}$, so an empty one is left out and a set one is upper-cased.
 	const country = result.country;
-	if (country === undefined || country === null || String(country).trim() === '') {
+	if (country === null) {
+		// An explicit null clears it on update, as the schema allows.
+	} else if (country === undefined || String(country).trim() === '') {
 		delete result.country;
 	} else {
 		const code = String(country).trim().toUpperCase();
