@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
 
 export async function handleProformaInvoice(
 	this: IExecuteFunctions,
@@ -205,7 +205,7 @@ export async function handleProformaInvoice(
 			if (lineItemOptions[field] !== undefined) body[field] = lineItemOptions[field];
 		}
 
-		if (lineItemOptions.hiddenOnPdf !== undefined) body.hiddenOnPdf = lineItemOptions.hiddenOnPdf;
+		applyLineItemHidden(body, lineItemOptions);
 
 		// Price object
 		if (lineItemOptions.priceAmount !== undefined) {
@@ -240,7 +240,7 @@ export async function handleProformaInvoice(
 
 		// Product ref
 		if (updateFields.productId) body.product = { id: updateFields.productId };
-		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
+		applyLineItemHidden(body, updateFields);
 
 		// Price object
 		if (updateFields.priceAmount !== undefined) {
@@ -252,6 +252,8 @@ export async function handleProformaInvoice(
 			};
 		}
 
+		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
+		if (sortOnly) return sortOnly;
 		assertNonEmptyBody(body as IDataObject, 'proforma invoice line item update');
 
 		return xentralRequest.call(this, 'PATCH', `proformaInvoices/${proformaInvoiceId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');

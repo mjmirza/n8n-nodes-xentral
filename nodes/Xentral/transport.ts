@@ -36,7 +36,16 @@ export function parseIpv4(host: string): number | undefined {
  * Literal addresses only. A public name that resolves to an internal address needs an n8n egress policy.
  */
 export function isBlockedHost(rawHost: string): boolean {
-	const host = String(rawHost || '').trim().toLowerCase().replace(/\.+$/, '');
+	let decoded = String(rawHost || '');
+	if (decoded.includes('%')) {
+		try {
+			decoded = decodeURIComponent(decoded);
+		} catch {
+			return true;
+		}
+	}
+	const host = decoded.normalize('NFKC').replace(/[\u3002\uff0e\uff61]/g, '.').trim().toLowerCase().replace(/\.+$/, '');
+	if (/[^a-z0-9._:\[\]-]/.test(host)) return true;
 	if (!host) return true;
 	if (host === 'localhost' || host.endsWith('.localhost')) return true;
 	if (host.startsWith('[') || host.includes(':')) return true;
@@ -228,6 +237,26 @@ export function applyLineItemPosition(body: IDataObject, fields: IDataObject): v
 	body.position = { afterLineItem: { id } };
 }
 
+/** Hidden on PDF for V3 line items. Xentral reads printSettings.hidden, a root hiddenOnPdf is ignored. */
+export function applyLineItemHidden(body: IDataObject, fields: IDataObject): void {
+	if (fields.hiddenOnPdf === undefined) return;
+	const existing = (body.printSettings as IDataObject | undefined) ?? {};
+	body.printSettings = { ...existing, hidden: fields.hiddenOnPdf };
+}
+
+/**
+ * A saved line item update that only sets the legacy Sort option. Xentral V3 ignores a numeric
+ * sort, so nothing is sent, and the workflow keeps running as it did before Sort was dropped.
+ */
+export function sortOnlyLineItemUpdate(body: IDataObject, fields: IDataObject): IDataObject | undefined {
+	if (Object.keys(body).length > 0 || fields.sort === undefined) return undefined;
+	return {
+		success: true,
+		changed: false,
+		message: 'Sort is ignored by Xentral V3, so nothing was sent. Use Position After Line Item ID to move a line item.',
+	};
+}
+
 // ---------- endpoint sanitization ----------
 
 function sanitizeEndpoint(endpoint: string): string {
@@ -281,7 +310,8 @@ export async function xentralRequest(
 		options.qs = query;
 	}
 
-	if (['POST', 'PATCH', 'PUT'].includes(method) && body) {
+	const hasBody = Array.isArray(body) ? body.length > 0 : body !== null && typeof body === 'object' && Object.keys(body).length > 0;
+	if ((['POST', 'PATCH', 'PUT'].includes(method) && body) || (method === 'DELETE' && hasBody)) {
 		options.body = body;
 	}
 
@@ -408,7 +438,9 @@ export async function xentralV1PageGetAll(
 	apiVersion: string = 'v1',
 ): Promise<IDataObject[]> {
 	const returnData: IDataObject[] = [];
-	const pageSize = 150;
+	// Xentral documents a page size between 10 and 50. A larger request is capped to 50 by the API,
+	// which made a full 50 record page look like the last one.
+	const pageSize = 50;
 	let pageNumber = 1;
 	let iterations = 0;
 	const maxIterations = maxPages && maxPages > 0 ? maxPages : 1000;

@@ -61,7 +61,7 @@ export async function handleCustomApiCall(
 		throw new NodeOperationError(this.getNode(), (error as Error).message, { itemIndex });
 	}
 	const query = parseJsonParameter(this, this.getNodeParameter('queryParameters', itemIndex, '{}'), 'Query Parameters', itemIndex);
-	const body = ['PATCH', 'POST', 'PUT'].includes(method)
+	const body = ['DELETE', 'PATCH', 'POST', 'PUT'].includes(method)
 		? parseJsonParameter(this, this.getNodeParameter('body', itemIndex, '{}'), 'Body', itemIndex)
 		: {};
 	const contentType = String(this.getNodeParameter('contentType', itemIndex, 'application/json') || '').trim();

@@ -26,7 +26,7 @@ It is for operations teams and automation builders who already run Xentral and w
 - **Reactions within seconds.** The Xentral Trigger starts a workflow when an order is created, a delivery note is sent or a product changes, so nothing waits for a nightly export.
 - **Searches that find the right product.** Product search matches the article number, the EAN and the name, with article number matches first.
 - **Customer lookup by exact value.** Customer Search finds a customer by its exact customer number, name or email. Xentral's customer API does not support partial matches, so the node does not pretend to.
-- **Safe defaults.** HTTPS only, literal internal addresses (localhost, private, loopback and link-local IPs in any decimal, hex or octal spelling, and IPv6 literals) blocked for every request including the credential test, IDs validated before they reach a URL, writes never retried after a gateway error, and Xentral error details shown in the n8n UI. The node does not resolve DNS, so a public hostname that points at an internal address is not caught here. Use your n8n instance's egress or network policy for that.
+- **Safe defaults.** HTTPS only, literal internal addresses (localhost, private, loopback and link-local IPs in any decimal, hex or octal spelling, and IPv6 literals) blocked for every request including the credential test, IDs validated before they reach a URL, writes never retried after a gateway error, and Xentral error details shown in the n8n UI. Hosts with percent-encoding or non-ASCII characters are refused. The node does not resolve DNS, so a public hostname that points at an internal address is not caught here. Use your n8n instance's egress or network policy for that.
 - **Trigger that fails closed.** Every delivery is checked against its HMAC signature and must be no older than five minutes. Anything unverifiable is rejected with 401 and never starts the workflow.
 - **Every endpoint within reach.** Custom API Call sends any request in the Xentral API with your saved credential, so a rare accounting, tax or POS endpoint never needs a separate HTTP Request node.
 - **Works with AI agents.** The Xentral action node is marked as a tool, so an n8n AI Agent can call Xentral operations directly. The trigger starts workflows and is not a tool.
@@ -108,7 +108,7 @@ Choose the **Custom API Call** resource to call any Xentral endpoint with your s
 | API Version | V1, V2 or V3. A path that starts with `/api/v2/` or similar sets the version |
 | Path | The part after `/api/<version>/`, for example `posJournals` |
 | Query Parameters | JSON, for example filters or pagination |
-| Body | JSON, shown for POST, PATCH and PUT |
+| Body | JSON, shown for POST, PATCH, PUT and DELETE. A DELETE sends it only when it is not empty, for bulk deletes |
 | Content Type | `application/json` by default. Some endpoints need a vendor type such as `application/vnd.xentral.minimal+json` |
 | Response Format | JSON by default. Text returns the body in `data`. File keeps a download such as a CSV or ZIP export as binary data in the field you name |
 

@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
 
 export async function handleSalesOrder(
 	this: IExecuteFunctions,
@@ -29,7 +29,7 @@ export async function handleSalesOrder(
 
 		// Object-wrapped ID references
 		if (additionalFields.commissionConsignmentWarehouseId) {
-			body.commissionConsignmentWarehouse = { id: additionalFields.commissionConsignmentWarehouseId };
+			body.commissionConsignmentStorageLocation = { id: additionalFields.commissionConsignmentWarehouseId };
 		}
 		if (additionalFields.editorId) body.editor = { id: additionalFields.editorId };
 		if (additionalFields.preferredWarehouseId) body.preferredWarehouse = { id: additionalFields.preferredWarehouseId };
@@ -121,7 +121,7 @@ export async function handleSalesOrder(
 
 		// Object-wrapped ID references
 		if (updateFields.commissionConsignmentWarehouseId) {
-			body.commissionConsignmentWarehouse = { id: updateFields.commissionConsignmentWarehouseId };
+			body.commissionConsignmentStorageLocation = { id: updateFields.commissionConsignmentWarehouseId };
 		}
 		if (updateFields.editorId) body.editor = { id: updateFields.editorId };
 		if (updateFields.preferredWarehouseId) body.preferredWarehouse = { id: updateFields.preferredWarehouseId };
@@ -190,7 +190,7 @@ export async function handleSalesOrder(
 		if (lineItemOptions.name !== undefined) body.name = lineItemOptions.name;
 		if (lineItemOptions.number !== undefined) body.number = lineItemOptions.number;
 		if (lineItemOptions.taxLegalNotice !== undefined) body.taxLegalNotice = lineItemOptions.taxLegalNotice;
-		if (lineItemOptions.hiddenOnPdf !== undefined) body.hiddenOnPdf = lineItemOptions.hiddenOnPdf;
+		applyLineItemHidden(body, lineItemOptions);
 
 		// Price structure
 		if (lineItemOptions.priceAmount !== undefined) {
@@ -218,7 +218,7 @@ export async function handleSalesOrder(
 		if (updateFields.quantity !== undefined) body.quantity = updateFields.quantity;
 		applyLineItemPosition(body, updateFields);
 		if (updateFields.taxLegalNotice !== undefined) body.taxLegalNotice = updateFields.taxLegalNotice;
-		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
+		applyLineItemHidden(body, updateFields);
 		if (updateFields.productId) body.product = { id: updateFields.productId };
 
 		// Price structure
@@ -227,6 +227,8 @@ export async function handleSalesOrder(
 			body.price = { net: { amount: updateFields.priceAmount, currency } };
 		}
 
+		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
+		if (sortOnly) return sortOnly;
 		assertNonEmptyBody(body, 'sales order line item update');
 		return xentralRequest.call(this, 'PATCH', `salesOrders/${salesOrderId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
 	}
