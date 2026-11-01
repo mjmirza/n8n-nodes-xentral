@@ -880,3 +880,34 @@ test('[r7-42] a changed Signature Key replaces the retained registration instead
 	sameCtx.getNodeParameter = ctx.getNodeParameter;
 	assert.equal(await new XentralTrigger().webhookMethods.default.checkExists.call(sameCtx), true);
 });
+
+// ---------- 19. fourteenth pre-release review ----------
+
+test('[r7-43] a null category id clears the categories with an empty list, never [null]', async () => {
+	const ctx = context({ productId: '5', updateFields: { categoryId: null } });
+	await handleProduct.call(ctx, 'update', 0);
+	assert.deepEqual(ctx.calls[0].body.categories, []);
+	const set = context({ productId: '5', updateFields: { categoryId: '3' } });
+	await handleProduct.call(set, 'update', 0);
+	assert.deepEqual(set.calls[0].body.categories, [{ id: '3' }]);
+});
+
+test('[r7-44] an empty Delivery Date is never sent on any line item update or add', async () => {
+	const updates = [
+		[handleSalesOrder, { salesOrderId: '1' }, 'lineItemUpdateFields'], [handlePurchaseOrder, { purchaseOrderId: '1' }, 'lineItemUpdateFields'],
+		[handleDeliveryNote, { deliveryNoteId: '1' }, 'lineItemUpdateFields'], [handleReturn, { returnId: '1' }, 'updateFields'],
+		...LINE_ITEMS,
+	];
+	for (const [handler, ids, param] of updates) {
+		const ctx = context({ ...ids, lineItemId: '2', [param]: { deliveryDate: '', quantity: 2 } });
+		await handler.call(ctx, 'updateLineItem', 0);
+		assert.equal('deliveryDate' in ctx.calls[0].body, false, handler.name);
+		assert.equal(ctx.calls[0].body.quantity, 2);
+	}
+	const add = context({ salesOrderId: '1', productId: '5', quantity: 1, lineItemOptions: { deliveryDate: '' } });
+	await handleSalesOrder.call(add, 'addLineItem', 0);
+	assert.equal('deliveryDate' in add.calls[0].body, false);
+	const doc = context({ salesOrderId: '1', updateFields: { deliveryDate: '', internalComment: 'x' } });
+	await handleSalesOrder.call(doc, 'update', 0);
+	assert.equal('deliveryDate' in doc.calls[0].body, false);
+});

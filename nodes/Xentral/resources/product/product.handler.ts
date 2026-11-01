@@ -17,7 +17,9 @@ export function productWriteTarget(body: IDataObject): { version: string; body: 
 	if (body.shopPriceDisplay !== undefined) return { version: 'v1', body };
 	const v2: IDataObject = { ...body };
 	if (v2.category !== undefined) {
-		v2.categories = [v2.category];
+		const category = v2.category as IDataObject | null;
+		// A category id an expression resolved to null removes the category, as an empty list.
+		v2.categories = category === null || category.id === null || category.id === undefined ? [] : [category];
 		delete v2.category;
 	}
 	return { version: 'v2', body: v2 };

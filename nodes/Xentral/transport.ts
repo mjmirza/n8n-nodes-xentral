@@ -329,7 +329,7 @@ export function documentAddress(address: IDataObject | null): IDataObject | null
  */
 export function lineItemAddBody(body: IDataObject): IDataObject {
 	delete body.number;
-	return body;
+	return dropEmptyDates(body);
 }
 
 /**
@@ -339,6 +339,7 @@ export function lineItemAddBody(body: IDataObject): IDataObject {
 export function sortOnlyLineItemUpdate(body: IDataObject, fields: IDataObject): IDataObject | undefined {
 	delete body.product;
 	delete body.number;
+	dropEmptyDates(body);
 	if (Object.keys(body).length > 0) return undefined;
 	const ignored: string[] = [];
 	if (fields.sort !== undefined) ignored.push('Sort');
@@ -404,8 +405,17 @@ export function toApiDate(value: string | undefined): string {
 
 const DOCUMENT_DATE_KEYS = ['documentDate', 'deliveryDate', 'desiredDeliveryDate', 'confirmedDeliveryDate'];
 
+/** An empty string is not a date. It is left out, so an empty expression fallback never invalidates a request. */
+export function dropEmptyDates(body: IDataObject): IDataObject {
+	for (const key of DOCUMENT_DATE_KEYS) {
+		if (body[key] === '') delete body[key];
+	}
+	return body;
+}
+
 /** Trims the date picker timestamps in a document or line item body to YYYY-MM-DD. */
 export function apiDates(body: IDataObject): IDataObject {
+	dropEmptyDates(body);
 	for (const key of DOCUMENT_DATE_KEYS) {
 		if (typeof body[key] === 'string' && body[key] !== '') body[key] = toApiDate(body[key] as string);
 	}
