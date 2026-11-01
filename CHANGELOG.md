@@ -29,10 +29,10 @@
 - Add Line Item sends a Price Currency set without a Price Amount on Sales Order, Purchase Order, Offer, Invoice, Credit Note and Proforma Invoice. It was dropped.
 - Customer Create accepts a person (Customer Type Person) with First Name and Last Name and no Name, as Xentral requires. Name is still required for a company.
 
+- Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
+
 ### Security
 - The runtime refuses a Xentral host that is percent-encoded or contains non-ASCII characters, as the credential test already did, so both checks agree on the host.
-
-- Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 
 ### Added
 - Product Update has a Clear Empty Fields option. When on, Age Rating None or an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason or Region of Origin clears the field, and an empty Country of Origin is sent as null. Off by default, so saved workflows keep ignoring empty values.
