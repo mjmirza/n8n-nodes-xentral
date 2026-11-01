@@ -68,7 +68,6 @@ export const addressFields: INodeProperties[] = [
 		name: 'zip',
 		type: 'string',
 		default: '',
-		required: true,
 		displayOptions: {
 			show: {
 				resource: ['address'],
@@ -447,7 +446,7 @@ export const addressFields: INodeProperties[] = [
 				name: 'type',
 				type: 'string',
 				default: '',
-				description: 'Address type identifier',
+				description: 'Ignored on update. The Xentral address update has no type field.',
 			},
 			{
 				displayName: 'ZIP Code',

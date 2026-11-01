@@ -6,7 +6,7 @@ import { toApiDate } from '../purchasePrice/purchasePrice.handler';
  * Build the sales price body from a flat field map.
  * Handles object refs (product, customer, customerGroup) and the price object.
  */
-function buildSalesPriceBody(fields: IDataObject): IDataObject {
+function buildSalesPriceBody(fields: IDataObject, isCreate = false): IDataObject {
 	const body: IDataObject = {};
 
 	// Product ref (only used on create, not in update fields)
@@ -32,7 +32,7 @@ function buildSalesPriceBody(fields: IDataObject): IDataObject {
 		if (priceAmount !== undefined) price.amount = priceAmount;
 		if (priceCurrency !== undefined) price.currency = priceCurrency;
 		// If only amount is given, default currency to EUR
-		if (priceAmount !== undefined && priceCurrency === undefined) {
+		if (priceAmount !== undefined && priceCurrency === undefined && isCreate) {
 			price.currency = 'EUR';
 		}
 		body.price = price;
@@ -69,7 +69,7 @@ export async function handleSalesPrice(
 		assertSafeId(productId, 'productId');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const body = buildSalesPriceBody({ productId, ...additionalFields });
+		const body = buildSalesPriceBody({ productId, ...additionalFields }, true);
 		return xentralRequest.call(this, 'POST', 'salesPrices', body as IDataObject, {}, 'v1');
 	}
 

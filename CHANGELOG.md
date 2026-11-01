@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.3] - 2026-11-01
+
+### Security
+- Redirects are no longer followed. A Xentral host, or anything posing as one, could redirect to plain http or an internal address after the URL checks. A 3xx answer now fails with the redirect target in the error.
+
+### Fixed
+- Purchase Price and Sales Price updates with only an amount no longer send EUR as the currency, which changed the currency of existing non-EUR prices. Create still defaults to EUR.
+- Tag Get Many pages through the list (50 per page) instead of returning only the first page.
+- Sales Order, Delivery Note and Purchase Order send Document Date, Delivery Date, Desired Delivery Date and Confirmed Delivery Date as YYYY-MM-DD, as the spec requires.
+- Return line item Return Reason is sent as `{"id": "..."}`. Saved values as an id, a number or a JSON object all map to that shape.
+- Customer Address Update no longer sends Type, which no update schema accepts. The option stays and is marked as ignored on update.
+- Customer Address Create no longer requires a ZIP code. No address schema requires one.
+- Tag colour is sent as #RRGGBB. A bare six digit hex value gets the # added, and the help text no longer says to omit it.
+
+### Note for 1.4.1 users
+- 1.4.1 briefly sent Sales Order Commission Consignment Warehouse ID as `commissionConsignmentStorageLocation`. 1.4.2 restored the long-standing `commissionConsignmentWarehouse` and added Commission Consignment Storage Location ID for the storage location. If you edited a sales order with 1.4.1, re-check that field and move a storage location id to the new field.
+
 ## [1.4.2] - 2026-11-01
 
 ### Security

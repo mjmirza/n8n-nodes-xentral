@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates } from '../../transport';
 
 export async function handlePurchaseOrder(
 	this: IExecuteFunctions,
@@ -57,7 +57,7 @@ export async function handlePurchaseOrder(
 			if (ps !== undefined) body.printSettings = ps;
 		}
 
-		return xentralRequest.call(this, 'POST', 'purchaseOrders', body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', 'purchaseOrders', apiDates(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'get') {
@@ -138,7 +138,7 @@ export async function handlePurchaseOrder(
 		}
 
 		assertNonEmptyBody(body, 'purchase order update');
-		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}`, apiDates(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'delete') {
@@ -178,7 +178,7 @@ export async function handlePurchaseOrder(
 			body.price = { net: { amount: lineItemOptions.priceAmount, currency } };
 		}
 
-		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/lineItems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/lineItems`, apiDates(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {
@@ -208,7 +208,7 @@ export async function handlePurchaseOrder(
 		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
 		if (sortOnly) return sortOnly;
 		assertNonEmptyBody(body, 'purchase order line item update');
-		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `purchaseOrders/${purchaseOrderId}/lineItems/${lineItemId}`, apiDates(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {
