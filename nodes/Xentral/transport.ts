@@ -66,6 +66,10 @@ export function isBlockedHost(rawHost: string): boolean {
 
 export function normalizeUrl(raw: string): string {
 	let url = raw.trim().replace(/\/+$/, '');
+	// Userinfo, backslashes and whitespace let a parser and a validator disagree about the host.
+	if (/[@\s\\]/.test(url)) {
+		throw new Error('User info, backslashes and spaces are not allowed in the Xentral instance URL');
+	}
 	// Enforce HTTPS: reject explicit http:// and auto-add https:// if missing
 	if (/^http:\/\//i.test(url)) {
 		throw new Error('HTTP is not allowed - only HTTPS connections are supported for security');
@@ -147,12 +151,17 @@ function handleXentralError(
 			parsedBody = { detail: String(raw) };
 		}
 		const message = parseXentralError(parsedBody);
+		// The per-field details without the title, so the n8n UI shows them under the headline.
+		const details = parsedBody && typeof parsedBody === 'object' && parsedBody.title
+			? parseXentralError({ ...parsedBody, title: undefined })
+			: message;
 		const safeError: Record<string, any> = {
 			message: error.message,
 			statusCode: status,
 		};
 		throw new NodeApiError(node.getNode(), safeError as JsonObject, {
 			message,
+			description: details,
 			httpCode: status !== undefined ? String(status) : undefined,
 		});
 	}
@@ -197,6 +206,11 @@ function parseXentralError(responseBody: any): string {
 	}
 	if (responseBody.messages && Array.isArray(responseBody.messages)) {
 		parts.push(...responseBody.messages.map(String));
+	} else if (responseBody.messages && typeof responseBody.messages === 'object') {
+		for (const [key, msgs] of Object.entries(responseBody.messages)) {
+			const list = Array.isArray(msgs) ? msgs : [msgs];
+			for (const msg of list) parts.push(key === '_' ? String(msg) : `${key}: ${String(msg)}`);
+		}
 	}
 	return parts.length > 0 ? parts.join(' | ') : JSON.stringify(responseBody);
 }
@@ -273,6 +287,20 @@ function sanitizeEndpoint(endpoint: string): string {
 	return clean;
 }
 
+/** Retry settings. maxRetryAfterMs bounds a single Retry-After wait. */
+export const RETRY_CONFIG = { maxRetryAfterMs: 120000 };
+
+/** Honours Retry-After (seconds or HTTP date) up to the cap, otherwise backs off exponentially. */
+export function retryAfterMs(header: unknown, attempt: number): number {
+	const raw = Array.isArray(header) ? header[0] : header;
+	if (raw !== undefined && raw !== null && String(raw).trim() !== '') {
+		const value = String(raw).trim();
+		const ms = /^\d+$/.test(value) ? Number(value) * 1000 : Date.parse(value) - Date.now();
+		if (Number.isFinite(ms)) return Math.min(Math.max(0, ms), RETRY_CONFIG.maxRetryAfterMs);
+	}
+	return Math.min(1000 * Math.pow(2, attempt), 10000);
+}
+
 // ---------- core request ----------
 
 export async function xentralRequest(
@@ -337,11 +365,7 @@ export async function xentralRequest(
 		} catch (error: any) {
 			const statusCode = errorStatus(error);
 			if (statusCode !== undefined && retryableStatuses.includes(statusCode) && attempt < maxRetries) {
-				const retryAfter = error.response?.headers?.['retry-after'];
-				const parsed = retryAfter ? parseInt(retryAfter, 10) : NaN;
-				const baseMs = Number.isFinite(parsed)
-					? Math.min(parsed * 1000, 30000)
-					: Math.min(1000 * Math.pow(2, attempt), 10000);
+				const baseMs = retryAfterMs(error.response?.headers?.['retry-after'], attempt);
 				const jitter = Math.floor(Math.random() * baseMs * 0.25);
 				await sleep(baseMs + jitter);
 				continue;

@@ -157,8 +157,9 @@ test('[r3-7] shipping method carrier credentials JSON is sent as an object', asy
 
 // ---------- 8. sales order consignment storage location ----------
 
+// 1.4.2 restored the saved warehouse field and added a separate storage location field (see codex-round4 [r4-2]).
 test('[r3-8] sales order sends commissionConsignmentStorageLocation', async () => {
-	const ctx = context({ salesOrderId: '1', updateFields: { commissionConsignmentWarehouseId: '12' } }, { response: { id: 1 } });
+	const ctx = context({ salesOrderId: '1', updateFields: { commissionConsignmentStorageLocationId: '12' } }, { response: { id: 1 } });
 	await handleSalesOrder.call(ctx, 'update', 0);
 	assert.deepEqual(ctx.calls[0].body.commissionConsignmentStorageLocation, { id: '12' });
 	assert.equal(ctx.calls[0].body.commissionConsignmentWarehouse, undefined);

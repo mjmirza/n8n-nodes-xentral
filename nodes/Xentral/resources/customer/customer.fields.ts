@@ -70,7 +70,19 @@ export const customerFields: INodeProperties[] = [
 				name: 'autoCreateDocuments',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to auto-create documents (documentDelivery.autoCreateDocuments)',
+				description: 'Whether to auto-create documents in auto-shipping. On sends both. Use Auto-Create Documents Type to pick one.',
+			},
+			{
+				displayName: 'Auto-Create Documents Type',
+				name: 'autoCreateDocumentsType',
+				type: 'options',
+				options: [
+					{ name: 'Both', value: 'both' },
+					{ name: 'Delivery Note', value: 'delivery_note' },
+					{ name: 'Invoice', value: 'invoice' },
+				],
+				default: 'both',
+				description: 'Which documents auto-shipping creates (documentDelivery.autoCreateDocuments). Overrides Auto-Create Documents.',
 			},
 			{
 				displayName: 'Bank Name',
@@ -574,7 +586,19 @@ export const customerFields: INodeProperties[] = [
 				name: 'autoCreateDocuments',
 				type: 'boolean',
 				default: false,
-				description: 'Whether to auto-create documents (documentDelivery.autoCreateDocuments)',
+				description: 'Whether to auto-create documents in auto-shipping. On sends both. Use Auto-Create Documents Type to pick one.',
+			},
+			{
+				displayName: 'Auto-Create Documents Type',
+				name: 'autoCreateDocumentsType',
+				type: 'options',
+				options: [
+					{ name: 'Both', value: 'both' },
+					{ name: 'Delivery Note', value: 'delivery_note' },
+					{ name: 'Invoice', value: 'invoice' },
+				],
+				default: 'both',
+				description: 'Which documents auto-shipping creates (documentDelivery.autoCreateDocuments). Overrides Auto-Create Documents.',
 			},
 			{
 				displayName: 'Bank Name',

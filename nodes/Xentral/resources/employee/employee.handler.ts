@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralV1PageGetAll } from '../../transport';
+import { xentralRequest } from '../../transport';
 
 export async function handleEmployee(
 	this: IExecuteFunctions,
@@ -9,8 +9,10 @@ export async function handleEmployee(
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
-		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
-		return xentralV1PageGetAll.call(this, 'employees', {}, limit, maxPages);
+		// Not paginated in the spec. One request returns the whole list, so Max Pages has no effect.
+		const response = await xentralRequest.call(this, 'GET', 'employees', {}, {}, 'v1');
+		const rows = (Array.isArray(response) ? response : response?.data ?? []) as IDataObject[];
+		return limit ? rows.slice(0, limit) : rows;
 	}
 
 	throw new Error(`Unknown employee operation: ${operation}`);

@@ -1,5 +1,6 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { toApiDate } from '../purchasePrice/purchasePrice.handler';
 
 /**
  * Build the sales price body from a flat field map.
@@ -51,7 +52,7 @@ function buildSalesPriceBody(fields: IDataObject): IDataObject {
 
 	for (const key of directFields) {
 		if (fields[key] !== undefined && fields[key] !== '') {
-			body[key] = fields[key];
+			body[key] = key === 'validFrom' || key === 'expiresAt' ? toApiDate(String(fields[key])) : fields[key];
 		}
 	}
 
