@@ -842,6 +842,13 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				description: 'Discount percentage for this line item',
 			},
 			{
+				displayName: 'Position After Line Item ID',
+				name: 'afterLineItemId',
+				type: 'string',
+				default: '',
+				description: 'Place this line item directly after the line item with this ID (Xentral position.afterLineItem)',
+			},
+			{
 				displayName: 'Price Amount (Net)',
 				name: 'priceAmount',
 				type: 'number',
@@ -876,7 +883,7 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				name: 'sort',
 				type: 'number',
 				default: 0,
-				description: 'Sort position of this line item (integer)',
+				description: 'Deprecated. Xentral V3 ignores a numeric sort and this value is not sent. Use Position After Line Item ID.',
 			},
 			{
 				displayName: 'Tax Legal Notice',

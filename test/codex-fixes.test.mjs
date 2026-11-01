@@ -18,7 +18,16 @@ const { verifyXentralSignature, SIGNATURE_MAX_AGE_MS } = require('../dist/nodes/
 const BASE = 'https://acme.xentral.com/api';
 const HASH40 = '2a' + 'b'.repeat(38);
 
-function httpError(statusCode, headers = {}) {
+// The shape n8n's httpRequest really throws: an AxiosError with response.status and response.data.
+function httpError(status, headers = {}) {
+	const error = new Error(`Request failed with status code ${status}`);
+	error.isAxiosError = true;
+	error.response = { status, statusText: 'x', headers, data: { title: 'gateway' } };
+	return error;
+}
+
+// The older request-style shape (response.statusCode and response.body), still supported.
+function legacyHttpError(statusCode, headers = {}) {
 	const error = new Error(`HTTP ${statusCode}`);
 	error.response = { statusCode, headers, body: { title: 'gateway' } };
 	return error;
@@ -66,6 +75,17 @@ test('a POST rate limited with 429 is retried, because Xentral did not process i
 	const result = await transport.xentralRequest.call(ctx, 'POST', 'salesOrders', { a: 1 }, {}, 'v1');
 	assert.equal(ctx.calls.length, 2);
 	assert.deepEqual(result, { id: 5 });
+});
+
+test('the legacy statusCode/body error shape is still retried and keeps its detail', async () => {
+	const retried = context({}, {
+		response: (_o, n) => { if (n === 1) throw legacyHttpError(429, { 'retry-after': '0' }); return { id: 6 }; },
+	});
+	await transport.xentralRequest.call(retried, 'POST', 'salesOrders', { a: 1 }, {}, 'v1');
+	assert.equal(retried.calls.length, 2);
+	const failed = context({}, { response: () => { throw legacyHttpError(504); } });
+	await assert.rejects(() => transport.xentralRequest.call(failed, 'POST', 'salesOrders', { a: 1 }, {}, 'v1'), /gateway/);
+	assert.equal(failed.calls.length, 1);
 });
 
 test('a GET that hits a 504 is retried', async () => {

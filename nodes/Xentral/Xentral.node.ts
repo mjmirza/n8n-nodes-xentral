@@ -102,7 +102,7 @@ import { handleDeliveryTerms } from './resources/deliveryTerms/deliveryTerms.han
 import { handleEmployee } from './resources/employee/employee.handler';
 import { handleSalesChannel } from './resources/salesChannel/salesChannel.handler';
 import { handleTag } from './resources/tag/tag.handler';
-import { handleCustomApiCall } from './resources/customApiCall/customApiCall.handler';
+import { ExecutionItemResult, handleCustomApiCall } from './resources/customApiCall/customApiCall.handler';
 import { customApiCallFields, customApiCallOperations } from './resources/customApiCall/customApiCall.description';
 import { runSpecOperation } from './resources/specDriven/spec.handler';
 import {
@@ -323,13 +323,20 @@ export class Xentral implements INodeType {
 				const result = await handler.call(this, operation, i);
 
 				const pairedItem = { item: i };
-				if (result == null || (result as unknown) === '' || typeof result !== 'object') {
+				if ((result as unknown) instanceof ExecutionItemResult) {
+					returnData.push({ ...(result as unknown as ExecutionItemResult).item, pairedItem });
+				} else if (typeof result === 'string' && result !== '') {
+					// A text response such as a CSV export keeps its content.
+					returnData.push({ json: { data: result }, pairedItem });
+				} else if (result == null || (result as unknown) === '' || typeof result !== 'object') {
 					returnData.push({ json: { success: true }, pairedItem });
 				} else if (Array.isArray(result)) {
 					returnData.push(...result.map((item) => ({ json: item, pairedItem })));
 				} else {
 					const data = result.data !== undefined ? result.data : result;
-					if (Array.isArray(data)) {
+					if (typeof data !== 'object' || data === null) {
+						returnData.push({ json: { data } as IDataObject, pairedItem });
+					} else if (Array.isArray(data)) {
 						returnData.push(
 							...(data as IDataObject[]).map((item: IDataObject) => ({ json: item, pairedItem })),
 						);

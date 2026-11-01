@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition } from '../../transport';
 
 export async function handleReturn(
 	this: IExecuteFunctions,
@@ -20,10 +20,14 @@ export async function handleReturn(
 		const simpleFields = [
 			'bodyIntroduction', 'bodyOutroduction', 'customerOrderNumber',
 			'deliveryTerms', 'documentDate', 'internalComment', 'internalDesignation',
-			'isSupplierReturnOrder', 'language', 'progress', 'vatId',
+			'language', 'progress', 'vatId',
 		];
 		for (const field of simpleFields) {
 			if (additionalFields[field] !== undefined) body[field] = additionalFields[field];
+		}
+		// The node option keeps its saved name, Xentral expects isReturnOrderToSupplier.
+		if (additionalFields.isSupplierReturnOrder !== undefined) {
+			body.isReturnOrderToSupplier = additionalFields.isSupplierReturnOrder;
 		}
 
 		// Nested object refs
@@ -122,7 +126,7 @@ export async function handleReturn(
 			filterIndex++;
 		}
 		if (filters.customerId !== undefined && filters.customerId !== '') {
-			query[`filter[${filterIndex}][key]`] = 'customerId';
+			query[`filter[${filterIndex}][key]`] = 'address.id';
 			query[`filter[${filterIndex}][op]`] = 'equals';
 			query[`filter[${filterIndex}][value]`] = filters.customerId;
 			filterIndex++;
@@ -141,10 +145,13 @@ export async function handleReturn(
 		const simpleFields = [
 			'bodyIntroduction', 'bodyOutroduction', 'customerOrderNumber',
 			'deliveryTerms', 'documentDate', 'internalComment', 'internalDesignation',
-			'isSupplierReturnOrder', 'language', 'progress', 'useAlternativeDocumentTitle', 'vatId',
+			'language', 'progress', 'useAlternativeDocumentTitle', 'vatId',
 		];
 		for (const field of simpleFields) {
 			if (updateFields[field] !== undefined) body[field] = updateFields[field];
+		}
+		if (updateFields.isSupplierReturnOrder !== undefined) {
+			body.isReturnOrderToSupplier = updateFields.isSupplierReturnOrder;
 		}
 
 		// Nested refs
@@ -254,11 +261,12 @@ export async function handleReturn(
 
 		const lineSimpleFields = [
 			'deliveryDate', 'deliveryDateAsCalendarWeek', 'description',
-			'name', 'quantity', 'sort',
+			'name', 'quantity',
 		];
 		for (const field of lineSimpleFields) {
 			if (updateFields[field] !== undefined) body[field] = updateFields[field];
 		}
+		applyLineItemPosition(body, updateFields);
 		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
 
 		// Product ref
