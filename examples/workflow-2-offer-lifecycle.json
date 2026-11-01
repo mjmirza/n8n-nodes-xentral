@@ -57,10 +57,10 @@
         "resource": "offer",
         "operation": "addLineItem",
         "offerId": "={{ $json.id }}",
-        "productName": "Test Product A",
+        "productId": "1",
         "quantity": 5,
         "lineItemOptions": {
-          "unitPrice": 29.99,
+          "priceAmount": 29.99,
           "description": "First test line item"
         }
       },
@@ -68,7 +68,7 @@
       "name": "Add Line Item 1",
       "type": "n8n-nodes-xentral.xentral",
       "typeVersion": 1,
-      "position": [900, 200],
+      "position": [900, 300],
       "credentials": {
         "xentralApi": {
           "id": "",
@@ -81,10 +81,10 @@
         "resource": "offer",
         "operation": "addLineItem",
         "offerId": "={{ $('Create Offer').item.json.id }}",
-        "productName": "Test Product B",
+        "productId": "2",
         "quantity": 2,
         "lineItemOptions": {
-          "unitPrice": 149.50,
+          "priceAmount": 149.50,
           "description": "Second test line item"
         }
       },
@@ -92,7 +92,7 @@
       "name": "Add Line Item 2",
       "type": "n8n-nodes-xentral.xentral",
       "typeVersion": 1,
-      "position": [900, 400],
+      "position": [1120, 300],
       "credentials": {
         "xentralApi": {
           "id": "",
@@ -110,7 +110,7 @@
       "name": "Get Offer (Verify)",
       "type": "n8n-nodes-xentral.xentral",
       "typeVersion": 1,
-      "position": [1120, 300],
+      "position": [1340, 300],
       "credentials": {
         "xentralApi": {
           "id": "",
@@ -128,7 +128,7 @@
       "name": "Release Offer",
       "type": "n8n-nodes-xentral.xentral",
       "typeVersion": 1,
-      "position": [1340, 300],
+      "position": [1560, 300],
       "credentials": {
         "xentralApi": {
           "id": "",
@@ -145,24 +145,6 @@
       },
       "id": "node-log-activity",
       "name": "Log Activity",
-      "type": "n8n-nodes-xentral.xentral",
-      "typeVersion": 1,
-      "position": [1560, 300],
-      "credentials": {
-        "xentralApi": {
-          "id": "",
-          "name": "Xentral API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "offer",
-        "operation": "delete",
-        "offerId": "={{ $('Create Offer').item.json.id }}"
-      },
-      "id": "node-delete-offer",
-      "name": "Delete Offer",
       "type": "n8n-nodes-xentral.xentral",
       "typeVersion": 1,
       "position": [1780, 300],
@@ -182,15 +164,10 @@
       "main": [[{ "node": "Create Offer", "type": "main", "index": 0 }]]
     },
     "Create Offer": {
-      "main": [
-        [
-          { "node": "Add Line Item 1", "type": "main", "index": 0 },
-          { "node": "Add Line Item 2", "type": "main", "index": 0 }
-        ]
-      ]
+      "main": [[{ "node": "Add Line Item 1", "type": "main", "index": 0 }]]
     },
     "Add Line Item 1": {
-      "main": [[{ "node": "Get Offer (Verify)", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Add Line Item 2", "type": "main", "index": 0 }]]
     },
     "Add Line Item 2": {
       "main": [[{ "node": "Get Offer (Verify)", "type": "main", "index": 0 }]]
@@ -200,9 +177,6 @@
     },
     "Release Offer": {
       "main": [[{ "node": "Log Activity", "type": "main", "index": 0 }]]
-    },
-    "Log Activity": {
-      "main": [[{ "node": "Delete Offer", "type": "main", "index": 0 }]]
     }
   },
   "pinData": {},

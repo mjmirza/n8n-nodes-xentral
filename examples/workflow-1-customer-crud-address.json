@@ -20,7 +20,7 @@
           "lastname": "Mustermann",
           "email": "test@example.com",
           "phone": "+49 123 456789",
-          "customerType": "b2b",
+          "customerType": "company",
           "number": "TEST-001"
         }
       },
@@ -64,8 +64,8 @@
         "city": "Berlin",
         "zip": "10115",
         "country": "DE",
+        "type": "deliveryaddress",
         "additionalFields": {
-          "type": "deliveryaddress",
           "email": "shipping@example.com",
           "phone": "+49 123 456789"
         }
