@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
 
 export async function handleDeliveryNote(
 	this: IExecuteFunctions,
@@ -172,7 +172,7 @@ export async function handleDeliveryNote(
 		if (lineItemOptions.internalComment !== undefined) body.internalComment = lineItemOptions.internalComment;
 		if (lineItemOptions.name !== undefined) body.name = lineItemOptions.name;
 		if (lineItemOptions.number !== undefined) body.number = lineItemOptions.number;
-		if (lineItemOptions.hiddenOnPdf !== undefined) body.hiddenOnPdf = lineItemOptions.hiddenOnPdf;
+		applyLineItemHidden(body, lineItemOptions);
 
 		return xentralRequest.call(this, 'POST', `deliveryNotes/${deliveryNoteId}/lineItems`, body as IDataObject, {}, 'v3');
 	}
@@ -192,9 +192,11 @@ export async function handleDeliveryNote(
 		if (updateFields.name !== undefined) body.name = updateFields.name;
 		if (updateFields.quantity !== undefined) body.quantity = updateFields.quantity;
 		applyLineItemPosition(body, updateFields);
-		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
+		applyLineItemHidden(body, updateFields);
 		if (updateFields.productId) body.product = { id: updateFields.productId };
 
+		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
+		if (sortOnly) return sortOnly;
 		assertNonEmptyBody(body, 'delivery note line item update');
 		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
 	}

@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
 
 export async function handleReturn(
 	this: IExecuteFunctions,
@@ -235,7 +235,7 @@ export async function handleReturn(
 		for (const field of lineSimpleFields) {
 			if (lineItemOptions[field] !== undefined) body[field] = lineItemOptions[field];
 		}
-		if (lineItemOptions.hiddenOnPdf !== undefined) body.hiddenOnPdf = lineItemOptions.hiddenOnPdf;
+		applyLineItemHidden(body, lineItemOptions);
 
 		// returnReason as object or null
 		if (lineItemOptions.returnReason !== undefined && (lineItemOptions.returnReason as string) !== '') {
@@ -267,7 +267,7 @@ export async function handleReturn(
 			if (updateFields[field] !== undefined) body[field] = updateFields[field];
 		}
 		applyLineItemPosition(body, updateFields);
-		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
+		applyLineItemHidden(body, updateFields);
 
 		// Product ref
 		if (updateFields.productId !== undefined) {
@@ -284,6 +284,8 @@ export async function handleReturn(
 			}
 		}
 
+		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
+		if (sortOnly) return sortOnly;
 		assertNonEmptyBody(body as IDataObject, 'return order line item update');
 
 		return xentralRequest.call(this, 'PATCH', `returnOrders/${returnId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');

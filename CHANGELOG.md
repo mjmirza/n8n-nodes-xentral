@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.1] - 2026-11-01
+
+### Security
+- The credential test blocks any instance host with characters outside letters, digits, dots, hyphens and underscores. A percent-encoded host such as `%31%32%37.0.0.1` or a full-width or ideographic-dot spelling of an internal address passed the 1.4.0 check, while the HTTP client decoded it to `127.0.0.1`. The transport also decodes and normalizes the host before its check.
+
+### Fixed
+- Page-based V1 and V2 lists (products, purchase prices, addresses and others) request 50 records per page, the documented maximum. They asked for 150, Xentral returned 50, and Return All stopped after the first page, silently dropping the rest.
+- A saved line item update that sets only the old Sort option no longer fails with "No fields provided". It returns `success: true, changed: false` without a request, because Xentral V3 ignores a numeric sort. 1.4.0 broke these workflows.
+- Hidden on PDF on line items of all eight document resources is sent as `printSettings.hidden`. A root-level `hiddenOnPdf` was ignored, so hidden lines stayed visible.
+- Custom API Call sends a body with DELETE when one is given, so bulk deletes that take an ID list work. An empty body is still not sent.
+- Customer Address Create with type Master Data sends only the fields that schema allows. Name, contact and delivery fields were always sent and the request was rejected. Name is no longer required in the UI and is still enforced for billing and delivery addresses.
+- Shipping Method Carrier Credentials JSON is sent as an object. It was sent as a quoted string. Invalid JSON now gives a clear error.
+- Sales Order Create and Update send `commissionConsignmentStorageLocation`, the field the Sales Order API declares. They sent `commissionConsignmentWarehouse`, which only Delivery Notes accept.
+
 ## [1.4.0] - 2026-11-01
 
 ### Security

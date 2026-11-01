@@ -27,14 +27,13 @@ export const addressFields: INodeProperties[] = [
 		name: 'name',
 		type: 'string',
 		default: '',
-		required: true,
 		displayOptions: {
 			show: {
 				resource: ['address'],
 				operation: ['create'],
 			},
 		},
-		description: 'The name for this address (required)',
+		description: 'The name for this address. Required for billing and delivery addresses, not sent for a master data address, whose schema has no name.',
 	},
 	{
 		displayName: 'Street',
