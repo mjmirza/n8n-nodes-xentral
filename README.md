@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mjmirza/n8n-nodes-xentral/master/docs/assets/xentral-icon.png" alt="Xentral node icon" width="80" height="80" />
+  <img src="https://raw.githubusercontent.com/mjmirza/n8n-nodes-xentral/main/docs/assets/xentral-icon.png" alt="Xentral node icon" width="80" height="80" />
 </p>
 
 # n8n-nodes-xentral
@@ -8,7 +8,7 @@ Connect Xentral ERP to n8n. 41 resources, 257 operations, a Custom API Call that
 
 [![npm version](https://img.shields.io/npm/v/n8n-nodes-xentral?label=npm)](https://www.npmjs.com/package/n8n-nodes-xentral)
 [![npm downloads](https://img.shields.io/npm/dm/n8n-nodes-xentral?label=downloads)](https://www.npmjs.com/package/n8n-nodes-xentral)
-[![CI](https://img.shields.io/github/actions/workflow/status/mjmirza/n8n-nodes-xentral/ci.yml?branch=master&label=CI)](https://github.com/mjmirza/n8n-nodes-xentral/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/mjmirza/n8n-nodes-xentral/ci.yml?branch=main&label=CI)](https://github.com/mjmirza/n8n-nodes-xentral/actions/workflows/ci.yml)
 [![License MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Signed with npm provenance](https://img.shields.io/badge/npm-provenance%20signed-2ea44f)](https://www.npmjs.com/package/n8n-nodes-xentral#provenance)
 
