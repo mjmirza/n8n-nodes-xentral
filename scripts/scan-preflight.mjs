@@ -4,13 +4,13 @@ import { pathToFileURL } from 'node:url';
 
 const [scannerPath, sourceDir, packageDir] = process.argv.slice(2);
 if (!scannerPath || !sourceDir || !packageDir) {
-	console.error('Usage: node scan-preflight.mjs <scanner.mjs> <source-dir> <package-dir>');
+	process.stderr.write('Usage: node scan-preflight.mjs <scanner.mjs> <source-dir> <package-dir>\n');
 	process.exit(2);
 }
 
 const { analyzePackage, SOURCE_FILE_PATTERNS } = await import(pathToFileURL(scannerPath).href);
 if (typeof analyzePackage !== 'function' || !Array.isArray(SOURCE_FILE_PATTERNS)) {
-	console.error('The installed scanner does not expose analyzePackage, so the preflight cannot run.');
+	process.stderr.write('The installed scanner does not expose analyzePackage, so the preflight cannot run.\n');
 	process.exit(2);
 }
 
@@ -23,13 +23,13 @@ const legs = [
 let failed = false;
 for (const [name, result] of legs) {
 	if (result.passed && result.message !== 'No files found to analyze') {
-		console.log(`preflight ${name}: passed`);
+		process.stdout.write(`preflight ${name}: passed\n`);
 		continue;
 	}
 	failed = true;
-	console.error(`preflight ${name}: failed. ${result.message ?? ''}`);
-	if (result.details) console.error(result.details);
+	process.stderr.write(`preflight ${name}: failed. ${result.message ?? ''}\n`);
+	if (result.details) process.stderr.write(`${result.details}\n`);
 }
 
 if (failed) process.exit(1);
-console.log('Preflight scan passed all security checks');
+process.stdout.write('Preflight scan passed all security checks\n');
