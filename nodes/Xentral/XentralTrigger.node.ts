@@ -39,7 +39,7 @@ async function currentInstance(this: IHookFunctions): Promise<string> {
 /**
  * Deletes the stored webhook on the instance it was registered on, never on another one (for example after
  * the credential moved). A webhook stored before 1.4.5 has no instance, so it is read back first and deleted
- * when it is still this trigger's registration. A 404 or 410 means it is already gone.
+ * only when it still points at this node's URL. A 404 or 410 means it is already gone.
  */
 async function deleteOwnWebhook(this: IHookFunctions, id: string, webhookData: IDataObject): Promise<{ failed?: string }> {
 	const failure = (error: unknown) =>
@@ -61,12 +61,7 @@ async function deleteOwnWebhook(this: IHookFunctions, id: string, webhookData: I
 		} catch (error) {
 			return failure(error);
 		}
-		const eventId = toEventId(String(this.getNodeParameter('event', '') ?? ''));
-		const events = Array.isArray(remote.events) ? (remote.events as IDataObject[]) : [];
-		const ours =
-			remote.url === this.getNodeWebhookUrl('default') ||
-			(String(remote.name ?? '').startsWith('n8n-') && events.some((e) => e?.id === eventId));
-		if (!ours) return {};
+		if (remote.url !== this.getNodeWebhookUrl('default')) return {};
 	}
 	try {
 		await xentralRequest.call(this, 'DELETE', `webhooks/${id}`, {}, {}, 'v1');
@@ -333,7 +328,11 @@ export class XentralTrigger implements INodeType {
 							// Adopt it only when the stored key was issued for this exact webhook id. A key saved for an
 							// older or different registration would make every delivery fail, so replace the webhook instead.
 							const storedKey = typeof webhookData.signatureKey === 'string' ? webhookData.signatureKey : '';
+							// A key stored for another instance belongs to a different registration, even with the same ID.
+							const storedInstance = typeof webhookData.webhookInstance === 'string' ? webhookData.webhookInstance : '';
+							const sameInstance = storedInstance === '' || storedInstance === (await currentInstance.call(this));
 							const ownsWebhook =
+								sameInstance &&
 								storedKey.length >= 20 &&
 								webhookData.webhookId !== undefined &&
 								webhookData.webhookId !== null &&

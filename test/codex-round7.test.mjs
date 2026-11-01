@@ -569,3 +569,55 @@ test('[r7-26] product update sends empty text fields to clear them', async () =>
 	await handleProduct.call(create, 'create', 0);
 	assert.equal('description' in create.calls[0].body, false);
 });
+
+// ---------- 11. fifth pre-release review ----------
+
+test('[r7-27] a pre-1.4.5 stored webhook is deleted only when it points at this node URL', async () => {
+	const stored = { webhookId: '42', signatureKey: 'k'.repeat(32) };
+	const calls = [];
+	const ctx = {
+		getNodeWebhookUrl: () => 'https://n8n.example.com/webhook/x',
+		getNodeParameter: (name, fallback) => (name === 'event' ? 'salesOrder.created' : fallback),
+		getWorkflowStaticData: () => stored,
+		getNode: () => ({ name: 'Trigger' }),
+		getCredentials: async () => ({ instanceUrl: 'acme.xentral.com', accessToken: '2|token' }),
+		logger: { warn: () => {} },
+		helpers: {
+			httpRequest: async (options) => {
+				calls.push(options);
+				return { data: { id: '42', name: 'n8n-salesOrder.created', url: 'https://n8n.example.com/webhook/other-workflow', events: [{ id: 'com.xentral.salesOrder.created.v1' }] } };
+			},
+		},
+	};
+	assert.equal(await new XentralTrigger().webhookMethods.default.delete.call(ctx), true);
+	assert.deepEqual(calls.map((c) => c.method), ['GET']);
+});
+
+test('[r7-28] a webhook with the stored ID on another instance is not adopted with the old key', async () => {
+	const stored = { webhookId: '77', signatureKey: 'o'.repeat(32), webhookInstance: 'https://old.xentral.com' };
+	const calls = [];
+	const ctx = {
+		getNodeWebhookUrl: () => 'https://n8n.example.com/webhook/x',
+		getNodeParameter: (name, fallback) => (name === 'event' ? 'salesOrder.created' : fallback),
+		getWorkflowStaticData: () => stored,
+		getNode: () => ({ name: 'Trigger' }),
+		getCredentials: async () => ({ instanceUrl: 'acme.xentral.com', accessToken: '2|token' }),
+		logger: { warn: () => {} },
+		helpers: {
+			httpRequest: async (options) => {
+				calls.push(options);
+				if (options.method === 'GET') return { data: [{ id: '77', url: 'https://n8n.example.com/webhook/x', events: [{ id: 'com.xentral.salesOrder.created.v1' }] }] };
+				return {};
+			},
+		},
+	};
+	assert.equal(await new XentralTrigger().webhookMethods.default.checkExists.call(ctx), false);
+	assert.ok(calls.some((c) => c.method === 'DELETE' && c.url.endsWith('/webhooks/77')));
+	assert.equal('signatureKey' in stored, false);
+});
+
+test('[r7-29] an Offer update with a null ship-to override clears it', async () => {
+	const ctx = context({ offerId: '1', updateFields: { deviatingShipToAddress: { address: null } } });
+	await handleOffer.call(ctx, 'update', 0);
+	assert.equal(ctx.calls[0].body.deviatingShipToAddress, null);
+});

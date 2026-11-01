@@ -64,7 +64,8 @@ function buildOfferBody(fields: IDataObject): IDataObject {
 	if (fields.deviatingShipToAddress !== undefined) {
 		const fc = fields.deviatingShipToAddress as IDataObject;
 		const addr = fc.address as IDataObject;
-		if (addr) body.deviatingShipToAddress = documentAddress(addr);
+		// null clears the ship-to override, which the update schema allows.
+		if (addr !== undefined) body.deviatingShipToAddress = documentAddress(addr);
 	}
 
 	// Tags: comma-separated string to array

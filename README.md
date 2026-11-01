@@ -266,7 +266,7 @@ npm run lint    # n8n verification rule set, must report zero problems
 - Address overrides on documents leave Type out when it is empty. A set Type must be mrs, mr, company or other (any case). Any other value now stops the item with a clear error before the request, where Xentral used to reject it.
 - A line item update that sets only Price Currency now sends it. Before, it failed with "No fields provided" or the currency was dropped.
 - When the trigger cannot delete its webhook on deactivation (anything but 404 or 410), it keeps the webhook ID and signing key. The next activation adopts the webhook and the next deactivation retries the delete.
-- The trigger now remembers which Xentral instance it registered its webhook on, and only deletes it there. A webhook registered by an older version is read back first and deleted when it is still this trigger's registration.
+- The trigger now remembers which Xentral instance it registered its webhook on, and only deletes it there. A webhook registered by an older version is read back first and deleted only when it still points at this node's URL. A stored webhook from another instance is never adopted with the old signing key.
 - On activation the trigger first removes a webhook it kept from such a failed delete. If that removal fails too, activation stops with an error rather than registering a second webhook.
 - An empty Country in an address override is left out. A set Country must be a two-letter code (any case).
 - An empty Delivery Date in an update now clears the date (sends `null`) on Invoice and Proforma Invoice, and on Offer, Invoice, Credit Note and Proforma Invoice line items.
