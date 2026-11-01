@@ -84,7 +84,7 @@ function buildOfferBody(fields: IDataObject): IDataObject {
 /**
  * Build nested line item body from flat n8n fields.
  */
-function buildLineItemBody(fields: IDataObject): IDataObject {
+function buildLineItemBody(fields: IDataObject, isAdd = false): IDataObject {
 	const body: IDataObject = {};
 
 	// String pass-through fields
@@ -116,12 +116,11 @@ function buildLineItemBody(fields: IDataObject): IDataObject {
 
 	// Price object: { net: { amount: X, currency: "EUR" } }
 	if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
-		body.price = {
-			net: {
-				amount: fields.priceAmount,
-				currency: fields.priceCurrency || 'EUR',
-			},
-		};
+		const net: IDataObject = { amount: fields.priceAmount };
+		// An update only changes the currency when it was set; a new line item defaults to EUR.
+		if (fields.priceCurrency) net.currency = fields.priceCurrency;
+		else if (isAdd) net.currency = 'EUR';
+		body.price = { net };
 	}
 
 	return body;
@@ -200,7 +199,7 @@ export async function handleOffer(
 		const quantity = this.getNodeParameter('quantity', itemIndex) as number;
 		const lineItemOptions = this.getNodeParameter('lineItemOptions', itemIndex, {}) as IDataObject;
 
-		const body = buildLineItemBody(lineItemOptions);
+		const body = buildLineItemBody(lineItemOptions, true);
 		body.product = { id: productId };
 		body.quantity = quantity;
 

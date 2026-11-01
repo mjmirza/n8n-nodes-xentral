@@ -220,7 +220,7 @@ Creating a token needs admin rights in Xentral. The [Xentral authentication guid
 | Pagination | Cursor, page number and V3 pages, handled per endpoint |
 | Errors | Xentral problem details (RFC 9457) surfaced through `NodeApiError` |
 | Retries | 429, 502, 503 and 504 retried with exponential backoff, jitter and `Retry-After` |
-| Lint | The same rule set n8n uses to verify community packages. Every release passes the n8n verification scanner |
+| Lint | The same rule set n8n uses to verify community packages. The release workflow runs the n8n verification scanner on every published version |
 | Release | Signed npm provenance from GitHub Actions |
 
 ### Project structure

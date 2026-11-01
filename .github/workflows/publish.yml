@@ -29,3 +29,9 @@ jobs:
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # The scanner's sandbox (isolated-vm) needs Node 22. A failure marks the release red; publish cannot be undone.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: n8n community package scanner
+        run: bash scripts/scan-published.sh n8n-nodes-xentral "${GITHUB_REF_NAME#v}"

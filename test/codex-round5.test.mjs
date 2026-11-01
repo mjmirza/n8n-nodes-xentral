@@ -59,10 +59,11 @@ test('[r5-2] an amount-only price update does not send a currency', async () => 
 	assert.deepEqual(pp.calls[0].body.price, { amount: 12.34 });
 	const sp = context({ salesPriceId: '4', updateFields: { priceAmount: 9.5 } }, { response: { id: 1 } });
 	await handleSalesPrice.call(sp, 'update', 0);
-	assert.deepEqual(sp.calls[0].body.price, { amount: 9.5 });
+	// 1.4.4: sales price.amount is a string, as the v1 schema declares (see codex-round6 [r6-5]).
+	assert.deepEqual(sp.calls[0].body.price, { amount: '9.5' });
 	const create = context({ productId: '5', additionalFields: { priceAmount: 9.5 } }, { response: { id: 1 } });
 	await handleSalesPrice.call(create, 'create', 0);
-	assert.deepEqual(create.calls[0].body.price, { amount: 9.5, currency: 'EUR' });
+	assert.deepEqual(create.calls[0].body.price, { amount: '9.5', currency: 'EUR' });
 });
 
 // ---------- 4. tags paginate ----------
