@@ -4,7 +4,7 @@ This ledger covers the numbered findings in the 1.4.4 review (`xen-144/codex.md`
 
 IDs preserve the source review and finding number, independently of the `[r7-n]` test markers. Reviews 3 and 5 contain only sandbox-blocked status messages, with no enumerated findings, so they have no rows. Findings repeated in different reviews retain separate rows.
 
-All test names below are exact names from [test/codex-round7.test.mjs](../test/codex-round7.test.mjs). Commits come from `git log master..HEAD` and `git log -S`; multiple hashes identify an initial fix and its final compatibility correction, separate parts of one finding, or the accompanying decision documentation. The ledger contains 45 code-fix rows and 4 documented-decision rows.
+All test names below are exact names from [test/codex-round7.test.mjs](../test/codex-round7.test.mjs). Commits come from `git log master..HEAD` and `git log -S`; multiple hashes identify an initial fix and its final compatibility correction, separate parts of one finding, or the accompanying decision documentation. The ledger contains 47 code-fix rows and 4 documented-decision rows.
 
 | ID | Severity | File | What was fixed | Regression test name | Commit |
 | --- | --- | --- | --- | --- | --- |
@@ -53,6 +53,8 @@ All test names below are exact names from [test/codex-round7.test.mjs](../test/c
 | R17-2 | Medium | `nodes/Xentral/resources/return/return.handler.ts` | A return line item reason with a null id clears the reference instead of sending `{id: null}`. | `[r7-48] Return line item reasons with a null id clear the reference in object and JSON form` | `b604005` |
 | C1-1 | Medium | `nodes/Xentral/transport.ts` | Production Create leaves the four empty optional production and stock dates out of the request. | `[r8-1] production create omits all four empty optional dates and preserves set dates`; `[r7-46] empty dates are left out of every node-built request` | `db460b8` |
 | C1-2 | Low | `examples/*.json` | Example workflows use real parameter names and option values (company customer type, Product ID, Price Amount). | `[r8-2] every example Xentral parameter and option matches its resource/operation description` | `db460b8` |
+| R20-1 | Medium | `examples/workflow-2-offer-lifecycle.json` | Line items are added in sequence before verify and release, never in parallel branches. | `[r8-3] examples avoid parallel main targets and offer deletion downstream of release` | `f0e0b72` |
+| R20-2 | Medium | `examples/workflow-2-offer-lifecycle.json` | Removed Delete Offer after release, which the API rejects with 409 outside draft status. | `[r8-3] examples avoid parallel main targets and offer deletion downstream of release` | `f0e0b72` |
 
 ## Documented maintainer decisions (out of scope)
 
