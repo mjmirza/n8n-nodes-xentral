@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition } from '../../transport';
 
 export async function handleProformaInvoice(
 	this: IExecuteFunctions,
@@ -100,7 +100,7 @@ export async function handleProformaInvoice(
 			filterIndex++;
 		}
 		if (filters.customerId !== undefined && filters.customerId !== '') {
-			query[`filter[${filterIndex}][key]`] = 'customerId';
+			query[`filter[${filterIndex}][key]`] = 'address.id';
 			query[`filter[${filterIndex}][op]`] = 'equals';
 			query[`filter[${filterIndex}][value]`] = filters.customerId;
 			filterIndex++;
@@ -231,11 +231,12 @@ export async function handleProformaInvoice(
 
 		const lineSimpleFields = [
 			'deliveryDate', 'deliveryDateAsCalendarWeek', 'description',
-			'discount', 'quantity', 'sort', 'taxLegalNotice',
+			'discount', 'quantity', 'taxLegalNotice',
 		];
 		for (const field of lineSimpleFields) {
 			if (updateFields[field] !== undefined) body[field] = updateFields[field];
 		}
+		applyLineItemPosition(body, updateFields);
 
 		// Product ref
 		if (updateFields.productId) body.product = { id: updateFields.productId };

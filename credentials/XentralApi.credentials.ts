@@ -46,11 +46,12 @@ export class XentralApi implements ICredentialType {
 		},
 	};
 
-	// Internal, loopback, link-local and private hosts map to an unroutable .invalid host, the same block list as normalizeUrl in transport.ts.
+	// Internal hosts map to an unroutable .invalid host. Same canonical rules as isBlockedHost in transport.ts:
+	// decimal, hex, octal and short IPv4 forms, trailing dots, IPv6 literals and *.localhost are blocked.
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL:
-				'={{ (() => { const raw = $credentials.instanceUrl.trim().replace(/\\/+$/, ""); if (/^http:\\/\\//i.test(raw)) return "https://blocked.invalid"; const url = (/^https:\\/\\//i.test(raw) ? "" : "https://") + raw; const host = ((url.match(/^https:\\/\\/(?:[^@/]*@)?([^/:?#]+)/i) || [])[1] || "").toLowerCase(); const internal = !host || host === "localhost" || host === "0" || host === "0.0.0.0" || host.startsWith("[") || /^(127|10)\\./.test(host) || /^172\\.(1[6-9]|2\\d|3[01])\\./.test(host) || /^192\\.168\\./.test(host) || /^169\\.254\\./.test(host) || /^0+\\./.test(host); return internal ? "https://blocked.invalid" : url; })() }}',
+				'={{ (() => { const raw = $credentials.instanceUrl.trim().replace(/\\/+$/, ""); if (/^http:\\/\\//i.test(raw)) return "https://blocked.invalid"; const url = (/^https:\\/\\//i.test(raw) ? "" : "https://") + raw; const m = url.match(/^https:\\/\\/(?:[^@\\/]*@)?(\\[[^\\]]*\\]|[^\\/:?#]+)/i); const host = ((m || [])[1] || "").toLowerCase().replace(/\\.+$/, ""); const parts = host.split("."); let ip; if (parts.length <= 4 && parts.every((p) => /^(0x[0-9a-f]*|[0-9]+)$/i.test(p))) { const n = parts.map((p) => (/^0x/i.test(p) ? (p.length === 2 ? 0 : parseInt(p.slice(2), 16)) : /^0[0-9]+$/.test(p) ? (/^0[0-7]+$/.test(p) ? parseInt(p, 8) : NaN) : parseInt(p, 10))); const last = n.pop(); ip = n.some((x) => !(x <= 255)) || !(last < Math.pow(256, 4 - n.length)) ? NaN : n.reduce((acc, x, i) => acc + x * Math.pow(256, 3 - i), 0) + last; } const a = Math.floor(ip / 16777216); const b = Math.floor(ip / 65536) % 256; const internal = !host || host === "localhost" || host.endsWith(".localhost") || host.startsWith("[") || host.includes(":") || (ip !== undefined && (Number.isNaN(ip) || a === 0 || a === 10 || a === 127 || a >= 224 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127))); return internal ? "https://blocked.invalid" : url; })() }}',
 			url: '/api/v1/products',
 			qs: { 'page[number]': 1, 'page[size]': 1 },
 			method: 'GET',

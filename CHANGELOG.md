@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.4.0] - 2026-11-01
+
+### Security
+- Internal address blocking now canonicalizes the host first. Decimal, hex, octal and short IPv4 forms (`2130706433`, `0x7f000001`, `0177.0.0.1`, `127.1`), trailing dots (`localhost.`), `*.localhost`, IPv6 literals and the CGNAT, multicast and reserved ranges are blocked, in every request and in the credential test. The node blocks literal addresses only and does not resolve DNS. The README says so.
+- The trigger adopts an existing Xentral webhook only when the stored signing key was issued for that exact webhook id. A key saved for another registration made every delivery fail with 401. The webhook is now replaced instead.
+
+### Fixed
+- Retries and error details work with the errors n8n actually throws. n8n's HTTP helper raises Axios errors with `response.status` and `response.data`, and the node read `statusCode` and `body`, so a 429 was never retried and Xentral's error message and HTTP code were lost. Both shapes are now read. The regression test that mocked the wrong shape now uses the real one.
+- Return Create and Update send `isReturnOrderToSupplier`, the field Xentral accepts. The node option keeps its saved name.
+- The Customer ID and Created After filters on Offer, Sales Order, Invoice, Credit Note, Delivery Note, Proforma Invoice, Return and Purchase Order now send `address.id`, `createdAt` and `greaterThanOrEquals`, the keys and operator the Xentral spec declares. A test checks every list filter against the spec.
+- Offer Create and Update send the payment method as `financials.paymentMethod`. A root-level `paymentMethod` was ignored.
+- V3 lists stop on `links.next: null`. A complete result whose last page held exactly 50 items no longer fails as truncated.
+- Custom API Call accepts every documented path. Roots that the spec writes with a parameter (`{documentType}/{id}/files`, `{resource}TagAssignments`) are expanded from their enums, so paths such as `/api/v2/salesOrders/7/files` pass validation.
+- Text responses keep their content as `data` instead of being replaced by `success: true`.
+
+### Added
+- Custom API Call Response Format: JSON, Text or File. File returns a download such as an accounting CSV or ZIP export as binary data, with the file name taken from the response.
+- Position After Line Item ID on the line item update of all eight document resources. It sends `position.afterLineItem`, which is how Xentral V3 orders line items.
+
+### Changed
+- The line item Sort option is kept so saved workflows still load, but it is no longer sent. Xentral V3 has no numeric sort and ignored it. Its description now points to Position After Line Item ID.
+
 ## [1.3.0] - 2026-11-01
 
 ### Security

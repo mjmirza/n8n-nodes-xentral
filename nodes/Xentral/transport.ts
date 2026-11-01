@@ -11,6 +11,50 @@ import { NodeApiError, sleep } from 'n8n-workflow';
 
 // ---------- helpers ----------
 
+/**
+ * Parses an IPv4 literal the way WHATWG URL and inet_aton do. Accepts decimal, hex (0x) and
+ * octal (leading 0) parts and the 1 to 4 part short forms. Returns the 32 bit value, NaN when
+ * the host looks numeric but is malformed, or undefined when it is a domain name.
+ */
+export function parseIpv4(host: string): number | undefined {
+	const parts = host.split('.');
+	if (parts.length > 4 || !parts.every((p) => /^(0x[0-9a-f]*|[0-9]+)$/i.test(p))) return undefined;
+	const nums = parts.map((p) => {
+		if (/^0x/i.test(p)) return p.length === 2 ? 0 : parseInt(p.slice(2), 16);
+		if (/^0[0-9]+$/.test(p)) return /^0[0-7]+$/.test(p) ? parseInt(p, 8) : NaN;
+		return parseInt(p, 10);
+	});
+	if (nums.some((n) => !Number.isFinite(n))) return NaN;
+	const last = nums.pop() as number;
+	if (nums.some((n) => n > 255) || last >= Math.pow(256, 4 - nums.length)) return NaN;
+	return nums.reduce((acc, n, i) => acc + n * Math.pow(256, 3 - i), 0) + last;
+}
+
+/**
+ * True for hosts that must never receive the credential: localhost names, every IPv6 literal,
+ * and IPv4 addresses in loopback, private, link-local, CGNAT, multicast or reserved ranges.
+ * Literal addresses only. A public name that resolves to an internal address needs an n8n egress policy.
+ */
+export function isBlockedHost(rawHost: string): boolean {
+	const host = String(rawHost || '').trim().toLowerCase().replace(/\.+$/, '');
+	if (!host) return true;
+	if (host === 'localhost' || host.endsWith('.localhost')) return true;
+	if (host.startsWith('[') || host.includes(':')) return true;
+	const ip = parseIpv4(host);
+	if (ip === undefined) return false;
+	if (Number.isNaN(ip)) return true;
+	const a = Math.floor(ip / 16777216);
+	const b = Math.floor(ip / 65536) % 256;
+	return (
+		a === 0 || a === 10 || a === 127 || a >= 224 ||
+		(a === 169 && b === 254) ||
+		(a === 172 && b >= 16 && b <= 31) ||
+		(a === 192 && b === 168) ||
+		(a === 100 && b >= 64 && b <= 127)
+	);
+}
+
+
 export function normalizeUrl(raw: string): string {
 	let url = raw.trim().replace(/\/+$/, '');
 	// Enforce HTTPS: reject explicit http:// and auto-add https:// if missing
@@ -21,32 +65,17 @@ export function normalizeUrl(raw: string): string {
 		url = `https://${url}`;
 	}
 
-	// SSRF protection: block internal/reserved IP ranges and localhost
+	// SSRF protection: block internal and reserved hosts after canonicalizing them.
 	let hostname = '';
 	try {
-		hostname = new URL(url).hostname.toLowerCase();
+		hostname = new URL(url).hostname;
 	} catch {
 		hostname = '';
 	}
 	if (!hostname) {
 		throw new Error('Invalid Xentral instance URL. Please check the format (e.g. https://yourcompany.xentral.com).');
 	}
-	if (
-		hostname === 'localhost' ||
-		hostname === '0.0.0.0' ||
-		hostname === '0' ||
-		/^127\./.test(hostname) ||
-		/^10\./.test(hostname) ||
-		/^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
-		/^192\.168\./.test(hostname) ||
-		/^169\.254\./.test(hostname) ||
-		/^0+\./.test(hostname) ||
-		hostname === '::1' ||
-		hostname.startsWith('[') ||
-		/^fc00:/i.test(hostname) ||
-		/^fe80:/i.test(hostname) ||
-		/^::ffff:/i.test(hostname)
-	) {
+	if (isBlockedHost(hostname)) {
 		throw new Error('Connections to internal or reserved network addresses are not allowed');
 	}
 
@@ -77,30 +106,53 @@ export function normalizeToken(raw: string): string {
 	return token;
 }
 
+/** HTTP status of a failed request. n8n's helper throws AxiosErrors (response.status), older paths use statusCode. */
+export function errorStatus(error: any): number | undefined {
+	const raw = error?.response?.status ?? error?.response?.statusCode ?? error?.statusCode ?? error?.httpCode;
+	const status = typeof raw === 'string' ? parseInt(raw, 10) : raw;
+	return typeof status === 'number' && Number.isFinite(status) ? status : undefined;
+}
+
+/** Response body of a failed request. AxiosErrors carry it in response.data, older paths in response.body. */
+function errorBody(error: any): any {
+	const response = error?.response;
+	if (!response) return undefined;
+	if (response.data !== undefined && response.data !== null && response.data !== '') return response.data;
+	if (response.body !== undefined && response.body !== null && response.body !== '') return response.body;
+	return undefined;
+}
+
 function handleXentralError(
 	node: IExecuteFunctions | ILoadOptionsFunctions | IHookFunctions,
 	error: any,
 ): never {
-	if (error.response?.body) {
-		let errorBody: any;
+	const status = errorStatus(error);
+	let raw = errorBody(error);
+	if (raw instanceof ArrayBuffer) raw = Buffer.from(raw);
+	if (Buffer.isBuffer(raw)) raw = raw.toString('utf8');
+	if (raw !== undefined) {
+		let parsedBody: any;
 		try {
-			errorBody = typeof error.response.body === 'string'
-				? JSON.parse(error.response.body)
-				: error.response.body;
+			parsedBody = typeof raw === 'string' ? JSON.parse(raw) : raw;
 		} catch {
-			errorBody = { detail: String(error.response.body) };
+			parsedBody = { detail: String(raw) };
 		}
-		const message = parseXentralError(errorBody);
+		const message = parseXentralError(parsedBody);
 		const safeError: Record<string, any> = {
 			message: error.message,
-			statusCode: error.response?.statusCode || error.statusCode,
+			statusCode: status,
 		};
-		throw new NodeApiError(node.getNode(), safeError as JsonObject, { message });
+		throw new NodeApiError(node.getNode(), safeError as JsonObject, {
+			message,
+			httpCode: status !== undefined ? String(status) : undefined,
+		});
 	}
 	const safeError: Record<string, any> = {
 		message: error.message || 'Unknown error',
 	};
-	throw new NodeApiError(node.getNode(), safeError as JsonObject);
+	throw new NodeApiError(node.getNode(), safeError as JsonObject, {
+		httpCode: status !== undefined ? String(status) : undefined,
+	});
 }
 
 function parseXentralError(responseBody: any): string {
@@ -164,6 +216,18 @@ export function assertNonEmptyBody(body: IDataObject, operationName: string): vo
 	}
 }
 
+/**
+ * Line item placement for V3 documents. Xentral orders line items with position.afterLineItem.
+ * The legacy numeric Sort option is never sent, V3 ignores it.
+ */
+export function applyLineItemPosition(body: IDataObject, fields: IDataObject): void {
+	const after = fields.afterLineItemId;
+	if (after === undefined || after === null || String(after).trim() === '') return;
+	const id = String(after).trim();
+	assertSafeId(id, 'afterLineItemId');
+	body.position = { afterLineItem: { id } };
+}
+
 // ---------- endpoint sanitization ----------
 
 function sanitizeEndpoint(endpoint: string): string {
@@ -190,6 +254,7 @@ export async function xentralRequest(
 	query: IDataObject = {},
 	apiVersion: string = 'v1',
 	extraHeaders?: Record<string, string>,
+	raw: boolean = false,
 ): Promise<any> {
 	const credentials = await getCredentials(this);
 	const instanceUrl = credentials.instanceUrl as string;
@@ -223,6 +288,13 @@ export async function xentralRequest(
 	// Read Location so a create that answers with an empty body still yields its new id.
 	options.returnFullResponse = true;
 
+	// Raw mode returns the bytes and headers untouched, for downloads such as CSV or ZIP exports.
+	if (raw) {
+		options.json = false;
+		options.encoding = 'arraybuffer';
+		options.headers = { ...options.headers, Accept: extraHeaders?.Accept ?? '*/*' };
+	}
+
 	// Retries. Safe methods retry on 429, 502, 503 and 504. A write (POST, PATCH, PUT) may already
 	// have been committed when a gateway fails, so it only retries on 429, where Xentral did not process it.
 	const maxRetries = 3;
@@ -231,10 +303,10 @@ export async function xentralRequest(
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
 		try {
 			const response = await this.helpers.httpRequest(options);
-			return unwrapResponse(method, response);
+			return raw ? response : unwrapResponse(method, response);
 		} catch (error: any) {
-			const statusCode = error.response?.statusCode || error.statusCode;
-			if (retryableStatuses.includes(statusCode) && attempt < maxRetries) {
+			const statusCode = errorStatus(error);
+			if (statusCode !== undefined && retryableStatuses.includes(statusCode) && attempt < maxRetries) {
 				const retryAfter = error.response?.headers?.['retry-after'];
 				const parsed = retryAfter ? parseInt(retryAfter, 10) : NaN;
 				const baseMs = Number.isFinite(parsed)
@@ -417,6 +489,7 @@ export async function xentralV3GetAll(
 	const perPage = 50;
 	let page = 1;
 	let iterations = 0;
+	let complete = false;
 	const maxIterations = maxPages && maxPages > 0 ? maxPages : 1000;
 
 	do {
@@ -429,26 +502,31 @@ export async function xentralV3GetAll(
 		const response = await xentralRequest.call(this, 'GET', endpoint, {}, qs, 'v3');
 		const items = response.data || [];
 		returnData.push(...items);
-
-		// Stop immediately if page returned no items
-		if (items.length === 0) break;
-
-		const hasNext = response?.links?.next != null;
-		const meta = response?.meta || {};
-		const lastPage = meta.lastPage;
-
-		if (!hasNext && lastPage && page >= lastPage) break;
-		if (!hasNext && items.length < perPage) break;
-
-		page++;
 		iterations++;
 
 		if (limit && returnData.length >= limit) {
 			return returnData.slice(0, limit);
 		}
+
+		// The last page: an empty page, an explicit links.next of null, the reported last page,
+		// or (without pagination links) a short page.
+		const links = response?.links;
+		const hasLinks = links !== null && typeof links === 'object' && 'next' in links;
+		const lastPage = response?.meta?.lastPage;
+		if (
+			items.length === 0 ||
+			(hasLinks && links.next == null) ||
+			(lastPage && page >= lastPage) ||
+			(!hasLinks && items.length < perPage)
+		) {
+			complete = true;
+			break;
+		}
+
+		page++;
 	} while (iterations < maxIterations);
 
-	if (iterations >= maxIterations) {
+	if (!complete) {
 		throw new NodeApiError(
 			this.getNode(),
 			{ message: 'Pagination limit reached' } as JsonObject,
