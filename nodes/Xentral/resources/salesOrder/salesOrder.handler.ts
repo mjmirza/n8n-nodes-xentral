@@ -210,6 +210,9 @@ export async function handleSalesOrder(
 		if (lineItemOptions.priceAmount !== undefined) {
 			const currency = (lineItemOptions.priceCurrency as string) || 'EUR';
 			body.price = { net: { amount: lineItemOptions.priceAmount, currency } };
+		} else if (lineItemOptions.priceCurrency) {
+			// A currency on its own is sent too, LineItemFinancials allows it without an amount.
+			body.price = { net: { currency: lineItemOptions.priceCurrency } };
 		}
 
 		return xentralRequest.call(this, 'POST', `salesOrders/${salesOrderId}/lineItems`, apiDates(lineItemAddBody(body as IDataObject)), {}, 'v3');

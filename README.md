@@ -280,6 +280,9 @@ npm run lint    # n8n verification rule set, must report zero problems
 - Product ID on a line item update and Product Number on a line item add or update are no longer sent, because Xentral V3 accepts neither and ignored them. To change a line item's product, delete it and add a new one.
 - Sales Order and Return Get Many with the Sent filter now return documents marked as sent (`isDocumentSent`). Before, the filter asked for a status Xentral does not have.
 - On the first activation after upgrading, the trigger writes its stored signing key to the webhook it adopts, one extra request.
+- Add Line Item now sends a Price Currency that is set without a Price Amount.
+- Customer Create no longer needs Name for a person. Set Customer Type to Person with First Name and Last Name.
+- A Xentral host with percent-encoding or non-ASCII characters is now refused at run time too, matching the credential test.
 - The trigger ignores deliveries whose event type is not the one it is set to. Before, a webhook registered with extra events started the workflow for all of them.
 - To remove a price's Valid From or Expires At, use an expression that returns null.
 - Product Update still ignores empty values. Turn on the new Clear Empty Fields option to clear text fields with an empty value, or the age rating with Age Rating None.

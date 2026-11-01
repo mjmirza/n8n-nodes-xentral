@@ -807,3 +807,39 @@ test('[r7-37] Report Execute Query Full Response keeps meta.totalResults, off ke
 	const field = new Xentral().description.properties.find((p) => p.name === 'fullResponse' && p.displayOptions?.show?.resource?.includes('report'));
 	assert.ok(field.displayOptions.show.operation.includes('executeQuery'));
 });
+
+// ---------- 17. twelfth pre-release review ----------
+
+test('[r7-38] Add Line Item sends a currency set on its own', async () => {
+	const adds = [
+		[handleOffer, { offerId: '1' }], [handleInvoice, { invoiceId: '1' }], [handleCreditNote, { creditNoteId: '1' }],
+		[handleSalesOrder, { salesOrderId: '1' }], [handlePurchaseOrder, { purchaseOrderId: '1' }], [handleProformaInvoice, { proformaInvoiceId: '1' }],
+	];
+	for (const [handler, ids] of adds) {
+		const ctx = context({ ...ids, productId: '5', quantity: 1, lineItemOptions: { priceCurrency: 'USD' } });
+		await handler.call(ctx, 'addLineItem', 0);
+		assert.deepEqual(ctx.calls[0].body.price, { net: { currency: 'USD' } }, handler.name);
+		const none = context({ ...ids, productId: '5', quantity: 1, lineItemOptions: {} });
+		await handler.call(none, 'addLineItem', 0);
+		assert.equal('price' in none.calls[0].body, false, handler.name);
+	}
+});
+
+test('[r7-39] Customer Create accepts a person with first and last name and no company name', async () => {
+	const person = context({ salutation: 'mr', name: '', additionalFields: { customerType: 'person', firstname: 'Max', lastname: 'Muster' } });
+	await handleCustomer.call(person, 'create', 0);
+	assert.equal('name' in person.calls[0].body, false);
+	assert.equal(person.calls[0].body.firstname, 'Max');
+	const missing = context({ salutation: 'mr', name: '', additionalFields: { customerType: 'person', firstname: 'Max' } });
+	await assert.rejects(() => handleCustomer.call(missing, 'create', 0), /Last Name/);
+	const company = context({ salutation: 'company', name: '', additionalFields: {} });
+	await assert.rejects(() => handleCustomer.call(company, 'create', 0), /Name is required/);
+});
+
+test('[r7-40] the runtime refuses percent-encoded and non-ASCII hosts, like the credential test', () => {
+	for (const url of ['https://%61cme.xentral.com', 'https://bücher.xentral.com']) {
+		assert.throws(() => transport7.normalizeUrl(url), /Invalid Xentral instance host/, url);
+	}
+	assert.equal(transport7.normalizeUrl('acme.xentral.com'), 'https://acme.xentral.com');
+	assert.equal(transport7.normalizeUrl('https://acme-1.xentral.com:8443/'), 'https://acme-1.xentral.com:8443');
+});

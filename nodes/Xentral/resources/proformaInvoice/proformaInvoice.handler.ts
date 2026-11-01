@@ -223,6 +223,9 @@ export async function handleProformaInvoice(
 					currency: (lineItemOptions.priceCurrency as string) || 'EUR',
 				},
 			};
+		} else if (lineItemOptions.priceCurrency) {
+			// A currency on its own is sent too, LineItemFinancials allows it without an amount.
+			body.price = { net: { currency: lineItemOptions.priceCurrency } };
 		}
 
 		return xentralRequest.call(this, 'POST', `proformaInvoices/${proformaInvoiceId}/lineItems`, lineItemAddBody(body as IDataObject), {}, 'v3');

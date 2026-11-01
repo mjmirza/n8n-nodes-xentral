@@ -122,6 +122,9 @@ function buildLineItemBody(fields: IDataObject, isAdd = false): IDataObject {
 		if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
 			// A new line item defaults to EUR when no currency was set.
 			body.price = { net: { amount: fields.priceAmount, currency: fields.priceCurrency || 'EUR' } };
+		} else if (fields.priceCurrency) {
+			// A currency on its own is sent too, LineItemFinancials allows it without an amount.
+			body.price = { net: { currency: fields.priceCurrency } };
 		}
 	} else {
 		// An update sends what was set, so a currency-only change is kept.

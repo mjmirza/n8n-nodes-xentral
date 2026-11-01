@@ -26,6 +26,12 @@
 - The Sent filter on Sales Order and Return uses `isDocumentSent`, because their status has no `sent` value.
 - When the trigger adopts a registration stored by a version before 1.4.5, it writes the stored signing key to it first, so deliveries verify even if the credential now points at another tenant with the same webhook ID. If that write fails, the registration is replaced.
 - JSON fields on Product (Free Fields, Options, Variants, Selected Options), Customer (Custom Fields, Additional Contact Data), Credit Note (Debt Status) and Invoice (Dunning Settings) accept an expression that already resolved to an object or array. They threw "must be valid JSON".
+- Add Line Item sends a Price Currency set without a Price Amount on Sales Order, Purchase Order, Offer, Invoice, Credit Note and Proforma Invoice. It was dropped.
+- Customer Create accepts a person (Customer Type Person) with First Name and Last Name and no Name, as Xentral requires. Name is still required for a company.
+
+### Security
+- The runtime refuses a Xentral host that is percent-encoded or contains non-ASCII characters, as the credential test already did, so both checks agree on the host.
+
 - Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 
 ### Added

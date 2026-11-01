@@ -78,6 +78,13 @@ export function normalizeUrl(raw: string): string {
 		url = `https://${url}`;
 	}
 
+	// The host as typed must be plain ASCII, as the credential test requires. The URL parser would decode a
+	// percent-encoded or non-ASCII host first, so the two checks would disagree.
+	const typedHost = (/^https:\/\/([^/:?#]*)/i.exec(url) ?? [])[1] ?? '';
+	if (!typedHost.startsWith('[') && /[^a-z0-9._-]/i.test(typedHost)) {
+		throw new Error('Invalid Xentral instance host. Only letters, digits, dots and hyphens are allowed.');
+	}
+
 	// SSRF protection: block internal and reserved hosts after canonicalizing them.
 	let hostname = '';
 	try {

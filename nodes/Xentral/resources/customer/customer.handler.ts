@@ -26,13 +26,17 @@ export async function handleCustomer(
 ): Promise<IDataObject | IDataObject[]> {
 	if (operation === 'create') {
 		const salutation = this.getNodeParameter('salutation', itemIndex, 'company') as string;
-		const name = assertNonEmpty(this.getNodeParameter('name', itemIndex) as string, 'Name');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
-
-		const body: IDataObject = {
-			salutation,
-			name,
-		};
+		const rawName = String(this.getNodeParameter('name', itemIndex, '') ?? '');
+		const body: IDataObject = { salutation };
+		// Xentral needs the company name for a company, and first and last name for a person.
+		if (additionalFields.customerType === 'person') {
+			assertNonEmpty(String(additionalFields.firstname ?? ''), 'First Name (for a person)');
+			assertNonEmpty(String(additionalFields.lastname ?? ''), 'Last Name (for a person)');
+			if (rawName.trim() !== '') body.name = rawName.trim();
+		} else {
+			body.name = assertNonEmpty(rawName, 'Name');
+		}
 
 		// Simple top-level fields
 		if (additionalFields.customerType !== undefined) body.customerType = additionalFields.customerType;
