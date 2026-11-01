@@ -142,3 +142,19 @@ test('[r8-3] examples avoid parallel main targets and offer deletion downstream 
 	}
 	assert.deepEqual(errors, []);
 });
+
+test('[r8-4] the offer example adds both line items before verifying and releasing', () => {
+	const workflow = JSON.parse(fs.readFileSync(new URL('../examples/workflow-2-offer-lifecycle.json', import.meta.url)));
+	const next = (name) => (workflow.connections[name]?.main ?? []).flat().map((t) => t.node);
+	const order = ['Manual Trigger'];
+	for (let targets = next('Manual Trigger'); targets.length; targets = next(order.at(-1))) {
+		assert.equal(targets.length, 1, `${order.at(-1)} must have exactly one next node`);
+		assert.ok(!order.includes(targets[0]), 'the chain must not loop');
+		order.push(targets[0]);
+	}
+	assert.deepEqual(order, [
+		'Manual Trigger', 'Get First Customer', 'Create Offer', 'Add Line Item 1', 'Add Line Item 2',
+		'Get Offer (Verify)', 'Release Offer', 'Log Activity',
+	]);
+	assert.equal(order.length, workflow.nodes.length, 'every node is on the lifecycle chain');
+});
