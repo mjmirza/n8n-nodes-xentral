@@ -244,12 +244,10 @@ export async function handleProformaInvoice(
 
 		// Price object
 		if (updateFields.priceAmount !== undefined) {
-			body.price = {
-				net: {
-					amount: updateFields.priceAmount,
-					currency: (updateFields.priceCurrency as string) || 'EUR',
-				},
-			};
+			// An update only changes the currency when it was set.
+			const net: IDataObject = { amount: updateFields.priceAmount };
+			if (updateFields.priceCurrency) net.currency = updateFields.priceCurrency;
+			body.price = { net };
 		}
 
 		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);

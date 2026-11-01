@@ -231,8 +231,10 @@ export async function handleSalesOrder(
 
 		// Price structure
 		if (updateFields.priceAmount !== undefined) {
-			const currency = (updateFields.priceCurrency as string) || 'EUR';
-			body.price = { net: { amount: updateFields.priceAmount, currency } };
+			// An update only changes the currency when it was set.
+			const net: IDataObject = { amount: updateFields.priceAmount };
+			if (updateFields.priceCurrency) net.currency = updateFields.priceCurrency;
+			body.price = { net };
 		}
 
 		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);

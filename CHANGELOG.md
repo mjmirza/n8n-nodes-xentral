@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.4] - 2026-11-01
+
+### Security
+- The credential test no longer follows redirects. n8n forwards the Authorization header on a redirect, so a redirecting host could have received the token or pointed the test at plain http or an internal address.
+
+### Fixed
+- Line item updates on Sales Order, Purchase Order, Offer, Invoice, Credit Note and Proforma Invoice send a currency only when you set one. An amount-only update sent EUR and could change the line's currency. Adding a line item still defaults to EUR.
+- A saved Return Reason of `null` sends JSON `null` again and clears the reason, as in 1.4.2. 1.4.3 sent `{"id":"null"}`. An empty value is still not sent.
+- Customer Fixed Payment Terms and the SEPA flags (Company SEPA, Initial, Mandate Reference Change) are sent as JSON booleans. The text values `true` and `false` were sent as strings.
+- Purchase Price Create and Sales Price Create and Update send `price.amount` as a string, as their schemas declare. Purchase Price Update keeps a number, which its schema declares.
+
+### Release
+- The publish workflow runs n8n's community package scanner on Node 22 against the version it just published, and marks the release failed if the scan does not pass.
+
 ## [1.4.3] - 2026-11-01
 
 ### Security
