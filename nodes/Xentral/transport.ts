@@ -201,6 +201,7 @@ export async function xentralRequest(
 	body: IDataObject | IDataObject[] = {},
 	query: IDataObject = {},
 	apiVersion: string = 'v1',
+	extraHeaders?: Record<string, string>,
 ): Promise<any> {
 	const credentials = await getCredentials(this);
 	const instanceUrl = credentials.instanceUrl as string;
@@ -217,6 +218,7 @@ export async function xentralRequest(
 			Authorization: `Bearer ${accessToken}`,
 			'Content-Type': 'application/json',
 			Accept: 'application/json',
+			...(extraHeaders ?? {}),
 		},
 		json: true,
 		timeout: 30000,

@@ -1,6 +1,7 @@
-import type { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties, INodePropertyOptions } from 'n8n-workflow';
+import { SPEC_PRODUCT_EXTRAS, specOperationOptions } from '../specDriven/spec.description';
 
-export const productOperations: INodeProperties[] = [
+const baseProductOperations: INodeProperties[] = [
 	{
 		displayName: 'Operation',
 		name: 'operation',
@@ -52,3 +53,12 @@ export const productOperations: INodeProperties[] = [
 		default: 'getAll',
 	},
 ];
+
+/** The base product operations plus the extra read operations generated from the Xentral spec. */
+export const productOperations: INodeProperties[] = baseProductOperations.map((property) => ({
+	...property,
+	options: [
+		...((property.options ?? []) as INodePropertyOptions[]),
+		...(SPEC_PRODUCT_EXTRAS ? specOperationOptions(SPEC_PRODUCT_EXTRAS) : []),
+	].sort((a, b) => a.name.localeCompare(b.name)),
+}));
