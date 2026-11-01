@@ -19,6 +19,12 @@ export const webhookOperations: INodeProperties[] = [
 				action: 'Create a webhook',
 			},
 			{
+				name: 'Delete',
+				value: 'delete',
+				description: 'Delete a webhook',
+				action: 'Delete a webhook',
+			},
+			{
 				name: 'Get',
 				value: 'get',
 				description: 'Get a webhook by ID',
@@ -35,12 +41,6 @@ export const webhookOperations: INodeProperties[] = [
 				value: 'update',
 				description: 'Update a webhook',
 				action: 'Update a webhook',
-			},
-			{
-				name: 'Delete',
-				value: 'delete',
-				description: 'Delete a webhook',
-				action: 'Delete a webhook',
 			},
 		],
 		default: 'getAll',

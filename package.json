@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-xentral",
-	"version": "1.0.10",
+	"version": "1.1.0",
 	"description": "The most comprehensive n8n community node for Xentral ERP - 30 resources, 196 operations, 73 webhook events. Full API audit verified. Built by next8n.",
 	"keywords": [
 		"n8n-community-node-package",
@@ -16,9 +16,10 @@
 		"warehouse",
 		"e-commerce"
 	],
-	"license": "FUCL",
+	"license": "MIT",
 	"author": {
-		"name": "Mirza Iqbal / next8n",
+		"name": "Mirza Iqbal",
+		"email": "support@next8n.com",
 		"url": "https://next8n.com"
 	},
 	"homepage": "https://github.com/mjmirza/n8n-nodes-xentral#readme",
@@ -30,13 +31,13 @@
 		"url": "git+https://github.com/mjmirza/n8n-nodes-xentral.git"
 	},
 	"scripts": {
-		"build": "tsc && gulp build:icons",
+		"build": "tsc && node scripts/copy-assets.mjs",
 		"dev": "tsc --watch",
 		"format": "prettier nodes credentials --write",
-		"lint": "eslint nodes credentials --ext .ts",
+		"lint": "eslint package.json nodes credentials",
 		"test": "npm run build && node --test test/*.test.mjs",
-		"prepublishOnly": "cp README.md .readme-dev.bak && cp docs/npm-readme.md README.md && npm run build",
-		"postpublish": "mv .readme-dev.bak README.md"
+		"lint:fix": "eslint package.json nodes credentials --fix",
+		"prepublishOnly": "npm run build"
 	},
 	"files": [
 		"dist",
@@ -53,13 +54,19 @@
 		]
 	},
 	"devDependencies": {
-		"@types/node": "^20.0.0",
-		"gulp": "^4.0.2",
-		"n8n-workflow": "^1.0.0",
-		"prettier": "^3.0.0",
-		"typescript": "^5.0.0"
+		"@n8n/eslint-plugin-community-nodes": "^0.38.1",
+		"@types/node": "^22.20.5",
+		"@typescript-eslint/parser": "^8.72.1",
+		"eslint": "9.29.0",
+		"eslint-plugin-n8n-nodes-base": "^2.0.0",
+		"n8n-workflow": "2.45.4",
+		"prettier": "^3.9.10",
+		"typescript": "^6.0.3"
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"
+	},
+	"engines": {
+		"node": ">=22"
 	}
 }

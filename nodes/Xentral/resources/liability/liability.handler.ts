@@ -1,4 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, xentralFileUpload, assertSafeId } from '../../transport';
 
 export async function handleLiability(
@@ -47,7 +48,7 @@ export async function handleLiability(
 					try {
 						body[apiField] = JSON.parse(val);
 					} catch {
-						throw new Error(`Invalid JSON in ${apiField}. Please provide valid JSON.`);
+						throw new NodeOperationError(this.getNode(), `Invalid JSON in ${apiField}. Please provide valid JSON.`);
 					}
 				} else if (typeof val === 'object') {
 					body[apiField] = val;

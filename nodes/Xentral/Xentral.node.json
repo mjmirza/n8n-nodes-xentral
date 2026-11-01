@@ -2,16 +2,18 @@
 	"node": "n8n-nodes-xentral.xentral",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
-	"categories": ["Sales"],
+	"categories": [
+		"Sales"
+	],
 	"resources": {
 		"primaryDocumentation": [
 			{
-				"url": "https://next8n.com"
+				"url": "https://github.com/mjmirza/n8n-nodes-xentral#readme"
 			}
 		],
 		"credentialDocumentation": [
 			{
-				"url": "https://developer.xentral.com/docs"
+				"url": "https://developer.xentral.com/reference/authentication"
 			}
 		]
 	}

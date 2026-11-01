@@ -1,10 +1,11 @@
-import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for credit note create/update.
  */
-function buildCreditNoteBody(fields: IDataObject): IDataObject {
+function buildCreditNoteBody(node: INode, fields: IDataObject): IDataObject {
 	const body: IDataObject = {};
 
 	// Simple string/date fields - pass through directly
@@ -59,7 +60,7 @@ function buildCreditNoteBody(fields: IDataObject): IDataObject {
 		try {
 			body.debtStatus = JSON.parse(fields.debtStatusJson as string);
 		} catch {
-			throw new Error('Invalid JSON in debtStatus. Please provide valid JSON.');
+			throw new NodeOperationError(node, 'Invalid JSON in debtStatus. Please provide valid JSON.');
 		}
 	}
 
@@ -122,7 +123,7 @@ export async function handleCreditNote(
 		assertSafeId(customerId, 'customerId');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const body = buildCreditNoteBody(additionalFields);
+		const body = buildCreditNoteBody(this.getNode(), additionalFields);
 		body.address = { id: customerId };
 
 		return xentralRequest.call(this, 'POST', 'creditNotes', body as IDataObject, {}, 'v3');
@@ -166,7 +167,7 @@ export async function handleCreditNote(
 		const creditNoteId = this.getNodeParameter('creditNoteId', itemIndex) as string;
 		assertSafeId(creditNoteId, 'creditNoteId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		const body = buildCreditNoteBody(updateFields);
+		const body = buildCreditNoteBody(this.getNode(), updateFields);
 		assertNonEmptyBody(body as IDataObject, 'credit note update');
 		return xentralRequest.call(this, 'PATCH', `creditNotes/${creditNoteId}`, body as IDataObject, {}, 'v3');
 	}

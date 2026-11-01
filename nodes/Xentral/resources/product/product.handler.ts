@@ -1,4 +1,5 @@
-import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 import { runProductSearch } from './product.search';
 
@@ -7,7 +8,7 @@ import { runProductSearch } from './product.search';
  * Handles object refs (project, category, manufacturer, standardSupplier, variantOf),
  * measurements object, tags array, freeFields JSON, and discount object.
  */
-function buildProductBody(fields: IDataObject): IDataObject {
+function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 	const body: IDataObject = {};
 
 	// Simple string/boolean/number fields that map 1:1 to the API
@@ -145,7 +146,7 @@ function buildProductBody(fields: IDataObject): IDataObject {
 		try {
 			body.freeFields = JSON.parse(fields.freeFields as string);
 		} catch {
-			throw new Error('Free Fields must be valid JSON (expected an array)');
+			throw new NodeOperationError(node, 'Free Fields must be valid JSON (expected an array)');
 		}
 	}
 
@@ -187,7 +188,7 @@ function buildProductBody(fields: IDataObject): IDataObject {
 		try {
 			body.options = JSON.parse(fields.options as string);
 		} catch {
-			throw new Error('Options must be valid JSON (expected an array)');
+			throw new NodeOperationError(node, 'Options must be valid JSON (expected an array)');
 		}
 	}
 
@@ -196,7 +197,7 @@ function buildProductBody(fields: IDataObject): IDataObject {
 		try {
 			body.variants = JSON.parse(fields.variants as string);
 		} catch {
-			throw new Error('Variants must be valid JSON (expected an array)');
+			throw new NodeOperationError(node, 'Variants must be valid JSON (expected an array)');
 		}
 	}
 
@@ -205,7 +206,7 @@ function buildProductBody(fields: IDataObject): IDataObject {
 		try {
 			body.selectedOptions = JSON.parse(fields.selectedOptions as string);
 		} catch {
-			throw new Error('Selected Options must be valid JSON (expected an array)');
+			throw new NodeOperationError(node, 'Selected Options must be valid JSON (expected an array)');
 		}
 	}
 
@@ -222,7 +223,7 @@ export async function handleProduct(
 		const projectId = assertNonEmpty(this.getNodeParameter('projectId', itemIndex) as string, 'Project ID');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const body = buildProductBody({ name, projectId, ...additionalFields });
+		const body = buildProductBody(this.getNode(), { name, projectId, ...additionalFields });
 		return xentralRequest.call(this, 'POST', 'products', body as IDataObject, {}, 'v1');
 	}
 
@@ -244,7 +245,7 @@ export async function handleProduct(
 		assertSafeId(productId, 'productId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
-		const body = buildProductBody(updateFields);
+		const body = buildProductBody(this.getNode(), updateFields);
 		assertNonEmptyBody(body, 'product update');
 		return xentralRequest.call(this, 'PATCH', `products/${productId}`, body as IDataObject, {}, 'v1');
 	}

@@ -19,6 +19,12 @@ export const customerOperations: INodeProperties[] = [
 				action: 'Create a customer',
 			},
 			{
+				name: 'Delete',
+				value: 'delete',
+				description: 'Delete a customer',
+				action: 'Delete a customer',
+			},
+			{
 				name: 'Get',
 				value: 'get',
 				description: 'Get a customer by ID',
@@ -41,12 +47,6 @@ export const customerOperations: INodeProperties[] = [
 				value: 'update',
 				description: 'Update a customer',
 				action: 'Update a customer',
-			},
-			{
-				name: 'Delete',
-				value: 'delete',
-				description: 'Delete a customer',
-				action: 'Delete a customer',
 			},
 		],
 		default: 'getAll',

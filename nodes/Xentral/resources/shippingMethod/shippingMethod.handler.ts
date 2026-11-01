@@ -1,7 +1,8 @@
-import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 
-function buildShippingMethodBody(fields: IDataObject, name?: string): IDataObject {
+function buildShippingMethodBody(node: INode, fields: IDataObject, name?: string): IDataObject {
 	const body: IDataObject = {};
 
 	if (name !== undefined) body.name = name;
@@ -53,7 +54,7 @@ function buildShippingMethodBody(fields: IDataObject, name?: string): IDataObjec
 			try {
 				body.parcel = JSON.parse(fields.parcel as string);
 			} catch {
-				throw new Error('Invalid JSON in parcel. Please provide valid JSON.');
+				throw new NodeOperationError(node, 'Invalid JSON in parcel. Please provide valid JSON.');
 			}
 		} else {
 			body.parcel = fields.parcel;
@@ -64,7 +65,7 @@ function buildShippingMethodBody(fields: IDataObject, name?: string): IDataObjec
 			try {
 				body.printers = JSON.parse(fields.printers as string);
 			} catch {
-				throw new Error('Invalid JSON in printers. Please provide valid JSON.');
+				throw new NodeOperationError(node, 'Invalid JSON in printers. Please provide valid JSON.');
 			}
 		} else {
 			body.printers = fields.printers;
@@ -75,7 +76,7 @@ function buildShippingMethodBody(fields: IDataObject, name?: string): IDataObjec
 			try {
 				body.sender = JSON.parse(fields.sender as string);
 			} catch {
-				throw new Error('Invalid JSON in sender. Please provide valid JSON.');
+				throw new NodeOperationError(node, 'Invalid JSON in sender. Please provide valid JSON.');
 			}
 		} else {
 			body.sender = fields.sender;
@@ -98,7 +99,7 @@ export async function handleShippingMethod(
 	if (operation === 'create') {
 		const name = assertNonEmpty(this.getNodeParameter('name', itemIndex) as string, 'Name');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
-		const body = buildShippingMethodBody(additionalFields, name);
+		const body = buildShippingMethodBody(this.getNode(), additionalFields, name);
 		return xentralRequest.call(this, 'POST', 'shippingMethods', body as IDataObject, {}, 'v1');
 	}
 
@@ -119,7 +120,7 @@ export async function handleShippingMethod(
 		const shippingMethodId = this.getNodeParameter('shippingMethodId', itemIndex) as string;
 		assertSafeId(shippingMethodId, 'shippingMethodId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		const body = buildShippingMethodBody(updateFields);
+		const body = buildShippingMethodBody(this.getNode(), updateFields);
 
 		assertNonEmptyBody(body, 'shipping method update');
 		// Note: shippingMethod update uses PUT, not PATCH

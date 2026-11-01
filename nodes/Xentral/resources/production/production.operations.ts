@@ -13,10 +13,22 @@ export const productionOperations: INodeProperties[] = [
 		},
 		options: [
 			{
+				name: 'Attach File',
+				value: 'attachFile',
+				description: 'Attach a file to a production order',
+				action: 'Attach file to production order',
+			},
+			{
 				name: 'Create',
 				value: 'create',
 				description: 'Create a new production order (Produktionsauftrag)',
 				action: 'Create a production order',
+			},
+			{
+				name: 'Delete',
+				value: 'delete',
+				description: 'Delete a production order',
+				action: 'Delete a production order',
 			},
 			{
 				name: 'Get',
@@ -31,16 +43,10 @@ export const productionOperations: INodeProperties[] = [
 				action: 'Get many production orders',
 			},
 			{
-				name: 'Attach File',
-				value: 'attachFile',
-				description: 'Attach a file to a production order',
-				action: 'Attach file to production order',
-			},
-			{
-				name: 'Delete',
-				value: 'delete',
-				description: 'Delete a production order',
-				action: 'Delete a production order',
+				name: 'Log Activity',
+				value: 'logActivity',
+				description: 'Log an activity on a production order',
+				action: 'Log activity on production order',
 			},
 			{
 				name: 'Release',
@@ -53,12 +59,6 @@ export const productionOperations: INodeProperties[] = [
 				value: 'start',
 				description: 'Start a production order',
 				action: 'Start a production order',
-			},
-			{
-				name: 'Log Activity',
-				value: 'logActivity',
-				description: 'Log an activity on a production order',
-				action: 'Log activity on production order',
 			},
 		],
 		default: 'getAll',

@@ -1,14 +1,11 @@
 import type {
-	ICredentialTestFunctions,
-	ICredentialsDecrypted,
 	IExecuteFunctions,
-	INodeCredentialTestResult,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
 	IDataObject,
 } from 'n8n-workflow';
-import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 // --- Resource imports: operations ---
 import { customerOperations } from './resources/customer/customer.operations';
@@ -143,7 +140,7 @@ export class Xentral implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Xentral',
 		name: 'xentral',
-		icon: 'file:xentral.svg',
+		icon: { light: 'file:xentral.svg', dark: 'file:xentral.dark.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
@@ -158,7 +155,6 @@ export class Xentral implements INodeType {
 			{
 				name: 'xentralApi',
 				required: true,
-				testedBy: 'xentralApiTest',
 			},
 		],
 		properties: [
@@ -173,7 +169,7 @@ export class Xentral implements INodeType {
 					{ name: 'Credit Note', value: 'creditNote' },
 					{ name: 'Customer', value: 'customer' },
 					{ name: 'Delivery Note', value: 'deliveryNote' },
-					{ name: 'Delivery Terms', value: 'deliveryTerms' },
+					{ name: 'Delivery Term', value: 'deliveryTerms' },
 					{ name: 'Employee', value: 'employee' },
 					{ name: 'Goods Receipt', value: 'goodsReceipt' },
 					{ name: 'Invoice', value: 'invoice' },
@@ -181,8 +177,8 @@ export class Xentral implements INodeType {
 					{ name: 'Offer', value: 'offer' },
 					{ name: 'Payment Method', value: 'paymentMethod' },
 					{ name: 'Payment Terms Group', value: 'paymentTermsGroup' },
-					{ name: 'Production', value: 'production' },
 					{ name: 'Product', value: 'product' },
+					{ name: 'Production', value: 'production' },
 					{ name: 'Proforma Invoice', value: 'proformaInvoice' },
 					{ name: 'Project', value: 'project' },
 					{ name: 'Purchase Order', value: 'purchaseOrder' },
@@ -282,106 +278,6 @@ export class Xentral implements INodeType {
 		],
 	};
 
-	methods = {
-		credentialTest: {
-			async xentralApiTest(
-				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
-			): Promise<INodeCredentialTestResult> {
-				const NODE_VERSION = '0.9.10';
-				const { instanceUrl, accessToken } = (credential.data || {}) as {
-					instanceUrl: string;
-					accessToken: string;
-				};
-
-				let url = (instanceUrl || '').trim().replace(/\/+$/, '');
-				if (/^http:\/\//i.test(url)) {
-					return { status: 'Error', message: `[v${NODE_VERSION}] HTTP is not allowed, use HTTPS` };
-				}
-				if (!/^https:\/\//i.test(url)) {
-					url = 'https://' + url;
-				}
-
-				// SSRF protection
-				try {
-					const parsed = new URL(url);
-					const hostname = parsed.hostname.toLowerCase();
-					if (
-						hostname === 'localhost' ||
-						hostname === '0.0.0.0' ||
-						hostname === '0' ||
-						/^127\./.test(hostname) ||
-						/^10\./.test(hostname) ||
-						/^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
-						/^192\.168\./.test(hostname) ||
-						/^169\.254\./.test(hostname) ||
-						/^0+\./.test(hostname) ||
-						hostname === '::1' ||
-						hostname.startsWith('[') ||
-						/^fc00:/i.test(hostname) ||
-						/^fe80:/i.test(hostname) ||
-						/^::ffff:/i.test(hostname)
-					) {
-						return { status: 'Error', message: `[v${NODE_VERSION}] Connections to internal network addresses are not allowed` };
-					}
-				} catch {
-					return { status: 'Error', message: `[v${NODE_VERSION}] Invalid Xentral instance URL` };
-				}
-
-				const rawToken = (accessToken || '').trim();
-				if (!rawToken) {
-					return { status: 'Error', message: `[v${NODE_VERSION}] Access Token is required` };
-				}
-
-				// Build list of tokens to try (most likely first)
-				const tokensToTry: string[] = [];
-
-				// Clean token: strip quotes, Bearer prefix, whitespace
-				let cleaned = rawToken.replace(/^["'`]+|["'`]+$/g, '').replace(/^Bearer\s+/i, '').replace(/\s/g, '');
-
-				// Strip Sanctum ID prefix using same logic as transport.ts
-				let stripped: string;
-				if (cleaned.includes('|')) {
-					stripped = cleaned.substring(cleaned.indexOf('|') + 1);
-				} else {
-					stripped = cleaned.replace(/^\d{1,4}(?=[a-zA-Z])/, '');
-				}
-				if (stripped && stripped !== cleaned) tokensToTry.push(stripped);
-
-				// Also try the full cleaned token as fallback
-				if (!tokensToTry.includes(cleaned)) {
-					tokensToTry.push(cleaned);
-				}
-
-				const testUrl = `${url}/api/v1/products?page[number]=1&page[size]=10`;
-
-				for (const token of tokensToTry) {
-					try {
-						await this.helpers.request({
-							method: 'GET',
-							url: testUrl,
-							headers: {
-								Authorization: `Bearer ${token}`,
-								Accept: 'application/json',
-								'Content-Type': 'application/json',
-							},
-							json: true,
-						});
-						return { status: 'OK', message: `[v${NODE_VERSION}] Connection successful` };
-					} catch {
-						// Try next token variant
-					}
-				}
-
-				// All attempts failed
-				return {
-					status: 'Error',
-					message: `[v${NODE_VERSION}] Authentication failed. Please verify your Personal Access Token is correct.`,
-				};
-			},
-		},
-	};
-
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
@@ -397,24 +293,32 @@ export class Xentral implements INodeType {
 				const operation = this.getNodeParameter('operation', i) as string;
 				const result = await handler.call(this, operation, i);
 
+				const pairedItem = { item: i };
 				if (result == null || (result as unknown) === '' || typeof result !== 'object') {
-					returnData.push({ json: { success: true } });
+					returnData.push({ json: { success: true }, pairedItem });
 				} else if (Array.isArray(result)) {
-					returnData.push(...result.map((item) => ({ json: item })));
+					returnData.push(...result.map((item) => ({ json: item, pairedItem })));
 				} else {
 					const data = result.data !== undefined ? result.data : result;
 					if (Array.isArray(data)) {
-						returnData.push(...(data as IDataObject[]).map((item: IDataObject) => ({ json: item })));
+						returnData.push(
+							...(data as IDataObject[]).map((item: IDataObject) => ({ json: item, pairedItem })),
+						);
 					} else {
-						returnData.push({ json: data as IDataObject });
+						returnData.push({ json: data as IDataObject, pairedItem });
 					}
 				}
 			} catch (error) {
 				if (this.continueOnFail()) {
 					returnData.push({ json: { error: (error as Error).message }, pairedItem: { item: i } });
-				} else {
-					throw error;
+					continue;
 				}
+				// Keep NodeApiError intact so the n8n UI still shows the HTTP status and response.
+				const nodeError =
+					error instanceof NodeApiError || error instanceof NodeOperationError
+						? error
+						: new NodeOperationError(this.getNode(), error as Error, { itemIndex: i });
+				throw nodeError;
 			}
 		}
 

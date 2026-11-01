@@ -70,6 +70,7 @@ const postalAddressValues: INodeProperties[] = [
 		displayName: 'Email',
 		name: 'email',
 		type: 'string',
+		placeholder: 'name@email.com',
 		default: '',
 		description: 'Email address',
 	},
@@ -147,7 +148,7 @@ export const creditNoteFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The ID of the customer (business contact). Used as address.id in the API.',
+		description: 'The ID of the customer (business contact). Sent to the API as the document address reference.',
 	},
 	{
 		displayName: 'Additional Fields',

@@ -1,4 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty } from '../../transport';
 
 export async function handlePaymentTermsGroup(
@@ -24,7 +25,7 @@ export async function handlePaymentTermsGroup(
 				try {
 					body.category = JSON.parse(additionalFields.category as string);
 				} catch {
-					throw new Error('Invalid JSON in category. Please provide valid JSON.');
+					throw new NodeOperationError(this.getNode(), 'Invalid JSON in category. Please provide valid JSON.');
 				}
 			} else {
 				body.category = additionalFields.category;
@@ -36,7 +37,7 @@ export async function handlePaymentTermsGroup(
 				try {
 					body.paymentTerms = JSON.parse(additionalFields.paymentTerms as string);
 				} catch {
-					throw new Error('Invalid JSON in paymentTerms. Please provide valid JSON.');
+					throw new NodeOperationError(this.getNode(), 'Invalid JSON in paymentTerms. Please provide valid JSON.');
 				}
 			} else {
 				body.paymentTerms = additionalFields.paymentTerms;

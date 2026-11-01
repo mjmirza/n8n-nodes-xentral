@@ -1,10 +1,11 @@
-import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for invoice create/update.
  */
-function buildInvoiceBody(fields: IDataObject): IDataObject {
+function buildInvoiceBody(node: INode, fields: IDataObject): IDataObject {
 	const body: IDataObject = {};
 
 	// Simple string/date fields - pass through directly
@@ -72,7 +73,7 @@ function buildInvoiceBody(fields: IDataObject): IDataObject {
 			try {
 				body.dunningManualSettings = JSON.parse(raw);
 			} catch {
-				throw new Error('Invalid JSON in dunningManualSettings. Please provide valid JSON.');
+				throw new NodeOperationError(node, 'Invalid JSON in dunningManualSettings. Please provide valid JSON.');
 			}
 		}
 	}
@@ -80,7 +81,7 @@ function buildInvoiceBody(fields: IDataObject): IDataObject {
 		try {
 			body.dunningSettings = JSON.parse(fields.dunningSettingsJson as string);
 		} catch {
-			throw new Error('Invalid JSON in dunningSettings. Please provide valid JSON.');
+			throw new NodeOperationError(node, 'Invalid JSON in dunningSettings. Please provide valid JSON.');
 		}
 	}
 
@@ -143,7 +144,7 @@ export async function handleInvoice(
 		assertSafeId(customerId, 'customerId');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const body = buildInvoiceBody(additionalFields);
+		const body = buildInvoiceBody(this.getNode(), additionalFields);
 		body.address = { id: customerId };
 
 		return xentralRequest.call(this, 'POST', 'invoices', body as IDataObject, {}, 'v3');
@@ -196,7 +197,7 @@ export async function handleInvoice(
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
 		assertSafeId(invoiceId, 'invoiceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		const body = buildInvoiceBody(updateFields);
+		const body = buildInvoiceBody(this.getNode(), updateFields);
 		assertNonEmptyBody(body as IDataObject, 'invoice update');
 		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}`, body as IDataObject, {}, 'v3');
 	}

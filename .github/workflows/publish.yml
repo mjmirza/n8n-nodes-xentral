@@ -24,6 +24,7 @@ jobs:
       - name: Tag matches package.json version
         run: test "v$(node -p 'require("./package.json").version')" = "${GITHUB_REF_NAME}"
       - run: npm ci
+      - run: npm run lint
       - run: npm test
       - run: npm publish --provenance --access public
         env:
