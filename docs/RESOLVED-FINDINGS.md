@@ -4,7 +4,7 @@ This ledger covers the numbered findings in the 1.4.4 review (`xen-144/codex.md`
 
 IDs preserve the source review and finding number, independently of the `[r7-n]` test markers. Reviews 3 and 5 contain only sandbox-blocked status messages, with no enumerated findings, so they have no rows. Findings repeated in different reviews retain separate rows.
 
-All test names below are exact names from [test/codex-round7.test.mjs](../test/codex-round7.test.mjs). Commits come from `git log master..HEAD` and `git log -S`; multiple hashes identify an initial fix and its final compatibility correction, separate parts of one finding, or the accompanying decision documentation. The ledger contains 48 code-fix rows and 4 documented-decision rows.
+All test names below are exact names from [test/codex-round7.test.mjs](../test/codex-round7.test.mjs). Commits come from `git log master..HEAD` and `git log -S`; multiple hashes identify an initial fix and its final compatibility correction, separate parts of one finding, or the accompanying decision documentation. The ledger contains 49 code-fix rows and 4 documented-decision rows.
 
 | ID | Severity | File | What was fixed | Regression test name | Commit |
 | --- | --- | --- | --- | --- | --- |
@@ -56,6 +56,7 @@ All test names below are exact names from [test/codex-round7.test.mjs](../test/c
 | R20-1 | Medium | `examples/workflow-2-offer-lifecycle.json` | Line items are added in sequence before verify and release, never in parallel branches. | `[r8-3] examples avoid parallel main targets and offer deletion downstream of release` | `f0e0b72` |
 | R20-2 | Medium | `examples/workflow-2-offer-lifecycle.json` | Removed Delete Offer after release, which the API rejects with 409 outside draft status. | `[r8-3] examples avoid parallel main targets and offer deletion downstream of release` | `f0e0b72` |
 | R21-1 | Low | `test/codex-round8.test.mjs` | The offer example test now pins the full lifecycle order, so moving a line item after release fails. | `[r8-4] the offer example adds both line items before verifying and releasing` | `497e806` |
+| C2-1 | Medium | `examples/workflow-1-customer-crud-address.json`, `examples/workflow-3-product-sales-price.json` | Writes after a multi-item read run once (executeOnce), and created ids are read by node name, so cleanup never deletes twice. | `[r9-1] example multi-item reads cannot fan out into unguarded downstream writes` | `05397ba` |
 
 ## Documented maintainer decisions (out of scope)
 
