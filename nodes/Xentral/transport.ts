@@ -276,21 +276,32 @@ export function lineItemUpdatePrice(fields: IDataObject): IDataObject | undefine
 export const DOCUMENT_ADDRESS_TYPES = ['mrs', 'mr', 'company', 'other'];
 
 /**
- * A document address override as Xentral expects it. An empty Type means "not set" and is left out,
- * a set Type must be one of mrs, mr, company or other.
+ * A document address override as Xentral expects it. An empty Type or Country is left out,
+ * a set Type must be mrs, mr, company or other, a set Country a two-letter code.
  */
 export function documentAddress(address: IDataObject): IDataObject {
 	const result: IDataObject = { ...address };
 	const type = result.type;
 	if (type === undefined || type === null || String(type).trim() === '') {
 		delete result.type;
-		return result;
+	} else {
+		const normalized = String(type).trim().toLowerCase();
+		if (!DOCUMENT_ADDRESS_TYPES.includes(normalized)) {
+			throw new Error(`Invalid address Type "${String(type)}". Use one of: ${DOCUMENT_ADDRESS_TYPES.join(', ')}, or leave it empty.`);
+		}
+		result.type = normalized;
 	}
-	const normalized = String(type).trim().toLowerCase();
-	if (!DOCUMENT_ADDRESS_TYPES.includes(normalized)) {
-		throw new Error(`Invalid address Type "${String(type)}". Use one of: ${DOCUMENT_ADDRESS_TYPES.join(', ')}, or leave it empty.`);
+	// Country must match ^[A-Z]{2}$, so an empty one is left out and a set one is upper-cased.
+	const country = result.country;
+	if (country === undefined || country === null || String(country).trim() === '') {
+		delete result.country;
+	} else {
+		const code = String(country).trim().toUpperCase();
+		if (!/^[A-Z]{2}$/.test(code)) {
+			throw new Error(`Invalid address Country "${String(country)}". Use a two-letter ISO code such as DE.`);
+		}
+		result.country = code;
 	}
-	result.type = normalized;
 	return result;
 }
 
@@ -405,7 +416,8 @@ export async function xentralRequest(
 	}
 
 	const hasBody = Array.isArray(body) ? body.length > 0 : body !== null && typeof body === 'object' && Object.keys(body).length > 0;
-	if ((['POST', 'PATCH', 'PUT'].includes(method) && body) || (method === 'DELETE' && hasBody)) {
+	// GET and DELETE carry a body only when one was given, for example the product label download options.
+	if ((['POST', 'PATCH', 'PUT'].includes(method) && body) || ((method === 'DELETE' || method === 'GET') && hasBody)) {
 		options.body = body;
 	}
 

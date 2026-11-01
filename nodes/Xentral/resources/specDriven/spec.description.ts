@@ -2,9 +2,8 @@ import type { INodeProperties, INodePropertyOptions } from 'n8n-workflow';
 import { SPEC_CATALOG } from './spec.catalog';
 import type { SpecOperation, SpecResource } from './spec.types';
 import { acceptsQuery } from './spec.types';
+import { BETA_NOTICE } from '../betaNotices';
 
-const BETA_NOTICE =
-	'Xentral marks this endpoint as beta. It may change without notice, so test it before you rely on it in production.';
 
 function titleCase(id: string): string {
 	return id

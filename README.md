@@ -92,7 +92,7 @@ It is for operations teams and automation builders who already run Xentral and w
 | Warehouse | Create, Get Many, Update, Delete |
 | Webhook | Create, Delete, Get, Get Many, Update |
 
-Resources marked beta in Xentral (Customer Delivery Address, Supplier Invoice, and some User reads) show a notice in the node, because Xentral may change them without warning.
+Operations whose endpoint Xentral marks beta show a notice in the node, because Xentral may change them without warning. That covers Customer Delivery Address, Supplier Invoice and some User reads, Production Create, Get and Get Many, Proforma Invoice Create, Get, Get Many, Update and its line item writes, Delivery Note and Return creates, updates and line item writes, Return Create From Delivery Note, and Invoice Create From Sales Order.
 
 ### API coverage
 
@@ -108,8 +108,9 @@ Choose the **Custom API Call** resource to call any Xentral endpoint with your s
 | API Version | V1, V2 or V3. A path that starts with `/api/v2/` or similar sets the version |
 | Path | The part after `/api/<version>/`, for example `posJournals` |
 | Query Parameters | JSON, for example filters or pagination |
-| Body | JSON, shown for POST, PATCH, PUT and DELETE. A DELETE sends it only when it is not empty, for bulk deletes |
+| Body | JSON. GET and DELETE send it only when it is not empty, for example product label options or a bulk delete |
 | Content Type | `application/json` by default. Some endpoints need a vendor type such as `application/vnd.xentral.minimal+json` |
+| Accept | Empty by default, which asks for JSON, or any type in Text and File mode. Set `application/pdf` to download a document such as an invoice as PDF |
 | Response Format | JSON by default. Text returns the body in `data`. File keeps a download such as a CSV or ZIP export as binary data in the field you name |
 
 The path must be relative, must start with a resource that exists in the Xentral API, and must not contain `..`, a full URL, a query string or an unfilled `{placeholder}`. Anything else is rejected before a request is sent.
@@ -265,6 +266,10 @@ npm run lint    # n8n verification rule set, must report zero problems
 - Address overrides on documents leave Type out when it is empty. A set Type must be mrs, mr, company or other (any case). Any other value now stops the item with a clear error before the request, where Xentral used to reject it.
 - A line item update that sets only Price Currency now sends it. Before, it failed with "No fields provided" or the currency was dropped.
 - When the trigger cannot delete its webhook on deactivation (anything but 404 or 410), it keeps the webhook ID and signing key. The next activation adopts the webhook and the next deactivation retries the delete.
+- On activation the trigger first removes a webhook it kept from such a failed delete. If that removal fails too, activation stops with an error rather than registering a second webhook.
+- An empty Country in an address override is left out. A set Country must be a two-letter code (any case).
+- An empty Delivery Date in an update now clears the date (sends `null`) on Invoice and Proforma Invoice, and on Offer, Invoice, Credit Note and Proforma Invoice line items.
+- Custom API Call shows Body for GET too. An empty body is still not sent, so saved GET calls behave as before.
 
 ## Compatibility
 

@@ -193,3 +193,162 @@ test('[r7-6] publish scans the packed tarball before npm publish, and CI runs th
 	const script = fs.readFileSync(new URL('../scripts/scan-preflight.mjs', import.meta.url), 'utf8');
 	assert.ok(script.includes('SOURCE_FILE_PATTERNS') && script.includes("'**/*.js', 'package.json'"));
 });
+
+// ---------- 7. pre-release review: webhook recovery, country, date clearing, Accept, GET body, beta ----------
+
+const { handleCustomApiCall } = require('../dist/nodes/Xentral/resources/customApiCall/customApiCall.handler.js');
+const { Xentral } = require('../dist/nodes/Xentral/Xentral.node.js');
+const { HANDWRITTEN_BETA_OPERATIONS } = require('../dist/nodes/Xentral/resources/betaNotices.js');
+
+function createContext(stored, deleteError) {
+	const calls = [];
+	return {
+		calls,
+		getNodeWebhookUrl: () => 'https://n8n.example.com/webhook/x',
+		getNodeParameter: (name, fallback) => (name === 'event' ? 'salesOrder.created' : name === 'signatureKey' ? '' : fallback),
+		getWorkflowStaticData: () => stored,
+		getNode: () => ({ name: 'Trigger' }),
+		getCredentials: async () => ({ instanceUrl: 'acme.xentral.com', accessToken: '2|token' }),
+		logger: { warn: () => {} },
+		helpers: {
+			httpRequest: async (options) => {
+				calls.push(options);
+				if (options.method === 'DELETE' && deleteError) throw deleteError;
+				return options.method === 'POST' ? { data: { id: 99 } } : {};
+			},
+		},
+	};
+}
+
+test('[r7-7] create removes a webhook kept from a failed delete before registering a new one', async () => {
+	const stored = { webhookId: '42', signatureKey: 'k'.repeat(32) };
+	const ctx = createContext(stored);
+	await new XentralTrigger().webhookMethods.default.create.call(ctx);
+	assert.deepEqual(ctx.calls.map((c) => c.method), ['DELETE', 'POST']);
+	assert.ok(ctx.calls[0].url.endsWith('/webhooks/42'));
+	assert.equal(stored.webhookId, 99);
+	const gone = { webhookId: '42', signatureKey: 'k'.repeat(32) };
+	const goneCtx = createContext(gone, httpError(404));
+	await new XentralTrigger().webhookMethods.default.create.call(goneCtx);
+	assert.equal(gone.webhookId, 99);
+});
+
+test('[r7-7] create refuses to add a second webhook when the kept one cannot be removed', async () => {
+	const stored = { webhookId: '42', signatureKey: 'k'.repeat(32) };
+	const ctx = createContext(stored, httpError(403));
+	await assert.rejects(() => new XentralTrigger().webhookMethods.default.create.call(ctx), /could not be removed/);
+	assert.equal(ctx.calls.some((c) => c.method === 'POST'), false);
+	assert.equal(stored.webhookId, '42');
+	const fresh = createContext({});
+	await new XentralTrigger().webhookMethods.default.create.call(fresh);
+	assert.deepEqual(fresh.calls.map((c) => c.method), ['POST']);
+});
+
+test('[r7-8] an empty address Country is left out, a set one must be a two-letter code', async () => {
+	const pattern = new RegExp(docSpec.components.schemas.CreateDocumentAddressData.properties.country.pattern);
+	const empty = context({ customerId: '4', additionalFields: { documentAddress: { address: { ...FILLED } } } });
+	await handleOffer.call(empty, 'create', 0);
+	assert.equal('country' in empty.calls[0].body.documentAddress, false);
+	const set = context({ customerId: '4', additionalFields: { documentAddress: { address: { ...FILLED, country: ' de ' } } } });
+	await handleOffer.call(set, 'create', 0);
+	assert.ok(pattern.test(set.calls[0].body.documentAddress.country));
+	const bad = context({ customerId: '4', additionalFields: { documentAddress: { address: { ...FILLED, country: 'Germany' } } } });
+	await assert.rejects(() => handleOffer.call(bad, 'create', 0), /two-letter/);
+});
+
+test('[r7-9] an empty Delivery Date on an update clears it, on line items and the invoice', async () => {
+	for (const [handler, ids, param] of LINE_ITEMS.filter(([h]) => [handleOffer, handleInvoice, handleCreditNote, handleProformaInvoice].includes(h))) {
+		const ctx = context({ ...ids, lineItemId: '2', [param]: { deliveryDate: '' } });
+		await handler.call(ctx, 'updateLineItem', 0);
+		assert.equal(ctx.calls[0].body.deliveryDate, null, handler.name);
+		assert.ok('deliveryDate' in ctx.calls[0].body);
+	}
+	const invoice = context({ invoiceId: '1', updateFields: { deliveryDate: '' } });
+	await handleInvoice.call(invoice, 'update', 0);
+	assert.equal(invoice.calls[0].body.deliveryDate, null);
+	const add = context({ offerId: '1', productId: '5', quantity: 1, lineItemOptions: { deliveryDate: '' } });
+	await handleOffer.call(add, 'addLineItem', 0);
+	assert.equal('deliveryDate' in add.calls[0].body, false);
+});
+
+function apiCallContext(params) {
+	const calls = [];
+	return {
+		calls,
+		getNode: () => ({ name: 'Xentral', typeVersion: 2, parameters: {} }),
+		getNodeParameter: (name, _i, fallback) => (name in params ? params[name] : fallback),
+		getCredentials: async () => ({ instanceUrl: 'acme.xentral.com', accessToken: '2|token' }),
+		continueOnFail: () => false,
+		helpers: {
+			httpRequest: async (options) => {
+				calls.push(options);
+				return { statusCode: 200, headers: { 'content-type': 'application/pdf' }, body: Buffer.from('%PDF') };
+			},
+			prepareBinaryData: async (buffer, fileName, mimeType) => ({ data: buffer.toString('base64'), fileName, mimeType }),
+		},
+	};
+}
+
+test('[r7-10] Custom API Call sends the Accept header it is given, so File mode can fetch a PDF', async () => {
+	const ctx = apiCallContext({ method: 'GET', apiVersion: 'v3', path: 'invoices/5', responseFormat: 'file', accept: 'application/pdf' });
+	await handleCustomApiCall.call(ctx, 'request', 0);
+	assert.equal(ctx.calls[0].headers.Accept, 'application/pdf');
+	const plain = apiCallContext({ method: 'GET', apiVersion: 'v3', path: 'invoices/5', responseFormat: 'file' });
+	await handleCustomApiCall.call(plain, 'request', 0);
+	assert.equal(plain.calls[0].headers.Accept, '*/*');
+	const bad = apiCallContext({ method: 'GET', path: 'invoices/5', accept: 'pdf; drop' });
+	await assert.rejects(() => handleCustomApiCall.call(bad, 'request', 0), /Invalid accept type/);
+});
+
+test('[r7-11] Custom API Call sends a non-empty GET body, an empty one is not sent', async () => {
+	const ctx = apiCallContext({ method: 'GET', apiVersion: 'v1', path: 'products/5/printLabel', body: '{"printingLabel":"3","quantity":2}' });
+	await handleCustomApiCall.call(ctx, 'request', 0);
+	assert.deepEqual(ctx.calls[0].body, { printingLabel: '3', quantity: 2 });
+	const empty = apiCallContext({ method: 'GET', apiVersion: 'v1', path: 'products/5' });
+	await handleCustomApiCall.call(empty, 'request', 0);
+	assert.equal('body' in empty.calls[0], false);
+	const bodyField = new Xentral().description.properties.find((p) => p.name === 'body' && p.displayOptions?.show?.resource?.includes('customApiCall'));
+	assert.ok(bodyField.displayOptions.show.method.includes('GET'));
+});
+
+test('[r7-12] every hand-written operation on a Xentral beta endpoint shows the beta notice', async () => {
+	const props = new Xentral().description.properties;
+	const beta = [];
+	for (const spec of [docSpec, v1Spec]) {
+		for (const [p, ops] of Object.entries(spec.paths)) {
+			for (const [m, o] of Object.entries(ops)) {
+				if (o && o['x-beta']) beta.push([m.toUpperCase(), new RegExp(`^${p.replace(/\{[^}]+\}/g, '[^/]+')}$`)]);
+			}
+		}
+	}
+	const found = {};
+	for (const resource of Object.keys(HANDWRITTEN_BETA_OPERATIONS).concat(['offer', 'salesOrder', 'creditNote', 'purchaseOrder', 'product', 'customer', 'supplier', 'salesPrice', 'shipment'])) {
+		const opProp = props.find((p) => p.name === 'operation' && p.displayOptions?.show?.resource?.includes(resource));
+		const handler = Object.values(require(`../dist/nodes/Xentral/resources/${resource}/${resource}.handler.js`)).find((v) => typeof v === 'function' && v.name.startsWith('handle'));
+		for (const { value: op } of opProp.options) {
+			const ctx = context({ returnAll: false, limit: 1, updateFields: { description: 'x', quantity: 1 }, lineItemUpdateFields: { description: 'x', quantity: 1 } }, { response: { data: [], id: 1 } });
+			ctx.getNodeParameter = (name, _i, fallback) => {
+				if (name === 'returnAll') return false;
+				if (name === 'limit') return 1;
+				if (/Fields$/.test(name)) return { description: 'x', quantity: 1, internalComment: 'x' };
+				return fallback !== undefined ? fallback : '1';
+			};
+			ctx.getInputData = () => [{ json: {} }];
+			try {
+				await handler.call(ctx, op, 0);
+			} catch {
+				// Some operations need richer input; the request made before any failure still counts.
+			}
+			for (const call of ctx.calls) {
+				const path = new URL(call.url).pathname;
+				if (beta.some(([m, re]) => m === call.method && re.test(path))) (found[resource] ??= new Set()).add(op);
+			}
+		}
+	}
+	for (const [resource, ops] of Object.entries(found)) {
+		const notice = props.find((p) => p.name === 'betaNotice' && p.displayOptions?.show?.resource?.[0] === resource);
+		assert.ok(notice, `${resource} has no beta notice`);
+		for (const op of ops) assert.ok(notice.displayOptions.show.operation.includes(op), `${resource}.${op}`);
+	}
+	assert.ok(found.proformaInvoice?.has('getAll') && found.production?.has('create'));
+});

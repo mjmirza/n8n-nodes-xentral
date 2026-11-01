@@ -5,7 +5,7 @@ import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, asser
 /**
  * Build the nested body structure from flat n8n fields for invoice create/update.
  */
-function buildInvoiceBody(node: INode, fields: IDataObject): IDataObject {
+function buildInvoiceBody(node: INode, fields: IDataObject, isUpdate = false): IDataObject {
 	const body: IDataObject = {};
 
 	// Simple string/date fields - pass through directly
@@ -20,6 +20,8 @@ function buildInvoiceBody(node: INode, fields: IDataObject): IDataObject {
 			body[key] = fields[key];
 		}
 	}
+	// Delivery Date promises "empty to clear", so an empty value on an update sends null.
+	if (isUpdate && fields.deliveryDate === '') body.deliveryDate = null;
 
 	// Boolean fields that should pass through even when false
 	const booleanFields = ['useAlternativeDocumentTitle', 'dunningSetManually'];
@@ -104,6 +106,8 @@ function buildLineItemBody(fields: IDataObject, isAdd = false): IDataObject {
 			body[key] = fields[key];
 		}
 	}
+	// The field promises "empty to clear", so an empty delivery date on an update sends null.
+	if (!isAdd && fields.deliveryDate === '') body.deliveryDate = null;
 
 	// Boolean field
 	if (fields.deliveryDateAsCalendarWeek !== undefined) {
@@ -199,7 +203,7 @@ export async function handleInvoice(
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
 		assertSafeId(invoiceId, 'invoiceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		const body = buildInvoiceBody(this.getNode(), updateFields);
+		const body = buildInvoiceBody(this.getNode(), updateFields, true);
 		assertNonEmptyBody(body as IDataObject, 'invoice update');
 		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}`, body as IDataObject, {}, 'v3');
 	}

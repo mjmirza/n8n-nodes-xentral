@@ -73,8 +73,8 @@ export const customApiCallFields: INodeProperties[] = [
 		name: 'body',
 		type: 'json',
 		default: '{}',
-		displayOptions: { show: { resource: ['customApiCall'], operation: ['request'], method: ['DELETE', 'PATCH', 'POST', 'PUT'] } },
-		description: 'JSON request body. For DELETE it is sent only when not empty, for example the ID list of a bulk delete.',
+		displayOptions: { show: { resource: ['customApiCall'], operation: ['request'], method: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT'] } },
+		description: 'JSON request body. For GET and DELETE it is sent only when not empty, for example the label options of a product label download or the ID list of a bulk delete.',
 	},
 	{
 		displayName: 'Content Type',
@@ -83,6 +83,15 @@ export const customApiCallFields: INodeProperties[] = [
 		default: 'application/json',
 		displayOptions: show,
 		description: 'Content-Type header. Some Xentral endpoints need a vendor type such as application/vnd.xentral.minimal+JSON.',
+	},
+	{
+		displayName: 'Accept',
+		name: 'accept',
+		type: 'string',
+		default: '',
+		placeholder: 'application/pdf',
+		displayOptions: show,
+		description: 'Accept header. Empty uses application/JSON, or any type for Text and File. Set application/pdf to download a document as PDF.',
 	},
 	{
 		displayName: 'Response Format',

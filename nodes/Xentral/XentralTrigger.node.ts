@@ -8,7 +8,7 @@ import type {
 	INodeTypeDescription,
 	IWebhookResponseData,
 } from 'n8n-workflow';
-import { NodeConnectionTypes } from 'n8n-workflow';
+import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import { xentralRequest, assertSafeId, errorStatus } from './transport';
 import { resolveSigningKey, verifyXentralSignature } from './trigger.signature';
@@ -28,6 +28,31 @@ function toEventId(shortName: string): string {
  */
 function generateSignatureKey(): string {
 	return randomBytes(24).toString('base64url').slice(0, 32);
+}
+
+/**
+ * A registration kept from a failed delete must go before a new one is created, or both stay active
+ * and both pass signature checks. A 404 or 410 means it is already gone; any other failure stops here.
+ */
+async function removeStoredWebhook(this: IHookFunctions, webhookData: IDataObject): Promise<void> {
+	const storedId = webhookData.webhookId;
+	if (storedId === undefined || storedId === null || String(storedId) === '') return;
+	const id = String(storedId);
+	if (/^[a-zA-Z0-9_-]+$/.test(id)) {
+		try {
+			await xentralRequest.call(this, 'DELETE', `webhooks/${id}`, {}, {}, 'v1');
+		} catch (error) {
+			const status = errorStatus(error);
+			if (status !== 404 && status !== 410) {
+				throw new NodeOperationError(
+					this.getNode(),
+					`Xentral webhook ${id} from an earlier activation could not be removed, so no second one was created. ${(error as Error).message || ''}`.trim(),
+				);
+			}
+		}
+	}
+	delete webhookData.webhookId;
+	delete webhookData.signatureKey;
 }
 
 export class XentralTrigger implements INodeType {
@@ -311,8 +336,10 @@ export class XentralTrigger implements INodeType {
 					events: [{ id: eventId }],
 				};
 
-				const response = await xentralRequest.call(this, 'POST', 'webhooks', body, {}, 'v1');
 				const webhookData = this.getWorkflowStaticData('node');
+				await removeStoredWebhook.call(this, webhookData);
+
+				const response = await xentralRequest.call(this, 'POST', 'webhooks', body, {}, 'v1');
 				webhookData.webhookId = (response.data as IDataObject)?.id || response.id;
 				webhookData.signatureKey = signatureKey;
 				return true;

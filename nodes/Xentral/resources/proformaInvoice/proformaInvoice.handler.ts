@@ -130,6 +130,8 @@ export async function handleProformaInvoice(
 		for (const field of simpleFields) {
 			if (updateFields[field] !== undefined) body[field] = updateFields[field];
 		}
+		// An empty date is not a valid date, so it clears the value.
+		if (updateFields.deliveryDate === '') body.deliveryDate = null;
 
 		// Nested refs
 		if (updateFields.editorId !== undefined) {
@@ -242,6 +244,8 @@ export async function handleProformaInvoice(
 		for (const field of lineSimpleFields) {
 			if (updateFields[field] !== undefined) body[field] = updateFields[field];
 		}
+		// The field promises "empty to clear", so an empty delivery date sends null.
+		if (updateFields.deliveryDate === '') body.deliveryDate = null;
 		applyLineItemPosition(body, updateFields);
 
 		// Product ref

@@ -8,6 +8,14 @@
 - Line item updates that set only Price Currency send it on Sales Order, Purchase Order, Offer, Invoice, Credit Note and Proforma Invoice. They failed with "No fields provided" or dropped the currency.
 - Product Create and Update send the calculated purchase price amount as a string and the currency in upper case, as the v1 Money schema declares.
 - The trigger keeps its webhook ID and signing key when the webhook delete fails, so a later deactivation can retry it. A 404 or 410 still clears them.
+- The trigger removes a webhook kept from a failed delete before it registers a new one. If that removal fails (anything but 404 or 410), activation stops with a clear error instead of leaving two active registrations.
+- Address overrides leave an empty Country out. A set Country is upper-cased and must be a two-letter code, as the schema's `^[A-Z]{2}$` requires.
+- An empty Delivery Date on an Offer, Invoice, Credit Note or Proforma Invoice line item update, and on an Invoice or Proforma Invoice update, sends `null` and clears the date, as the field promises. It failed with "No fields provided" or was ignored.
+- Hand-written operations whose endpoint Xentral marks beta (Production, Proforma Invoice, Delivery Note, Return writes, Invoice Create From Sales Order) show the beta notice.
+
+### Added
+- Custom API Call has an Accept option, for example `application/pdf` to download a document PDF in File mode.
+- Custom API Call sends a non-empty Body on GET, for endpoints such as the product label download that read one.
 
 ### Release
 - The publish workflow packs the tarball, runs n8n's community package scanner on it and on the source, and only then publishes that same tarball. CI runs the same preflight on every push and pull request. The post-publish scan stays for the provenance check.
