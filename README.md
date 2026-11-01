@@ -279,7 +279,8 @@ npm run lint    # n8n verification rule set, must report zero problems
 - Sales Order and Return Get Many with the Sent filter now return documents marked as sent (`isDocumentSent`). Before, the filter asked for a status Xentral does not have.
 - The trigger ignores deliveries whose event type is not the one it is set to. Before, a webhook registered with extra events started the workflow for all of them.
 - To remove a price's Valid From or Expires At, use an expression that returns null.
-- Product Update sends an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason or Region of Origin to clear it, and an empty Country of Origin as null. Before, an empty value was dropped.
+- Product Update still ignores empty values. Turn on the new Clear Empty Fields option to clear text fields with an empty value.
+- Return Create From Delivery Note now checks its line items before the request. Each needs the delivery note line item id, a quantity and a returnReason id, as Xentral requires.
 
 ## Compatibility
 

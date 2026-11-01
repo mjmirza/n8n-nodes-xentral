@@ -550,16 +550,16 @@ test('[r7-25] a null address override still clears it, as in 1.4.4', async () =>
 	assert.ok('deviatingShipToAddress' in ctx.calls[0].body);
 });
 
-test('[r7-26] product update sends empty text fields to clear them', async () => {
-	const only = context({ productId: '5', updateFields: { description: '' } });
+test('[r7-26] product update clears empty text fields only with Clear Empty Fields, and drops them as in 1.4.4 otherwise', async () => {
+	const legacy = context({ productId: '5', updateFields: { name: 'New', ean: '', countryOfOrigin: '', description: '' } });
+	await handleProduct.call(legacy, 'update', 0);
+	assert.deepEqual(Object.keys(legacy.calls[0].body), ['name']);
+	const only = context({ productId: '5', updateFields: { description: '', clearEmptyFields: true } });
 	await handleProduct.call(only, 'update', 0);
-	assert.equal(only.calls[0].body.description, '');
-	const mixed = context({ productId: '5', updateFields: { name: 'New', description: '', ean: '', countryOfOrigin: '' } });
+	assert.deepEqual(only.calls[0].body, { description: '' });
+	const mixed = context({ productId: '5', updateFields: { name: 'New', description: '', ean: '', countryOfOrigin: '', clearEmptyFields: true } });
 	await handleProduct.call(mixed, 'update', 0);
-	assert.deepEqual(
-		{ name: mixed.calls[0].body.name, description: mixed.calls[0].body.description, ean: mixed.calls[0].body.ean, country: mixed.calls[0].body.countryOfOrigin },
-		{ name: 'New', description: '', ean: '', country: null },
-	);
+	assert.deepEqual(mixed.calls[0].body, { name: 'New', description: '', ean: '', countryOfOrigin: null });
 	const create = context({ name: 'Widget', projectId: '1', additionalFields: { description: '' } });
 	await handleProduct.call(create, 'create', 0);
 	assert.equal('description' in create.calls[0].body, false);
@@ -656,4 +656,19 @@ test('[r7-31] the Sent filter on Sales Order and Return uses isDocumentSent, whi
 		await handler.call(released, 'getAll', 0);
 		assert.equal(released.calls[0].qs['filter[0][key]'], 'status');
 	}
+});
+
+// ---------- 13. seventh pre-release review ----------
+
+test('[r7-32] Return Create From Delivery Note checks the line item shape Xentral requires before the request', async () => {
+	const ok = context({ deliveryNoteId: '3', lineItemsJson: '[{"id":"15","quantity":2,"returnReason":{"id":"7"}}]' });
+	await handleReturn.call(ok, 'createFromDeliveryNote', 0);
+	assert.deepEqual(ok.calls[0].body.lineItems, [{ id: '15', quantity: 2, returnReason: { id: '7' } }]);
+	for (const bad of ['[]', '[{"product":{"id":"5"},"quantity":1}]', '[{"id":"15","quantity":1}]']) {
+		const ctx = context({ deliveryNoteId: '3', lineItemsJson: bad });
+		await assert.rejects(() => handleReturn.call(ctx, 'createFromDeliveryNote', 0), /returnReason/, bad);
+		assert.equal(ctx.calls.length, 0);
+	}
+	const item = docSpec.components.schemas.ReturnLineItemInput;
+	assert.deepEqual(item.required, ['id', 'quantity', 'returnReason']);
 });

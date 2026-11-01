@@ -20,13 +20,14 @@
 - Line item updates on all eight documents no longer send Product ID or Product Number, and line item adds no longer send Product Number. The V3 schemas accept neither, so Xentral ignored them. The options stay, marked as ignored, and an update that sets only them returns `changed: false` with a note instead of a request.
 - Purchase Price and Sales Price send `null` for Valid From or Expires At when an expression returns null, so the boundary can be removed. 1.4.4 sent the text "null".
 - The trigger starts the workflow only for deliveries of its own event type. A delivery of another type is answered 200 and dropped. A delivery without a type still runs, as before.
-- Product Update clears Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason and Region of Origin when they are set empty, and Country of Origin with null. They were dropped.
+- Return Create From Delivery Note checks that each line item has the delivery note line item `id`, a numeric `quantity` and a `returnReason` with an `id`, and that there is at least one, before the request. The help text described a `product` shape Xentral rejects.
 - An address override set to `null` by an expression clears it again, as in 1.4.4. Offer Update clears its ship-to override the same way.
 - The trigger adopts the registration it owns when several exist for its URL and event, and removes the others. Before, it could delete its own registration's sibling, forget its own, and create a third.
 - The Sent filter on Sales Order and Return uses `isDocumentSent`, because their status has no `sent` value.
 - Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 
 ### Added
+- Product Update has a Clear Empty Fields option. When on, an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason or Region of Origin clears the field, and an empty Country of Origin is sent as null. Off by default, so saved workflows keep ignoring empty values.
 - Custom API Call has an Accept option, for example `application/pdf` to download a document PDF in File mode.
 
 ### Release

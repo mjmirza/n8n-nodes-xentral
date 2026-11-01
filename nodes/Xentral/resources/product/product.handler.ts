@@ -84,9 +84,9 @@ function buildProductBody(node: INode, fields: IDataObject, isUpdate = false): I
 	}
 	// Age Rating "None" is the empty value, which the API accepts and which clears the rating.
 	if (fields.ageRating === '') body.ageRating = '';
-	// On update an empty text field clears it, as the update schema allows. Country of origin has a pattern,
-	// so it is cleared with null.
-	if (isUpdate) {
+	// With Clear Empty Fields on, an update sends an empty text field to clear it. Off by default, so saved
+	// workflows keep dropping empty values as before. Country of origin has a pattern, so it is cleared with null.
+	if (isUpdate && fields.clearEmptyFields === true) {
 		for (const key of ['customsTariffNumber', 'description', 'disabledReason', 'ean', 'internalComment', 'regionOfOrigin', 'shortDescription']) {
 			if (fields[key] === '') body[key] = '';
 		}

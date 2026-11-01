@@ -374,7 +374,7 @@ export const returnFields: INodeProperties[] = [
 				operation: ['createFromDeliveryNote'],
 			},
 		},
-		description: 'JSON array of line items for the return order. Each item should have product (object with ID) and quantity (number).',
+		description: 'JSON array with at least one entry. Each entry needs the delivery note line item ID as ID, a quantity, and the return reason as an object with its ID. A return note text is optional.',
 	},
 
 	// ----------------------------------

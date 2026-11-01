@@ -556,6 +556,7 @@ export const productFields: INodeProperties[] = [
 				default: '',
 				description: 'Age rating for the product',
 			},
+
 			{
 				displayName: 'Allow Purchase From All Suppliers',
 				name: 'allowPurchaseFromAllSuppliers',
@@ -583,6 +584,12 @@ export const productFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'The ID of the product category',
+			},			{
+				displayName: 'Clear Empty Fields',
+				name: 'clearEmptyFields',
+				type: 'boolean',
+				default: false,
+				description: 'Whether an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason, Region Of Origin or Country Of Origin clears that field instead of being ignored',
 			},
 			{
 				displayName: 'Country Of Origin',

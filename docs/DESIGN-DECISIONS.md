@@ -19,3 +19,15 @@ The V3 line item update schemas (`UpdateProductLineItemData` and the per-documen
 `product` or `number` property, and the create schemas have no `number`. Xentral ignored both.
 The options stay so saved workflows keep their parameters. They are labelled as ignored, never sent,
 and an update that sets only them returns `changed: false` with a note instead of an empty request.
+
+## Empty values: when they clear and when they are ignored
+
+An empty value in a saved workflow often comes from an expression that found no upstream data, so
+turning "empty" into "clear" would silently erase data after an upgrade. The node therefore clears
+only where the field itself says so or where the user opts in.
+
+- Product Update ignores empty values unless the Clear Empty Fields option is on.
+- Delivery Date on Invoice and Proforma Invoice updates and on line item updates clears when empty,
+  because those fields have always promised "empty to clear" in their help text.
+- Age Rating None is an explicit choice in a dropdown, so it sends the empty rating.
+- An expression that returns null clears price validity dates and address overrides.

@@ -114,6 +114,24 @@ export async function handleReturn(
 			lineItems = lineItemsJson;
 		}
 
+		// Xentral needs at least one entry, each with the delivery note line item id, a quantity and a return reason.
+		const invalid = !Array.isArray(lineItems) || lineItems.length === 0 || lineItems.some((item) => {
+			const entry = (item ?? {}) as IDataObject;
+			const reason = entry.returnReason as IDataObject | undefined;
+			return (
+				entry.id === undefined || entry.id === null || String(entry.id) === '' ||
+				typeof entry.quantity !== 'number' ||
+				!reason || typeof reason !== 'object' || reason.id === undefined || reason.id === null || String(reason.id) === ''
+			);
+		});
+		if (invalid) {
+			throw new NodeOperationError(
+				this.getNode(),
+				'Line Items must list at least one entry, each with id (the delivery note line item), quantity (a number) and returnReason with an id.',
+				{ itemIndex },
+			);
+		}
+
 		const body: IDataObject = {
 			deliveryNote: { id: deliveryNoteId },
 			lineItems,
