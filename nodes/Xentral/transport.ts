@@ -257,6 +257,11 @@ export function applyLineItemHidden(body: IDataObject, fields: IDataObject): voi
 	body.printSettings = { ...existing, hidden: fields.hiddenOnPdf };
 }
 
+/** A JSON parameter as text is parsed. An expression that already resolved to an object or array is used as is. */
+export function parseJsonValue(value: unknown): any {
+	return typeof value === 'string' ? JSON.parse(value) : value;
+}
+
 /**
  * Price for a V3 line item update. Amount and currency are both optional in LineItemFinancials, so a
  * currency set on its own is sent too. Returns undefined when neither was set.

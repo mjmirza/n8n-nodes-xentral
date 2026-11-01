@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV1CursorGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV1CursorGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody, parseJsonValue } from '../../transport';
 import { runCustomerSearch } from './customer.search';
 
 // autoCreateDocuments takes both, delivery_note or invoice. The explicit type wins; the old
@@ -50,7 +50,7 @@ export async function handleCustomer(
 		// customFields: JSON string to array of {id, value}
 		if (additionalFields.customFields !== undefined) {
 			try {
-				body.customFields = JSON.parse(additionalFields.customFields as string);
+				body.customFields = parseJsonValue(additionalFields.customFields);
 			} catch {
 				throw new NodeOperationError(this.getNode(), 'Custom Fields must be valid JSON', { itemIndex });
 			}
@@ -65,7 +65,7 @@ export async function handleCustomer(
 		if (additionalFields.website !== undefined) contactDetails.website = additionalFields.website;
 		if (additionalFields.additionalContactData !== undefined) {
 			try {
-				contactDetails.additionalData = JSON.parse(additionalFields.additionalContactData as string);
+				contactDetails.additionalData = parseJsonValue(additionalFields.additionalContactData);
 			} catch {
 				throw new NodeOperationError(this.getNode(), 'Additional Contact Data must be valid JSON', { itemIndex });
 			}
@@ -196,7 +196,7 @@ export async function handleCustomer(
 		// customFields: JSON string to array of {id, value}
 		if (updateFields.customFields !== undefined) {
 			try {
-				body.customFields = JSON.parse(updateFields.customFields as string);
+				body.customFields = parseJsonValue(updateFields.customFields);
 			} catch {
 				throw new NodeOperationError(this.getNode(), 'Custom Fields must be valid JSON', { itemIndex });
 			}
@@ -211,7 +211,7 @@ export async function handleCustomer(
 		if (updateFields.website !== undefined) contactDetails.website = updateFields.website;
 		if (updateFields.additionalContactData !== undefined) {
 			try {
-				contactDetails.additionalData = JSON.parse(updateFields.additionalContactData as string);
+				contactDetails.additionalData = parseJsonValue(updateFields.additionalContactData);
 			} catch {
 				throw new NodeOperationError(this.getNode(), 'Additional Contact Data must be valid JSON', { itemIndex });
 			}

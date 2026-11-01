@@ -25,6 +25,8 @@
 - With a configured Signature Key, the trigger stops activation when it cannot list webhooks, because an unseen older registration with the same key would run every event twice. With a generated key it still creates a new registration, as before.
 - The trigger adopts the registration it owns when several exist for its URL and event, and removes the others. Before, it could delete its own registration's sibling, forget its own, and create a third.
 - The Sent filter on Sales Order and Return uses `isDocumentSent`, because their status has no `sent` value.
+- When the trigger adopts a registration stored by a version before 1.4.5, it writes the stored signing key to it first, so deliveries verify even if the credential now points at another tenant with the same webhook ID. If that write fails, the registration is replaced.
+- JSON fields on Product (Free Fields, Options, Variants, Selected Options), Customer (Custom Fields, Additional Contact Data), Credit Note (Debt Status) and Invoice (Dunning Settings) accept an expression that already resolved to an object or array. They threw "must be valid JSON".
 - Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 
 ### Added

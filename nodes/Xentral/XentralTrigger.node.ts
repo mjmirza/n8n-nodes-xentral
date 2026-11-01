@@ -332,10 +332,26 @@ export class XentralTrigger implements INodeType {
 						const storedKey = typeof webhookData.signatureKey === 'string' ? webhookData.signatureKey : '';
 						const storedInstance = typeof webhookData.webhookInstance === 'string' ? webhookData.webhookInstance : '';
 						const sameInstance = storedInstance === '' || storedInstance === (await currentInstance.call(this));
-						const owned =
+						let owned =
 							sameInstance && storedKey.length >= 20 && webhookData.webhookId !== undefined && webhookData.webhookId !== null
 								? matches.find((webhook) => String(webhook.id) === String(webhookData.webhookId))
 								: undefined;
+						if (owned && storedInstance === '') {
+							// State from before 1.4.5 has no instance, so the credential may now point at another tenant with
+							// the same ID. Writing the stored key to the registration makes it ours; if that fails, replace it.
+							try {
+								assertSafeId(String(owned.id), 'webhookId');
+								await xentralRequest.call(this, 'PATCH', `webhooks/${owned.id}`, {
+									name: owned.name,
+									url: owned.url,
+									events: owned.events,
+									signatureKey: storedKey,
+								} as IDataObject, {}, 'v1');
+							} catch (error) {
+								this.logger.warn(`Xentral: could not confirm the signing key of webhook ${String(owned.id)}, it is replaced. ${(error as Error).message}`);
+								owned = undefined;
+							}
+						}
 						for (const webhook of matches) {
 							if (webhook === owned) continue;
 							assertSafeId(String(webhook.id), 'webhookId');

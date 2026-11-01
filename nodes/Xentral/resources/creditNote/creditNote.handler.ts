@@ -1,6 +1,6 @@
 import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice, lineItemAddBody } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice, lineItemAddBody, parseJsonValue } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for credit note create/update.
@@ -58,7 +58,7 @@ function buildCreditNoteBody(node: INode, fields: IDataObject): IDataObject {
 	// Debt status (complex object passed as JSON string, create only)
 	if (fields.debtStatusJson !== undefined && fields.debtStatusJson !== '') {
 		try {
-			body.debtStatus = JSON.parse(fields.debtStatusJson as string);
+			body.debtStatus = parseJsonValue(fields.debtStatusJson);
 		} catch {
 			throw new NodeOperationError(node, 'Invalid JSON in debtStatus. Please provide valid JSON.');
 		}

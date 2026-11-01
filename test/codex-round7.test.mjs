@@ -714,3 +714,66 @@ test('[r7-34] with a configured signing key, a failed webhook listing stops acti
 	await assert.rejects(() => new XentralTrigger().webhookMethods.default.checkExists.call(make('m'.repeat(32))), /could not be listed/);
 	assert.equal(await new XentralTrigger().webhookMethods.default.checkExists.call(make('')), false);
 });
+
+// ---------- 15. ninth pre-release review ----------
+
+const { handleCustomer } = require('../dist/nodes/Xentral/resources/customer/customer.handler.js');
+
+function adoptContext(stored, patchError) {
+	const calls = [];
+	return {
+		calls,
+		getNodeWebhookUrl: () => 'https://n8n.example.com/webhook/x',
+		getNodeParameter: (name, fallback) => (name === 'event' ? 'salesOrder.created' : name === 'signatureKey' ? '' : fallback),
+		getWorkflowStaticData: () => stored,
+		getNode: () => ({ name: 'Trigger' }),
+		getCredentials: async () => ({ instanceUrl: 'acme.xentral.com', accessToken: '2|token' }),
+		logger: { warn: () => {} },
+		helpers: {
+			httpRequest: async (options) => {
+				calls.push(options);
+				if (options.method === 'GET') return { data: [{ id: '77', name: 'n8n-salesOrder.created', url: 'https://n8n.example.com/webhook/x', events: [{ id: 'com.xentral.salesOrder.created.v1' }] }] };
+				if (options.method === 'PATCH' && patchError) throw patchError;
+				return {};
+			},
+		},
+	};
+}
+
+test('[r7-35] adopting a pre-1.4.5 registration writes the stored key to it, so deliveries verify on any tenant', async () => {
+	const stored = { webhookId: '77', signatureKey: 'o'.repeat(32) };
+	const ctx = adoptContext(stored);
+	assert.equal(await new XentralTrigger().webhookMethods.default.checkExists.call(ctx), true);
+	const patch = ctx.calls.find((c) => c.method === 'PATCH');
+	assert.equal(patch.body.signatureKey, 'o'.repeat(32));
+	assert.deepEqual(Object.keys(patch.body).sort(), ['events', 'name', 'signatureKey', 'url']);
+	assert.equal(stored.webhookInstance, 'https://acme.xentral.com');
+	const failing = { webhookId: '77', signatureKey: 'o'.repeat(32) };
+	const failCtx = adoptContext(failing, httpError(403));
+	assert.equal(await new XentralTrigger().webhookMethods.default.checkExists.call(failCtx), false);
+	assert.ok(failCtx.calls.some((c) => c.method === 'DELETE'));
+	assert.equal('signatureKey' in failing, false);
+	const current = { webhookId: '77', signatureKey: 'o'.repeat(32), webhookInstance: 'https://acme.xentral.com' };
+	const currentCtx = adoptContext(current);
+	assert.equal(await new XentralTrigger().webhookMethods.default.checkExists.call(currentCtx), true);
+	assert.equal(currentCtx.calls.some((c) => c.method === 'PATCH'), false);
+});
+
+test('[r7-36] JSON fields accept an expression that already resolved to an object or array', async () => {
+	const product = context({ productId: '5', updateFields: { freeFields: [{ id: '1', value: 'Blue' }], options: [{ name: 'Color', values: ['Red'] }], selectedOptions: [{ id: '3' }] } });
+	await handleProduct.call(product, 'update', 0);
+	assert.deepEqual(product.calls[0].body.freeFields, [{ id: '1', value: 'Blue' }]);
+	assert.deepEqual(product.calls[0].body.options, [{ name: 'Color', values: [{ name: 'Red' }] }]);
+	assert.deepEqual(product.calls[0].body.selectedOptions, [{ id: '3' }]);
+	const text = context({ productId: '5', updateFields: { freeFields: '[{"id":"1","value":"Blue"}]' } });
+	await handleProduct.call(text, 'update', 0);
+	assert.deepEqual(text.calls[0].body.freeFields, [{ id: '1', value: 'Blue' }]);
+	const customer = context({ customerId: '4', updateFields: { customFields: [{ id: '2', value: 'x' }], additionalContactData: { skype: 'a' } } });
+	await handleCustomer.call(customer, 'update', 0);
+	const body = customer.calls.find((c) => c.method === 'PATCH').body;
+	assert.deepEqual(body.customFields, [{ id: '2', value: 'x' }]);
+	assert.deepEqual(body.contactDetails.additionalData, { skype: 'a' });
+	const invoice = context({ invoiceId: '1', updateFields: { dunningSettingsJson: { level: 1 } } });
+	await handleInvoice.call(invoice, 'update', 0);
+	assert.deepEqual(invoice.calls[0].body.dunningSettings, { level: 1 });
+});

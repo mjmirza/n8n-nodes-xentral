@@ -1,6 +1,6 @@
 import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody, parseJsonValue } from '../../transport';
 import { runProductSearch } from './product.search';
 import { findSpecOperation, runSpecOperation } from '../specDriven/spec.handler';
 
@@ -186,7 +186,7 @@ function buildProductBody(node: INode, fields: IDataObject, isUpdate = false): I
 	// Free fields: JSON string to array
 	if (fields.freeFields !== undefined && fields.freeFields !== '') {
 		try {
-			body.freeFields = JSON.parse(fields.freeFields as string);
+			body.freeFields = parseJsonValue(fields.freeFields);
 		} catch {
 			throw new NodeOperationError(node, 'Free Fields must be valid JSON (expected an array)');
 		}
@@ -232,7 +232,7 @@ function buildProductBody(node: INode, fields: IDataObject, isUpdate = false): I
 	// Options: JSON string to array (matrix product options)
 	if (fields.options !== undefined && fields.options !== '') {
 		try {
-			body.options = matrixOptions(JSON.parse(fields.options as string)) as IDataObject[];
+			body.options = matrixOptions(parseJsonValue(fields.options)) as IDataObject[];
 		} catch {
 			throw new NodeOperationError(node, 'Options must be valid JSON (expected an array)');
 		}
@@ -241,7 +241,7 @@ function buildProductBody(node: INode, fields: IDataObject, isUpdate = false): I
 	// Variants: JSON string to array (create only)
 	if (fields.variants !== undefined && fields.variants !== '') {
 		try {
-			body.variants = JSON.parse(fields.variants as string);
+			body.variants = parseJsonValue(fields.variants);
 		} catch {
 			throw new NodeOperationError(node, 'Variants must be valid JSON (expected an array)');
 		}
@@ -250,7 +250,7 @@ function buildProductBody(node: INode, fields: IDataObject, isUpdate = false): I
 	// Selected options: JSON string to array (update only)
 	if (fields.selectedOptions !== undefined && fields.selectedOptions !== '') {
 		try {
-			body.selectedOptions = JSON.parse(fields.selectedOptions as string);
+			body.selectedOptions = parseJsonValue(fields.selectedOptions);
 		} catch {
 			throw new NodeOperationError(node, 'Selected Options must be valid JSON (expected an array)');
 		}

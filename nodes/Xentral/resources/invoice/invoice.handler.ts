@@ -1,6 +1,6 @@
 import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice, lineItemAddBody } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice, lineItemAddBody, parseJsonValue } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for invoice create/update.
@@ -73,7 +73,7 @@ function buildInvoiceBody(node: INode, fields: IDataObject, isUpdate = false): I
 			body.dunningManualSettings = null;
 		} else {
 			try {
-				body.dunningManualSettings = JSON.parse(raw);
+				body.dunningManualSettings = parseJsonValue(raw);
 			} catch {
 				throw new NodeOperationError(node, 'Invalid JSON in dunningManualSettings. Please provide valid JSON.');
 			}
@@ -81,7 +81,7 @@ function buildInvoiceBody(node: INode, fields: IDataObject, isUpdate = false): I
 	}
 	if (fields.dunningSettingsJson !== undefined && fields.dunningSettingsJson !== '') {
 		try {
-			body.dunningSettings = JSON.parse(fields.dunningSettingsJson as string);
+			body.dunningSettings = parseJsonValue(fields.dunningSettingsJson);
 		} catch {
 			throw new NodeOperationError(node, 'Invalid JSON in dunningSettings. Please provide valid JSON.');
 		}
