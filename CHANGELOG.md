@@ -29,9 +29,11 @@
 - Add Line Item sends a Price Currency set without a Price Amount on Sales Order, Purchase Order, Offer, Invoice, Credit Note and Proforma Invoice. It was dropped.
 - Customer Create accepts a person (Customer Type Person) with First Name and Last Name and no Name, as Xentral requires. Name is still required for a company.
 
+- A reference whose ID an expression resolves to null (Project, Editor, Sales Order, Customer, Customer Group and the rest) is sent as `null`, which removes the reference, instead of `{"id": null}`, which Xentral rejects. Custom API Call bodies are still sent exactly as written.
 - Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 
 ### Security
+- When the Signature Key on the trigger changes, activation replaces a registration kept from a failed delete instead of adopting it, so the old key stops verifying deliveries.
 - The runtime refuses a Xentral host that is percent-encoded or contains non-ASCII characters, as the credential test already did, so both checks agree on the host.
 
 ### Added

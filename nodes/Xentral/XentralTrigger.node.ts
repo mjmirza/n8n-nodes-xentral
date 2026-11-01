@@ -332,8 +332,11 @@ export class XentralTrigger implements INodeType {
 						const storedKey = typeof webhookData.signatureKey === 'string' ? webhookData.signatureKey : '';
 						const storedInstance = typeof webhookData.webhookInstance === 'string' ? webhookData.webhookInstance : '';
 						const sameInstance = storedInstance === '' || storedInstance === (await currentInstance.call(this));
+						// A changed Signature Key must replace the registration, or the old key would keep verifying deliveries.
+						const configuredKey = (this.getNodeParameter('signatureKey', '') as string) || '';
+						const keyMatches = configuredKey.length < 20 || configuredKey === storedKey;
 						let owned =
-							sameInstance && storedKey.length >= 20 && webhookData.webhookId !== undefined && webhookData.webhookId !== null
+							sameInstance && keyMatches && storedKey.length >= 20 && webhookData.webhookId !== undefined && webhookData.webhookId !== null
 								? matches.find((webhook) => String(webhook.id) === String(webhookData.webhookId))
 								: undefined;
 						if (owned && storedInstance === '') {

@@ -843,3 +843,40 @@ test('[r7-40] the runtime refuses percent-encoded and non-ASCII hosts, like the 
 	assert.equal(transport7.normalizeUrl('acme.xentral.com'), 'https://acme.xentral.com');
 	assert.equal(transport7.normalizeUrl('https://acme-1.xentral.com:8443/'), 'https://acme-1.xentral.com:8443');
 });
+
+// ---------- 18. thirteenth pre-release review ----------
+
+const { handleProduction } = require('../dist/nodes/Xentral/resources/production/production.handler.js');
+
+test('[r7-41] a reference whose id resolved to null is sent as null, the Custom API Call body stays as written', async () => {
+	const invoice = context({ customerId: '4', additionalFields: { projectId: null } });
+	await handleInvoice.call(invoice, 'create', 0);
+	assert.equal(invoice.calls[0].body.project, null);
+	const update = context({ invoiceId: '1', updateFields: { projectId: null } });
+	await handleInvoice.call(update, 'update', 0);
+	assert.equal(update.calls[0].body.project, null);
+	const price = context({ salesPriceId: '1', updateFields: { customerId: null, customerGroupId: null } });
+	await handleSalesPrice.call(price, 'update', 0);
+	assert.equal(price.calls[0].body.customer, null);
+	assert.equal(price.calls[0].body.customerGroup, null);
+	const production = context({ productId: '5', quantity: 1, additionalFields: { projectId: null } });
+	await handleProduction.call(production, 'create', 0);
+	assert.equal(production.calls[0].body.project, null);
+	const custom = apiCallContext({ method: 'POST', apiVersion: 'v1', path: 'products', body: '{"project":{"id":null}}' });
+	await handleCustomApiCall.call(custom, 'request', 0);
+	assert.deepEqual(custom.calls[0].body, { project: { id: null } });
+	assert.deepEqual(transport7.nullReferences({ a: { id: '1' }, b: [{ id: null }], c: { id: null, name: 'x' } }), { a: { id: '1' }, b: [null], c: { id: null, name: 'x' } });
+});
+
+test('[r7-42] a changed Signature Key replaces the retained registration instead of adopting the old key', async () => {
+	const stored = { webhookId: '77', signatureKey: 'o'.repeat(32), webhookInstance: 'https://acme.xentral.com' };
+	const ctx = adoptContext(stored);
+	ctx.getNodeParameter = (name, fallback) => (name === 'event' ? 'salesOrder.created' : name === 'signatureKey' ? 'n'.repeat(32) : fallback);
+	assert.equal(await new XentralTrigger().webhookMethods.default.checkExists.call(ctx), false);
+	assert.ok(ctx.calls.some((c) => c.method === 'DELETE' && c.url.endsWith('/webhooks/77')));
+	assert.equal('signatureKey' in stored, false);
+	const same = { webhookId: '77', signatureKey: 'n'.repeat(32), webhookInstance: 'https://acme.xentral.com' };
+	const sameCtx = adoptContext(same);
+	sameCtx.getNodeParameter = ctx.getNodeParameter;
+	assert.equal(await new XentralTrigger().webhookMethods.default.checkExists.call(sameCtx), true);
+});

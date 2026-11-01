@@ -77,7 +77,8 @@ export async function handleCustomApiCall(
 	const headers = Object.keys(headerMap).length > 0 ? headerMap : undefined;
 	const responseFormat = this.getNodeParameter('responseFormat', itemIndex, 'json') as string;
 	if (responseFormat !== 'text' && responseFormat !== 'file') {
-		const result = await xentralRequest.call(this, method as IHttpRequestMethods, resolved.path, body, query, resolved.version, headers);
+		// The body is sent exactly as written, so it is never rewritten.
+		const result = await xentralRequest.call(this, method as IHttpRequestMethods, resolved.path, body, query, resolved.version, headers, false, true);
 		if (this.getNodeParameter('fullResponse', itemIndex, false) === true) {
 			// One item with the whole body, so cursors and meta are not lost when the data array is split.
 			const json = result !== null && typeof result === 'object' && !Array.isArray(result) ? (result as IDataObject) : { data: result };
@@ -87,7 +88,7 @@ export async function handleCustomApiCall(
 	}
 
 	const response = await xentralRequest.call(
-		this, method as IHttpRequestMethods, resolved.path, body, query, resolved.version, headers, true,
+		this, method as IHttpRequestMethods, resolved.path, body, query, resolved.version, headers, true, true,
 	);
 	const responseHeaders = (response?.headers ?? {}) as IDataObject;
 	const buffer = toBuffer(response?.body);

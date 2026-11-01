@@ -283,6 +283,7 @@ npm run lint    # n8n verification rule set, must report zero problems
 - Add Line Item now sends a Price Currency that is set without a Price Amount.
 - Customer Create no longer needs Name for a person. Set Customer Type to Person with First Name and Last Name.
 - A Xentral host with percent-encoding or non-ASCII characters is now refused at run time too, matching the credential test.
+- An expression that returns null for a reference ID (for example Project ID) now removes the reference. Before, `{"id": null}` was sent and rejected.
 - The trigger ignores deliveries whose event type is not the one it is set to. Before, a webhook registered with extra events started the workflow for all of them.
 - To remove a price's Valid From or Expires At, use an expression that returns null.
 - Product Update still ignores empty values. Turn on the new Clear Empty Fields option to clear text fields with an empty value, or the age rating with Age Rating None.

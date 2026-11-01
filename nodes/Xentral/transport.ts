@@ -412,6 +412,20 @@ export function apiDates(body: IDataObject): IDataObject {
 	return body;
 }
 
+/**
+ * A reference whose id an expression resolved to null, { "id": null }, becomes null, which is how Xentral
+ * removes a reference. A reference with a null id is never valid.
+ */
+export function nullReferences<T>(value: T, depth = 0): T {
+	if (depth > 20 || value === null || typeof value !== 'object') return value;
+	if (Array.isArray(value)) return value.map((item) => nullReferences(item, depth + 1)) as unknown as T;
+	const entries = Object.entries(value as Record<string, unknown>);
+	if (entries.length === 1 && entries[0][0] === 'id' && entries[0][1] === null) return null as unknown as T;
+	const result: Record<string, unknown> = {};
+	for (const [key, inner] of entries) result[key] = nullReferences(inner, depth + 1);
+	return result as T;
+}
+
 // ---------- core request ----------
 
 export async function xentralRequest(
@@ -423,6 +437,7 @@ export async function xentralRequest(
 	apiVersion: string = 'v1',
 	extraHeaders?: Record<string, string>,
 	raw: boolean = false,
+	verbatimBody: boolean = false,
 ): Promise<any> {
 	const credentials = await getCredentials(this);
 	const instanceUrl = credentials.instanceUrl as string;
@@ -454,7 +469,7 @@ export async function xentralRequest(
 
 	const hasBody = Array.isArray(body) ? body.length > 0 : body !== null && typeof body === 'object' && Object.keys(body).length > 0;
 	if ((['POST', 'PATCH', 'PUT'].includes(method) && body) || (method === 'DELETE' && hasBody)) {
-		options.body = body;
+		options.body = verbatimBody ? body : nullReferences(body);
 	}
 
 	// Read Location so a create that answers with an empty body still yields its new id.
