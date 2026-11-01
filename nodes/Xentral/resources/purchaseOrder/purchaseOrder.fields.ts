@@ -87,7 +87,6 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'desiredDeliveryDate',
 				type: 'dateTime',
 				default: '',
-				description: 'The desired delivery date',
 			},
 			{
 				displayName: 'Document Address',
@@ -159,6 +158,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 								displayName: 'Email',
 								name: 'email',
 								type: 'string',
+								placeholder: 'name@email.com',
 								default: '',
 							},
 							{
@@ -610,14 +610,12 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'confirmationType',
 				type: 'string',
 				default: '',
-				description: 'Confirmation type',
 			},
 			{
 				displayName: 'Confirmed Delivery Date',
 				name: 'confirmedDeliveryDate',
 				type: 'dateTime',
 				default: '',
-				description: 'Confirmed delivery date',
 			},
 			{
 				displayName: 'Cost Center',
@@ -638,14 +636,12 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'deliveryTerms',
 				type: 'string',
 				default: '',
-				description: 'Delivery terms',
 			},
 			{
 				displayName: 'Desired Delivery Date',
 				name: 'desiredDeliveryDate',
 				type: 'dateTime',
 				default: '',
-				description: 'Desired delivery date',
 			},
 			{
 				displayName: 'Document Address',
@@ -717,6 +713,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 								displayName: 'Email',
 								name: 'email',
 								type: 'string',
+								placeholder: 'name@email.com',
 								default: '',
 							},
 							{
@@ -798,7 +795,6 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'internalDesignation',
 				type: 'string',
 				default: '',
-				description: 'Internal designation',
 			},
 			{
 				displayName: 'Language',
@@ -856,7 +852,6 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'projectId',
 				type: 'string',
 				default: '',
-				description: 'Project ID',
 			},
 			{
 				displayName: 'Tags',
@@ -973,14 +968,12 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'productId',
 				type: 'string',
 				default: '',
-				description: 'Product ID',
 			},
 			{
 				displayName: 'Quantity',
 				name: 'quantity',
 				type: 'number',
 				default: 1,
-				description: 'Quantity',
 				typeOptions: { minValue: 1 },
 			},
 			{

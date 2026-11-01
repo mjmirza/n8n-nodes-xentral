@@ -138,6 +138,7 @@ export const deliveryNoteFields: INodeProperties[] = [
 								displayName: 'Email',
 								name: 'email',
 								type: 'string',
+								placeholder: 'name@email.com',
 								default: '',
 							},
 							{
@@ -250,27 +251,6 @@ export const deliveryNoteFields: INodeProperties[] = [
 				description: 'ID of the preferred warehouse',
 			},
 			{
-				displayName: 'Project ID',
-				name: 'projectId',
-				type: 'string',
-				default: '',
-				description: 'ID of the project this delivery note belongs to',
-			},
-			{
-				displayName: 'Sales Representative ID',
-				name: 'salesId',
-				type: 'string',
-				default: '',
-				description: 'ID of the sales representative',
-			},
-			{
-				displayName: 'Sales Order ID',
-				name: 'salesOrderId',
-				type: 'string',
-				default: '',
-				description: 'ID of the related sales order',
-			},
-			{
 				displayName: 'Print Settings',
 				name: 'printSettings',
 				type: 'fixedCollection',
@@ -299,6 +279,27 @@ export const deliveryNoteFields: INodeProperties[] = [
 					},
 				],
 				description: 'Print settings for the document',
+			},
+			{
+				displayName: 'Project ID',
+				name: 'projectId',
+				type: 'string',
+				default: '',
+				description: 'ID of the project this delivery note belongs to',
+			},
+			{
+				displayName: 'Sales Order ID',
+				name: 'salesOrderId',
+				type: 'string',
+				default: '',
+				description: 'ID of the related sales order',
+			},
+			{
+				displayName: 'Sales Representative ID',
+				name: 'salesId',
+				type: 'string',
+				default: '',
+				description: 'ID of the sales representative',
 			},
 			{
 				displayName: 'Tags',
@@ -590,7 +591,6 @@ export const deliveryNoteFields: INodeProperties[] = [
 				name: 'commissionConsignmentWarehouseId',
 				type: 'string',
 				default: '',
-				description: 'Commission consignment warehouse ID',
 			},
 			{
 				displayName: 'Cost Center',
@@ -604,7 +604,6 @@ export const deliveryNoteFields: INodeProperties[] = [
 				name: 'deliveryTerms',
 				type: 'string',
 				default: '',
-				description: 'Delivery terms',
 			},
 			{
 				displayName: 'Document Address',
@@ -676,6 +675,7 @@ export const deliveryNoteFields: INodeProperties[] = [
 								displayName: 'Email',
 								name: 'email',
 								type: 'string',
+								placeholder: 'name@email.com',
 								default: '',
 							},
 							{
@@ -757,7 +757,6 @@ export const deliveryNoteFields: INodeProperties[] = [
 				name: 'internalDesignation',
 				type: 'string',
 				default: '',
-				description: 'Internal designation',
 			},
 			{
 				displayName: 'Language',
@@ -778,7 +777,6 @@ export const deliveryNoteFields: INodeProperties[] = [
 				name: 'orderPickingId',
 				type: 'string',
 				default: '',
-				description: 'Order picking ID',
 			},
 			{
 				displayName: 'Preferred Warehouse ID',
@@ -786,27 +784,6 @@ export const deliveryNoteFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'ID of preferred warehouse',
-			},
-			{
-				displayName: 'Project ID',
-				name: 'projectId',
-				type: 'string',
-				default: '',
-				description: 'Project ID',
-			},
-			{
-				displayName: 'Sales Representative ID',
-				name: 'salesId',
-				type: 'string',
-				default: '',
-				description: 'Sales representative ID',
-			},
-			{
-				displayName: 'Sales Order ID',
-				name: 'salesOrderId',
-				type: 'string',
-				default: '',
-				description: 'Associated sales order ID',
 			},
 			{
 				displayName: 'Print Settings',
@@ -837,6 +814,25 @@ export const deliveryNoteFields: INodeProperties[] = [
 					},
 				],
 				description: 'Print settings for the document',
+			},
+			{
+				displayName: 'Project ID',
+				name: 'projectId',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Sales Order ID',
+				name: 'salesOrderId',
+				type: 'string',
+				default: '',
+				description: 'Associated sales order ID',
+			},
+			{
+				displayName: 'Sales Representative ID',
+				name: 'salesId',
+				type: 'string',
+				default: '',
 			},
 			{
 				displayName: 'Tags',
@@ -933,14 +929,12 @@ export const deliveryNoteFields: INodeProperties[] = [
 				name: 'productId',
 				type: 'string',
 				default: '',
-				description: 'Product ID',
 			},
 			{
 				displayName: 'Quantity',
 				name: 'quantity',
 				type: 'number',
 				default: 1,
-				description: 'Quantity',
 				typeOptions: { minValue: 1 },
 			},
 			{

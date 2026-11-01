@@ -7,7 +7,7 @@ import type {
 	IHttpRequestOptions,
 	JsonObject,
 } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+import { NodeApiError, sleep } from 'n8n-workflow';
 
 // ---------- helpers ----------
 
@@ -22,30 +22,32 @@ function normalizeUrl(raw: string): string {
 	}
 
 	// SSRF protection: block internal/reserved IP ranges and localhost
+	let hostname = '';
 	try {
-		const parsed = new URL(url);
-		const hostname = parsed.hostname.toLowerCase();
-		if (
-			hostname === 'localhost' ||
-			hostname === '0.0.0.0' ||
-			hostname === '0' ||
-			/^127\./.test(hostname) ||
-			/^10\./.test(hostname) ||
-			/^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
-			/^192\.168\./.test(hostname) ||
-			/^169\.254\./.test(hostname) ||
-			/^0+\./.test(hostname) ||
-			hostname === '::1' ||
-			hostname.startsWith('[') ||
-			/^fc00:/i.test(hostname) ||
-			/^fe80:/i.test(hostname) ||
-			/^::ffff:/i.test(hostname)
-		) {
-			throw new Error('Connections to internal or reserved network addresses are not allowed');
-		}
-	} catch (e: any) {
-		if (e.message.includes('not allowed')) throw e;
+		hostname = new URL(url).hostname.toLowerCase();
+	} catch {
+		hostname = '';
+	}
+	if (!hostname) {
 		throw new Error('Invalid Xentral instance URL. Please check the format (e.g. https://yourcompany.xentral.com).');
+	}
+	if (
+		hostname === 'localhost' ||
+		hostname === '0.0.0.0' ||
+		hostname === '0' ||
+		/^127\./.test(hostname) ||
+		/^10\./.test(hostname) ||
+		/^172\.(1[6-9]|2\d|3[01])\./.test(hostname) ||
+		/^192\.168\./.test(hostname) ||
+		/^169\.254\./.test(hostname) ||
+		/^0+\./.test(hostname) ||
+		hostname === '::1' ||
+		hostname.startsWith('[') ||
+		/^fc00:/i.test(hostname) ||
+		/^fe80:/i.test(hostname) ||
+		/^::ffff:/i.test(hostname)
+	) {
+		throw new Error('Connections to internal or reserved network addresses are not allowed');
 	}
 
 	return url;
@@ -244,7 +246,7 @@ export async function xentralRequest(
 					: Math.min(1000 * Math.pow(2, attempt), 10000);
 				// Add jitter (0-25% of base) to prevent thundering herd
 				const jitter = Math.floor(Math.random() * baseMs * 0.25);
-				await new Promise((resolve) => setTimeout(resolve, baseMs + jitter));
+				await sleep(baseMs + jitter);
 				continue;
 			}
 			handleXentralError(this, error);

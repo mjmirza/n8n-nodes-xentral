@@ -48,7 +48,7 @@ export const tagFields: INodeProperties[] = [
 			{
 				displayName: 'Color',
 				name: 'color',
-				type: 'string',
+				type: 'color',
 				default: '',
 				description: 'Hex color code without the # prefix (e.g. "ff0000" for red)',
 			},

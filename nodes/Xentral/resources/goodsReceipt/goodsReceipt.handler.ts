@@ -1,4 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, assertSafeId } from '../../transport';
 
 export async function handleGoodsReceipt(
@@ -23,7 +24,7 @@ export async function handleGoodsReceipt(
 				try {
 					body.positions = JSON.parse(val);
 				} catch {
-					throw new Error('Invalid JSON in positions. Please provide valid JSON.');
+					throw new NodeOperationError(this.getNode(), 'Invalid JSON in positions. Please provide valid JSON.');
 				}
 			} else if (Array.isArray(val)) {
 				body.positions = val;
@@ -50,7 +51,7 @@ export async function handleGoodsReceipt(
 				try {
 					body.positions = JSON.parse(val);
 				} catch {
-					throw new Error('Invalid JSON in positions. Please provide valid JSON.');
+					throw new NodeOperationError(this.getNode(), 'Invalid JSON in positions. Please provide valid JSON.');
 				}
 			} else if (Array.isArray(val)) {
 				body.positions = val;

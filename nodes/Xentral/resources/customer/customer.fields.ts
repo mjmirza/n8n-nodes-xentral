@@ -98,7 +98,19 @@ export const customerFields: INodeProperties[] = [
 				name: 'customFields',
 				type: 'json',
 				default: '',
-				description: 'JSON array of {id, value} objects for custom fields',
+				description: 'Custom field values as a JSON array, one object per field with its ID and value',
+				hint: 'Example value [{"id": "1", "value": "Example"}]',
+			},
+			{
+				displayName: 'Customer Type',
+				name: 'customerType',
+				type: 'options',
+				options: [
+					{ name: 'Person', value: 'person' },
+					{ name: 'Company', value: 'company' },
+				],
+				default: 'company',
+				description: 'Whether the customer is a person or company',
 			},
 			{
 				displayName: 'Customs Information',
@@ -113,17 +125,6 @@ export const customerFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'Currency code, e.g. EUR (financials.defaultCurrency)',
-			},
-			{
-				displayName: 'Customer Type',
-				name: 'customerType',
-				type: 'options',
-				options: [
-					{ name: 'Person', value: 'person' },
-					{ name: 'Company', value: 'company' },
-				],
-				default: 'company',
-				description: 'Whether the customer is a person or company',
 			},
 			{
 				displayName: 'Delivery Ban',
@@ -180,7 +181,6 @@ export const customerFields: INodeProperties[] = [
 				name: 'firstname',
 				type: 'string',
 				default: '',
-				description: 'First name',
 			},
 			{
 				displayName: 'Fixed Payment Terms',
@@ -236,7 +236,6 @@ export const customerFields: INodeProperties[] = [
 				name: 'lastname',
 				type: 'string',
 				default: '',
-				description: 'Last name',
 			},
 			{
 				displayName: 'Mobile',
@@ -257,7 +256,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'paymentMethodId',
 				type: 'string',
 				default: '',
-				description: 'Payment method ID (financials.paymentMethod.id)',
+				description: 'ID of the payment method, sent to the API under financials.paymentMethod',
 			},
 			{
 				displayName: 'Payment Target Days',
@@ -295,18 +294,18 @@ export const customerFields: INodeProperties[] = [
 				description: 'Whether fax is the preferred document delivery method (documentDelivery.preferFax)',
 			},
 			{
-				displayName: 'Primary Bank Account IBAN',
-				name: 'primaryBankAccountIban',
-				type: 'string',
-				default: '',
-				description: 'IBAN for the primary bank account',
-			},
-			{
 				displayName: 'Primary Bank Account BIC',
 				name: 'primaryBankAccountBic',
 				type: 'string',
 				default: '',
 				description: 'BIC/SWIFT for the primary bank account',
+			},
+			{
+				displayName: 'Primary Bank Account IBAN',
+				name: 'primaryBankAccountIban',
+				type: 'string',
+				default: '',
+				description: 'IBAN for the primary bank account',
 			},
 			{
 				displayName: 'Primary Bank Account Owner',
@@ -390,7 +389,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'shippingMethodId',
 				type: 'string',
 				default: '',
-				description: 'Shipping method ID (shipping.shippingMethod.id)',
+				description: 'ID of the shipping method, sent to the API under shipping.shippingMethod',
 			},
 			{
 				displayName: 'Sub-Department',
@@ -624,7 +623,19 @@ export const customerFields: INodeProperties[] = [
 				name: 'customFields',
 				type: 'json',
 				default: '',
-				description: 'JSON array of {id, value} objects for custom fields',
+				description: 'Custom field values as a JSON array, one object per field with its ID and value',
+				hint: 'Example value [{"id": "1", "value": "Example"}]',
+			},
+			{
+				displayName: 'Customer Type',
+				name: 'customerType',
+				type: 'options',
+				options: [
+					{ name: 'Person', value: 'person' },
+					{ name: 'Company', value: 'company' },
+				],
+				default: 'company',
+				description: 'Whether the customer is a person or company',
 			},
 			{
 				displayName: 'Customs Information',
@@ -639,17 +650,6 @@ export const customerFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'Currency code, e.g. EUR (financials.defaultCurrency)',
-			},
-			{
-				displayName: 'Customer Type',
-				name: 'customerType',
-				type: 'options',
-				options: [
-					{ name: 'Person', value: 'person' },
-					{ name: 'Company', value: 'company' },
-				],
-				default: 'company',
-				description: 'Whether the customer is a person or company',
 			},
 			{
 				displayName: 'Delivery Ban',
@@ -706,7 +706,6 @@ export const customerFields: INodeProperties[] = [
 				name: 'firstname',
 				type: 'string',
 				default: '',
-				description: 'First name',
 			},
 			{
 				displayName: 'Fixed Payment Terms',
@@ -734,7 +733,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'fromShopId',
 				type: 'string',
 				default: '',
-				description: 'ID of the shop the customer originates from (fromShop.id)',
+				description: 'ID of the shop the customer originates from, sent to the API as fromShop',
 			},
 			{
 				displayName: 'Groups',
@@ -783,7 +782,6 @@ export const customerFields: INodeProperties[] = [
 				name: 'lastname',
 				type: 'string',
 				default: '',
-				description: 'Last name',
 			},
 			{
 				displayName: 'Latitude',
@@ -846,7 +844,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'paymentMethodId',
 				type: 'string',
 				default: '',
-				description: 'Payment method ID (financials.paymentMethod.id)',
+				description: 'ID of the payment method, sent to the API under financials.paymentMethod',
 			},
 			{
 				displayName: 'Payment Target Days',
@@ -891,18 +889,18 @@ export const customerFields: INodeProperties[] = [
 				description: 'Bank BIC/SWIFT code',
 			},
 			{
-				displayName: 'Primary Bank Account Owner',
-				name: 'primaryBankAccountOwner',
-				type: 'string',
-				default: '',
-				description: 'Bank account owner name',
-			},
-			{
 				displayName: 'Primary Bank Account IBAN',
 				name: 'primaryBankAccountIban',
 				type: 'string',
 				default: '',
 				description: 'Bank IBAN',
+			},
+			{
+				displayName: 'Primary Bank Account Owner',
+				name: 'primaryBankAccountOwner',
+				type: 'string',
+				default: '',
+				description: 'Bank account owner name',
 			},
 			{
 				displayName: 'Sales Manager ID',
@@ -985,7 +983,7 @@ export const customerFields: INodeProperties[] = [
 				name: 'shippingMethodId',
 				type: 'string',
 				default: '',
-				description: 'Shipping method ID (shipping.shippingMethod.id)',
+				description: 'ID of the shipping method, sent to the API under shipping.shippingMethod',
 			},
 			{
 				displayName: 'Show Birthday In Calendar',

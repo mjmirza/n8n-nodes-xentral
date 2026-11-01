@@ -1,4 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
 
 export async function handleReturn(
@@ -87,7 +88,7 @@ export async function handleReturn(
 			try {
 				lineItems = JSON.parse(lineItemsJson) as object[];
 			} catch {
-				throw new Error('Invalid JSON in lineItems. Please provide a valid JSON array.');
+				throw new NodeOperationError(this.getNode(), 'Invalid JSON in lineItems. Please provide a valid JSON array.');
 			}
 		} else {
 			lineItems = lineItemsJson;

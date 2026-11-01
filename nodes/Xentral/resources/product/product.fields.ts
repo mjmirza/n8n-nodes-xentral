@@ -80,7 +80,7 @@ export const productFields: INodeProperties[] = [
 				name: 'allowPurchaseFromAllSuppliers',
 				type: 'boolean',
 				default: false,
-				description: 'Allow purchasing from all suppliers',
+				description: 'Whether the product can be purchased from all suppliers',
 			},
 			{
 				displayName: 'Calculated Purchase Price Amount',
@@ -88,7 +88,6 @@ export const productFields: INodeProperties[] = [
 				type: 'number',
 				default: 0,
 				typeOptions: { numberPrecision: 2 },
-				description: 'The calculated purchase price amount',
 			},
 			{
 				displayName: 'Calculated Purchase Price Currency',
@@ -141,13 +140,6 @@ export const productFields: INodeProperties[] = [
 				description: 'Discount percentage for the product',
 			},
 			{
-				displayName: 'Is Discount Product',
-				name: 'isDiscountProduct',
-				type: 'boolean',
-				default: false,
-				description: 'Whether this product is a discount product',
-			},
-			{
 				displayName: 'EAN',
 				name: 'ean',
 				type: 'string',
@@ -197,7 +189,7 @@ export const productFields: INodeProperties[] = [
 				description: 'Whether this product has a stock taking value',
 			},
 			{
-				displayName: 'Height (cm)',
+				displayName: 'Height (Cm)',
 				name: 'height',
 				type: 'number',
 				default: 0,
@@ -216,21 +208,20 @@ export const productFields: INodeProperties[] = [
 				name: 'hideJustInTimeItemsOnDocuments',
 				type: 'boolean',
 				default: false,
-				description: 'Hide JIT items on documents',
+				description: 'Whether just-in-time items are hidden on documents',
 			},
 			{
 				displayName: 'Hide Price On Documents',
 				name: 'hidePriceOnDocuments',
 				type: 'boolean',
 				default: false,
-				description: 'Hide price on printed documents',
+				description: 'Whether the price is hidden on printed documents',
 			},
 			{
 				displayName: 'Internal Comment',
 				name: 'internalComment',
 				type: 'string',
 				default: '',
-				description: 'Internal comment',
 			},
 			{
 				displayName: 'Is Assembled Just In Time',
@@ -245,6 +236,13 @@ export const productFields: INodeProperties[] = [
 				type: 'boolean',
 				default: false,
 				description: 'Whether product is disabled',
+			},
+			{
+				displayName: 'Is Discount Product',
+				name: 'isDiscountProduct',
+				type: 'boolean',
+				default: false,
+				description: 'Whether this product is a discount product',
 			},
 			{
 				displayName: 'Is Externally Produced',
@@ -289,7 +287,7 @@ export const productFields: INodeProperties[] = [
 				description: 'Whether stock taking is disabled for this product',
 			},
 			{
-				displayName: 'Length (cm)',
+				displayName: 'Length (Cm)',
 				name: 'length',
 				type: 'number',
 				default: 0,
@@ -329,7 +327,6 @@ export const productFields: INodeProperties[] = [
 				name: 'minimumOrderQuantity',
 				type: 'number',
 				default: 0,
-				description: 'Minimum order quantity',
 				typeOptions: { minValue: 0 },
 			},
 			{
@@ -337,7 +334,6 @@ export const productFields: INodeProperties[] = [
 				name: 'minimumStorageQuantity',
 				type: 'number',
 				default: 0,
-				description: 'Minimum storage quantity',
 				typeOptions: { minValue: 0 },
 			},
 			{
@@ -374,7 +370,6 @@ export const productFields: INodeProperties[] = [
 				name: 'regionOfOrigin',
 				type: 'string',
 				default: '',
-				description: 'Region of origin',
 			},
 			{
 				displayName: 'Sales Tax',
@@ -451,7 +446,7 @@ export const productFields: INodeProperties[] = [
 				description: 'Variant definitions as JSON array (create only)',
 			},
 			{
-				displayName: 'Weight (kg)',
+				displayName: 'Weight (Kg)',
 				name: 'weight',
 				type: 'number',
 				default: 0,
@@ -466,7 +461,7 @@ export const productFields: INodeProperties[] = [
 				description: 'Unit for weight measurement (default: kg)',
 			},
 			{
-				displayName: 'Width (cm)',
+				displayName: 'Width (Cm)',
 				name: 'width',
 				type: 'number',
 				default: 0,
@@ -566,7 +561,7 @@ export const productFields: INodeProperties[] = [
 				name: 'allowPurchaseFromAllSuppliers',
 				type: 'boolean',
 				default: false,
-				description: 'Allow purchasing from all suppliers',
+				description: 'Whether the product can be purchased from all suppliers',
 			},
 			{
 				displayName: 'Calculated Purchase Price Amount',
@@ -574,7 +569,6 @@ export const productFields: INodeProperties[] = [
 				type: 'number',
 				default: 0,
 				typeOptions: { numberPrecision: 2 },
-				description: 'The calculated purchase price amount',
 			},
 			{
 				displayName: 'Calculated Purchase Price Currency',
@@ -627,13 +621,6 @@ export const productFields: INodeProperties[] = [
 				typeOptions: { numberPrecision: 2 },
 			},
 			{
-				displayName: 'Is Discount Product',
-				name: 'isDiscountProduct',
-				type: 'boolean',
-				default: false,
-				description: 'Whether this product is a discount product',
-			},
-			{
 				displayName: 'EAN',
 				name: 'ean',
 				type: 'string',
@@ -683,7 +670,7 @@ export const productFields: INodeProperties[] = [
 				description: 'Whether this product has a stock taking value',
 			},
 			{
-				displayName: 'Height (cm)',
+				displayName: 'Height (Cm)',
 				name: 'height',
 				type: 'number',
 				default: 0,
@@ -702,21 +689,20 @@ export const productFields: INodeProperties[] = [
 				name: 'hideJustInTimeItemsOnDocuments',
 				type: 'boolean',
 				default: false,
-				description: 'Hide JIT items on documents',
+				description: 'Whether just-in-time items are hidden on documents',
 			},
 			{
 				displayName: 'Hide Price On Documents',
 				name: 'hidePriceOnDocuments',
 				type: 'boolean',
 				default: false,
-				description: 'Hide price on printed documents',
+				description: 'Whether the price is hidden on printed documents',
 			},
 			{
 				displayName: 'Internal Comment',
 				name: 'internalComment',
 				type: 'string',
 				default: '',
-				description: 'Internal comment',
 			},
 			{
 				displayName: 'Is Assembled Just In Time',
@@ -731,6 +717,13 @@ export const productFields: INodeProperties[] = [
 				type: 'boolean',
 				default: false,
 				description: 'Whether product is disabled',
+			},
+			{
+				displayName: 'Is Discount Product',
+				name: 'isDiscountProduct',
+				type: 'boolean',
+				default: false,
+				description: 'Whether this product is a discount product',
 			},
 			{
 				displayName: 'Is Externally Produced',
@@ -775,7 +768,7 @@ export const productFields: INodeProperties[] = [
 				description: 'Whether stock taking is disabled for this product',
 			},
 			{
-				displayName: 'Length (cm)',
+				displayName: 'Length (Cm)',
 				name: 'length',
 				type: 'number',
 				default: 0,
@@ -815,14 +808,12 @@ export const productFields: INodeProperties[] = [
 				name: 'minimumOrderQuantity',
 				type: 'number',
 				default: 0,
-				description: 'Minimum order quantity',
 			},
 			{
 				displayName: 'Minimum Storage Quantity',
 				name: 'minimumStorageQuantity',
 				type: 'number',
 				default: 0,
-				description: 'Minimum storage quantity',
 			},
 			{
 				displayName: 'Name',
@@ -872,7 +863,6 @@ export const productFields: INodeProperties[] = [
 				name: 'regionOfOrigin',
 				type: 'string',
 				default: '',
-				description: 'Region of origin',
 			},
 			{
 				displayName: 'Sales Tax',
@@ -891,7 +881,8 @@ export const productFields: INodeProperties[] = [
 				name: 'selectedOptions',
 				type: 'json',
 				default: '',
-				description: 'Selected options as JSON array (e.g. [{"id":"...","option":{"id":"..."}}]) - update only',
+				description: 'Selected matrix options as a JSON array. Only used when updating a product.',
+				hint: 'Example value [{"id": "1", "option": {"id": "2"}}]',
 			},
 			{
 				displayName: 'Serial Numbers Mode',
@@ -949,7 +940,7 @@ export const productFields: INodeProperties[] = [
 				description: 'The ID of the parent product (if this is a variant)',
 			},
 			{
-				displayName: 'Weight (kg)',
+				displayName: 'Weight (Kg)',
 				name: 'weight',
 				type: 'number',
 				default: 0,
@@ -964,7 +955,7 @@ export const productFields: INodeProperties[] = [
 				description: 'Unit for weight measurement (default: kg)',
 			},
 			{
-				displayName: 'Width (cm)',
+				displayName: 'Width (Cm)',
 				name: 'width',
 				type: 'number',
 				default: 0,

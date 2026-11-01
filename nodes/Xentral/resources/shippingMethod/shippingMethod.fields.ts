@@ -43,14 +43,12 @@ export const shippingMethodFields: INodeProperties[] = [
 				name: 'carrierExtraField1',
 				type: 'string',
 				default: '',
-				description: 'Carrier extra field 1',
 			},
 			{
 				displayName: 'Carrier Extra Field 2',
 				name: 'carrierExtraField2',
 				type: 'string',
 				default: '',
-				description: 'Carrier extra field 2',
 			},
 			{
 				displayName: 'Carrier ID',
@@ -196,14 +194,12 @@ export const shippingMethodFields: INodeProperties[] = [
 				name: 'carrierExtraField1',
 				type: 'string',
 				default: '',
-				description: 'Carrier extra field 1',
 			},
 			{
 				displayName: 'Carrier Extra Field 2',
 				name: 'carrierExtraField2',
 				type: 'string',
 				default: '',
-				description: 'Carrier extra field 2',
 			},
 			{
 				displayName: 'Carrier ID',
