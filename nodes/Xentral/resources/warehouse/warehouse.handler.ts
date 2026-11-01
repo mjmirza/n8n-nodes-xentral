@@ -20,7 +20,7 @@ export async function handleWarehouse(
 		}
 
 		// Project object ref
-		if (additionalFields.projectId) {
+		if (additionalFields.projectId || additionalFields.projectId === null) {
 			body.project = { id: additionalFields.projectId };
 		}
 
@@ -48,7 +48,7 @@ export async function handleWarehouse(
 		}
 
 		// Project object ref
-		if (updateFields.projectId) {
+		if (updateFields.projectId || updateFields.projectId === null) {
 			body.project = { id: updateFields.projectId };
 		}
 

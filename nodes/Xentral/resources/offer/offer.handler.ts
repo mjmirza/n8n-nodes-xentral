@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice, lineItemAddBody } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for document create/update.
@@ -34,15 +34,15 @@ function buildOfferBody(fields: IDataObject): IDataObject {
 	}
 
 	// Nested object refs: wrap as { id: "..." }
-	if (fields.editorId) body.editor = { id: fields.editorId };
+	if (fields.editorId || fields.editorId === null) body.editor = { id: fields.editorId };
 	if (fields.projectId !== undefined) {
 		body.project = fields.projectId === '' ? null : { id: fields.projectId };
 	}
-	if (fields.preferredWarehouseId) body.preferredWarehouse = { id: fields.preferredWarehouseId };
-	if (fields.shippingMethodId) body.shippingMethod = { id: fields.shippingMethodId };
+	if (fields.preferredWarehouseId || fields.preferredWarehouseId === null) body.preferredWarehouse = { id: fields.preferredWarehouseId };
+	if (fields.shippingMethodId || fields.shippingMethodId === null) body.shippingMethod = { id: fields.shippingMethodId };
 
 	// Sales: { id: "..." }
-	if (fields.salesId) {
+	if (fields.salesId || fields.salesId === null) {
 		body.sales = { id: fields.salesId };
 	}
 
@@ -50,21 +50,22 @@ function buildOfferBody(fields: IDataObject): IDataObject {
 	const financials: IDataObject = {};
 	if (fields.currency) financials.currency = fields.currency;
 	if (fields.taxation) financials.tax = { taxation: fields.taxation };
-	if (fields.paymentMethodId) financials.paymentMethod = { id: fields.paymentMethodId };
+	if (fields.paymentMethodId || fields.paymentMethodId === null) financials.paymentMethod = { id: fields.paymentMethodId };
 	if (Object.keys(financials).length > 0) body.financials = financials;
 
 	// Document address (fixedCollection)
 	if (fields.documentAddress !== undefined) {
 		const fc = fields.documentAddress as IDataObject;
 		const addr = fc.address as IDataObject;
-		if (addr) body.documentAddress = addr;
+		if (addr) body.documentAddress = documentAddress(addr);
 	}
 
 	// Deviating ship-to address (fixedCollection)
 	if (fields.deviatingShipToAddress !== undefined) {
 		const fc = fields.deviatingShipToAddress as IDataObject;
 		const addr = fc.address as IDataObject;
-		if (addr) body.deviatingShipToAddress = addr;
+		// null clears the ship-to override, which the update schema allows.
+		if (addr !== undefined) body.deviatingShipToAddress = documentAddress(addr);
 	}
 
 	// Tags: comma-separated string to array
@@ -97,6 +98,8 @@ function buildLineItemBody(fields: IDataObject, isAdd = false): IDataObject {
 			body[key] = fields[key];
 		}
 	}
+	// An expression that returns null clears the delivery date. An empty value is ignored, as before 1.4.5.
+	if (!isAdd && fields.deliveryDate === null) body.deliveryDate = null;
 
 	// Numeric fields (can be 0, so check undefined only)
 	if (fields.discount !== undefined) body.discount = fields.discount;
@@ -115,12 +118,18 @@ function buildLineItemBody(fields: IDataObject, isAdd = false): IDataObject {
 	if (fields.productId) body.product = { id: fields.productId };
 
 	// Price object: { net: { amount: X, currency: "EUR" } }
-	if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
-		const net: IDataObject = { amount: fields.priceAmount };
-		// An update only changes the currency when it was set; a new line item defaults to EUR.
-		if (fields.priceCurrency) net.currency = fields.priceCurrency;
-		else if (isAdd) net.currency = 'EUR';
-		body.price = { net };
+	if (isAdd) {
+		if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
+			// A new line item defaults to EUR when no currency was set.
+			body.price = { net: { amount: fields.priceAmount, currency: fields.priceCurrency || 'EUR' } };
+		} else if (fields.priceCurrency) {
+			// A currency on its own is sent too, LineItemFinancials allows it without an amount.
+			body.price = { net: { currency: fields.priceCurrency } };
+		}
+	} else {
+		// An update sends what was set, so a currency-only change is kept.
+		const price = lineItemUpdatePrice(fields);
+		if (price) body.price = price;
 	}
 
 	return body;
@@ -203,7 +212,7 @@ export async function handleOffer(
 		body.product = { id: productId };
 		body.quantity = quantity;
 
-		return xentralRequest.call(this, 'POST', `offers/${offerId}/lineItems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `offers/${offerId}/lineItems`, lineItemAddBody(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {

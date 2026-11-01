@@ -2,9 +2,8 @@ import type { INodeProperties, INodePropertyOptions } from 'n8n-workflow';
 import { SPEC_CATALOG } from './spec.catalog';
 import type { SpecOperation, SpecResource } from './spec.types';
 import { acceptsQuery } from './spec.types';
+import { BETA_NOTICE } from '../betaNotices';
 
-const BETA_NOTICE =
-	'Xentral marks this endpoint as beta. It may change without notice, so test it before you rely on it in production.';
 
 function titleCase(id: string): string {
 	return id
@@ -117,6 +116,20 @@ export function specFields(resource: SpecResource): INodeProperties[] {
 				description: 'Max number of results to return',
 			},
 		);
+	}
+
+	// Single-call operations can return the whole body, so meta such as totalResults is not lost when data is split.
+	const singleOps = resource.ops.filter((o) => o.pager === 'none').map((o) => o.value);
+	if (singleOps.length > 0) {
+		fields.push({
+			displayName: 'Full Response',
+			name: 'fullResponse',
+			type: 'boolean',
+			default: false,
+			displayOptions: show(resource.resource, singleOps),
+			description:
+				'Whether to return the whole response body as one item, keeping meta such as totalResults, which shows when a report query was capped. Off splits the data into items, as before.',
+		});
 	}
 
 	// GET operations, plus writes that declare query parameters (for example Report Execute Query preview).

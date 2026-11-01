@@ -1,11 +1,11 @@
 import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice, lineItemAddBody, parseJsonValue } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for invoice create/update.
  */
-function buildInvoiceBody(node: INode, fields: IDataObject): IDataObject {
+function buildInvoiceBody(node: INode, fields: IDataObject, isUpdate = false): IDataObject {
 	const body: IDataObject = {};
 
 	// Simple string/date fields - pass through directly
@@ -20,6 +20,8 @@ function buildInvoiceBody(node: INode, fields: IDataObject): IDataObject {
 			body[key] = fields[key];
 		}
 	}
+	// An expression that returns null clears the delivery date on an update. An empty value is ignored.
+	if (isUpdate && fields.deliveryDate === null) body.deliveryDate = null;
 
 	// Boolean fields that should pass through even when false
 	const booleanFields = ['useAlternativeDocumentTitle', 'dunningSetManually'];
@@ -30,13 +32,13 @@ function buildInvoiceBody(node: INode, fields: IDataObject): IDataObject {
 	}
 
 	// Nested object refs: wrap as { id: "..." }
-	if (fields.editorId) body.editor = { id: fields.editorId };
+	if (fields.editorId || fields.editorId === null) body.editor = { id: fields.editorId };
 	if (fields.projectId !== undefined) {
 		body.project = fields.projectId === '' ? null : { id: fields.projectId };
 	}
 
 	// Sales: { id: "..." }
-	if (fields.salesId) {
+	if (fields.salesId || fields.salesId === null) {
 		body.sales = { id: fields.salesId };
 	}
 
@@ -50,7 +52,7 @@ function buildInvoiceBody(node: INode, fields: IDataObject): IDataObject {
 	if (fields.documentAddress !== undefined) {
 		const fc = fields.documentAddress as IDataObject;
 		const addr = fc.address as IDataObject;
-		if (addr) body.documentAddress = addr;
+		if (addr) body.documentAddress = documentAddress(addr);
 	}
 
 	// Tags: comma-separated string to array
@@ -71,7 +73,7 @@ function buildInvoiceBody(node: INode, fields: IDataObject): IDataObject {
 			body.dunningManualSettings = null;
 		} else {
 			try {
-				body.dunningManualSettings = JSON.parse(raw);
+				body.dunningManualSettings = parseJsonValue(raw);
 			} catch {
 				throw new NodeOperationError(node, 'Invalid JSON in dunningManualSettings. Please provide valid JSON.');
 			}
@@ -79,7 +81,7 @@ function buildInvoiceBody(node: INode, fields: IDataObject): IDataObject {
 	}
 	if (fields.dunningSettingsJson !== undefined && fields.dunningSettingsJson !== '') {
 		try {
-			body.dunningSettings = JSON.parse(fields.dunningSettingsJson as string);
+			body.dunningSettings = parseJsonValue(fields.dunningSettingsJson);
 		} catch {
 			throw new NodeOperationError(node, 'Invalid JSON in dunningSettings. Please provide valid JSON.');
 		}
@@ -104,6 +106,8 @@ function buildLineItemBody(fields: IDataObject, isAdd = false): IDataObject {
 			body[key] = fields[key];
 		}
 	}
+	// An expression that returns null clears the delivery date. An empty value is ignored, as before 1.4.5.
+	if (!isAdd && fields.deliveryDate === null) body.deliveryDate = null;
 
 	// Boolean field
 	if (fields.deliveryDateAsCalendarWeek !== undefined) {
@@ -122,12 +126,18 @@ function buildLineItemBody(fields: IDataObject, isAdd = false): IDataObject {
 	if (fields.productId) body.product = { id: fields.productId };
 
 	// Price object: { net: { amount: X, currency: "EUR" } }
-	if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
-		const net: IDataObject = { amount: fields.priceAmount };
-		// An update only changes the currency when it was set; a new line item defaults to EUR.
-		if (fields.priceCurrency) net.currency = fields.priceCurrency;
-		else if (isAdd) net.currency = 'EUR';
-		body.price = { net };
+	if (isAdd) {
+		if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
+			// A new line item defaults to EUR when no currency was set.
+			body.price = { net: { amount: fields.priceAmount, currency: fields.priceCurrency || 'EUR' } };
+		} else if (fields.priceCurrency) {
+			// A currency on its own is sent too, LineItemFinancials allows it without an amount.
+			body.price = { net: { currency: fields.priceCurrency } };
+		}
+	} else {
+		// An update sends what was set, so a currency-only change is kept.
+		const price = lineItemUpdatePrice(fields);
+		if (price) body.price = price;
 	}
 
 	return body;
@@ -196,7 +206,7 @@ export async function handleInvoice(
 		const invoiceId = this.getNodeParameter('invoiceId', itemIndex) as string;
 		assertSafeId(invoiceId, 'invoiceId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
-		const body = buildInvoiceBody(this.getNode(), updateFields);
+		const body = buildInvoiceBody(this.getNode(), updateFields, true);
 		assertNonEmptyBody(body as IDataObject, 'invoice update');
 		return xentralRequest.call(this, 'PATCH', `invoices/${invoiceId}`, body as IDataObject, {}, 'v3');
 	}
@@ -219,7 +229,7 @@ export async function handleInvoice(
 		body.product = { id: productId };
 		body.quantity = quantity;
 
-		return xentralRequest.call(this, 'POST', `invoices/${invoiceId}/lineItems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `invoices/${invoiceId}/lineItems`, lineItemAddBody(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {

@@ -1,6 +1,11 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody, toApiDate } from '../../transport';
 
+/** Version 1 keeps numeric price amounts in list results; version 2 reads from v2. */
+function readVersion(ctx: IExecuteFunctions): string {
+	return ctx.getNode().typeVersion >= 2 ? 'v2' : 'v1';
+}
+
 /**
  * Build the purchase price body from a flat field map.
  * Handles object refs (product, supplier) and the price object { amount, currency }.
@@ -43,7 +48,10 @@ function buildPurchasePriceBody(fields: IDataObject, isCreate = false): IDataObj
 	];
 
 	for (const key of directFields) {
-		if (fields[key] !== undefined && fields[key] !== '') {
+		if (fields[key] === null && (key === 'validFrom' || key === 'expiresAt')) {
+			// An expression that returns null removes the validity boundary, which the API accepts.
+			body[key] = null;
+		} else if (fields[key] !== undefined && fields[key] !== '') {
 			body[key] = key === 'validFrom' || key === 'expiresAt' ? toApiDate(String(fields[key])) : fields[key];
 		}
 	}
@@ -92,7 +100,7 @@ export async function handlePurchasePrice(
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
 		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
-		return xentralV1PageGetAll.call(this, 'purchasePrices', {}, limit, maxPages, 'v2');
+		return xentralV1PageGetAll.call(this, 'purchasePrices', {}, limit, maxPages, readVersion(this));
 	}
 
 	if (operation === 'update') {

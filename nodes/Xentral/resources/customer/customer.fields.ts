@@ -29,14 +29,13 @@ export const customerFields: INodeProperties[] = [
 		name: 'name',
 		type: 'string',
 		default: '',
-		required: true,
 		displayOptions: {
 			show: {
 				resource: ['customer'],
 				operation: ['create'],
 			},
 		},
-		description: 'The company name (for companies) or display name',
+		description: 'The company name. Required unless Customer Type is Person, which needs First Name and Last Name instead.',
 	},
 	{
 		displayName: 'Additional Fields',

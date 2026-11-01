@@ -21,3 +21,10 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
+      # The same scanner preflight the publish workflow runs before it publishes.
+      - name: Pack
+        run: |
+          mkdir -p "$RUNNER_TEMP/pack"
+          npm pack --pack-destination "$RUNNER_TEMP/pack"
+      - name: n8n scanner preflight
+        run: bash scripts/scan-preflight.sh "$(ls "$RUNNER_TEMP"/pack/*.tgz)" .

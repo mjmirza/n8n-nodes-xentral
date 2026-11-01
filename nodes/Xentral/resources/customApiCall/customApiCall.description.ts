@@ -85,6 +85,15 @@ export const customApiCallFields: INodeProperties[] = [
 		description: 'Content-Type header. Some Xentral endpoints need a vendor type such as application/vnd.xentral.minimal+JSON.',
 	},
 	{
+		displayName: 'Accept',
+		name: 'accept',
+		type: 'string',
+		default: '',
+		placeholder: 'application/pdf',
+		displayOptions: show,
+		description: 'Accept header. Empty uses application/JSON, or any type for Text and File. Set application/pdf to download a document as PDF.',
+	},
+	{
 		displayName: 'Response Format',
 		name: 'responseFormat',
 		type: 'options',
@@ -96,6 +105,14 @@ export const customApiCallFields: INodeProperties[] = [
 		default: 'json',
 		displayOptions: show,
 		description: 'How to read the response. Use File for downloads such as accounting exports.',
+	},
+	{
+		displayName: 'Full Response',
+		name: 'fullResponse',
+		type: 'boolean',
+		default: false,
+		displayOptions: { show: { resource: ['customApiCall'], operation: ['request'], responseFormat: ['json'] } },
+		description: 'Whether to return the whole response body as one item, keeping pagination cursors and meta such as totalResults. Off splits the data array into items, as before.',
 	},
 	{
 		displayName: 'Put Output File in Field',

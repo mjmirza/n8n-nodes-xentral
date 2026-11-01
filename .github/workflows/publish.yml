@@ -26,10 +26,26 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
-      - run: npm publish --provenance --access public
+      # Pack once, scan that exact tarball, then publish the same file, so a rejected package never goes public.
+      - name: Pack
+        run: |
+          mkdir -p "$RUNNER_TEMP/pack"
+          npm pack --pack-destination "$RUNNER_TEMP/pack"
+          echo "TARBALL=$(ls "$RUNNER_TEMP"/pack/*.tgz)" >> "$GITHUB_ENV"
+      # The scanner needs Node 22.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: n8n scanner preflight (blocks publish)
+        run: bash scripts/scan-preflight.sh "$TARBALL" .
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm publish --provenance --access public "$TARBALL"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      # The scanner's sandbox (isolated-vm) needs Node 22. A failure marks the release red; publish cannot be undone.
+      # Confirms the provenance leg, which only exists once the version is on the registry.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22

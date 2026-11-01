@@ -92,7 +92,9 @@ It is for operations teams and automation builders who already run Xentral and w
 | Warehouse | Create, Get Many, Update, Delete |
 | Webhook | Create, Delete, Get, Get Many, Update |
 
-Resources marked beta in Xentral (Customer Delivery Address, Supplier Invoice, and some User reads) show a notice in the node, because Xentral may change them without warning.
+Design decisions behind a few deliberate limits are in [docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md).
+
+Operations whose endpoint Xentral marks beta show a notice in the node, because Xentral may change them without warning. That covers Customer Delivery Address, Supplier Invoice and some User reads, Production Create, Get and Get Many, Proforma Invoice Create, Get, Get Many, Update and its line item writes, Delivery Note and Return creates, updates and line item writes, Return Create From Delivery Note, and Invoice Create From Sales Order.
 
 ### API coverage
 
@@ -108,8 +110,10 @@ Choose the **Custom API Call** resource to call any Xentral endpoint with your s
 | API Version | V1, V2 or V3. A path that starts with `/api/v2/` or similar sets the version |
 | Path | The part after `/api/<version>/`, for example `posJournals` |
 | Query Parameters | JSON, for example filters or pagination |
-| Body | JSON, shown for POST, PATCH, PUT and DELETE. A DELETE sends it only when it is not empty, for bulk deletes |
+| Body | JSON, shown for POST, PATCH, PUT and DELETE. A DELETE sends it only when it is not empty, for bulk deletes. n8n's HTTP helper never sends a body with GET, so a GET endpoint that reads one (the product label download options) runs with its defaults |
 | Content Type | `application/json` by default. Some endpoints need a vendor type such as `application/vnd.xentral.minimal+json` |
+| Accept | Empty by default, which asks for JSON, or any type in Text and File mode. Set `application/pdf` to download a document such as an invoice as PDF |
+| Full Response | Off by default, which splits the data array into items. On returns the whole JSON body as one item, keeping pagination cursors and meta such as totalResults |
 | Response Format | JSON by default. Text returns the body in `data`. File keeps a download such as a CSV or ZIP export as binary data in the field you name |
 
 The path must be relative, must start with a resource that exists in the Xentral API, and must not contain `..`, a full URL, a query string or an unfilled `{placeholder}`. Anything else is rejected before a request is sent.
@@ -139,7 +143,8 @@ Xentral deprecated several V1 endpoints this node used. They now point at the cu
 |-----------|--------|-----|
 | Product Create, Update | `POST`, `PATCH /api/v1/products` | V2. The category field is sent as `categories`. A write that sets Shop Price Display stays on V1, because V2 has no such field |
 | Product Get, Get Many, Search | `/api/v1/products` | V2 for new nodes. Nodes saved before this release keep V1, because the V2 response has different fields |
-| Purchase Price Create, Get Many, Update | `/api/v1/purchasePrices` | `/api/v2/purchasePrices`, same fields |
+| Purchase Price Create, Update | `/api/v1/purchasePrices` | `/api/v2/purchasePrices`, same fields |
+| Purchase Price Get Many | `/api/v1/purchasePrices` | V2 for new nodes, which returns the amount as a string. Nodes saved before this release keep V1, which returns it as a number |
 
 Supplier Update still uses the deprecated V1 tag endpoint, because its only replacement is a Xentral beta endpoint.
 
@@ -220,7 +225,7 @@ Creating a token needs admin rights in Xentral. The [Xentral authentication guid
 | Pagination | Cursor, page number and V3 pages, handled per endpoint |
 | Errors | Xentral problem details (RFC 9457) surfaced through `NodeApiError` |
 | Retries | 429, 502, 503 and 504 retried with exponential backoff, jitter and `Retry-After` |
-| Lint | The same rule set n8n uses to verify community packages. The release workflow runs the n8n verification scanner on every published version |
+| Lint | The same rule set n8n uses to verify community packages. CI and the release workflow run the n8n verification scanner on the packed tarball before anything is published, and again on the published version |
 | Release | Signed npm provenance from GitHub Actions |
 
 ### Project structure
@@ -257,7 +262,34 @@ npm run lint    # n8n verification rule set, must report zero problems
 1. Bump `version` in `package.json` and add a `CHANGELOG.md` entry on a branch.
 2. Open a pull request. CI builds, lints and tests it.
 3. After merge, tag the merge commit with `v<version>` and push the tag.
-4. The Publish workflow checks that the tag matches `package.json`, runs the tests, and publishes to npm with `--provenance`, which signs the package against that exact commit.
+4. The Publish workflow checks that the tag matches `package.json`, runs the tests, packs the tarball and scans it with n8n's community package scanner. Only a tarball that passes is published to npm with `--provenance`, which signs the package against that exact commit. The scan runs once more on the published version to check provenance.
+
+## Upgrade notes
+
+### 1.4.5
+- Address overrides on documents leave Type out when it is empty. A set Type must be mrs, mr, company or other (any case). Any other value now stops the item with a clear error before the request, where Xentral used to reject it.
+- A line item update that sets only Price Currency now sends it. Before, it failed with "No fields provided" or the currency was dropped.
+- When the trigger cannot delete its webhook on deactivation (anything but 404 or 410), it keeps the webhook ID and signing key. The next activation adopts the webhook and the next deactivation retries the delete.
+- The trigger now remembers which Xentral instance it registered its webhook on, and only deletes it there. A webhook registered by an older version is read back first and deleted only when it still points at this node's URL. A stored webhook from another instance is never adopted with the old signing key.
+- On activation the trigger first removes a webhook it kept from such a failed delete. If that removal fails too, activation stops with an error rather than registering a second webhook.
+- An empty Country in an address override is left out. A set Country must be a two-letter code (any case).
+- To clear a Delivery Date on an Invoice or Proforma Invoice update or a line item update, use an expression that returns null. An empty value is still ignored.
+- If you set your own Signature Key on the trigger, the credential must be allowed to list webhooks, or activation stops with an error. With an empty Signature Key nothing changes.
+- Custom API Call and the single-call operations built from the specs (for example Report Execute Query) have a Full Response option for responses that carry a cursor or meta next to the data. Xentral caps a report query at 5,000 rows, and `meta.totalResults` shows when that happened.
+- The trigger also stops activation when a webhook for the same URL and event that it does not own cannot be deleted.
+- Liability Status no longer lists Cancelled. Xentral has no such status and a saved Cancelled always failed. It still fails, with the same message, so pick Pending or Paid.
+- Product ID on a line item update and Product Number on a line item add or update are no longer sent, because Xentral V3 accepts neither and ignored them. To change a line item's product, delete it and add a new one.
+- Sales Order and Return Get Many with the Sent filter now return documents marked as sent (`isDocumentSent`). Before, the filter asked for a status Xentral does not have.
+- On the first activation after upgrading, the trigger writes its stored signing key to the webhook it adopts, one extra request.
+- Add Line Item now sends a Price Currency that is set without a Price Amount.
+- Customer Create no longer needs Name for a person. Set Customer Type to Person with First Name and Last Name.
+- A Xentral host with percent-encoding or non-ASCII characters is now refused at run time too, matching the credential test.
+- An expression that returns null for a reference ID (for example Project ID) now removes the reference. Before, `{"id": null}` was sent and rejected.
+- An empty date value is now left out of every document and line item request instead of being sent as an empty string, which Xentral rejected.
+- The trigger ignores deliveries whose event type is not the one it is set to. Before, a webhook registered with extra events started the workflow for all of them.
+- To remove a price's Valid From or Expires At, use an expression that returns null.
+- Product Update still ignores empty values. Turn on the new Clear Empty Fields option to clear text fields with an empty value, or the age rating with Age Rating None.
+- Return Create From Delivery Note now checks its line items before the request. Each needs the delivery note line item id, a quantity and a returnReason id, as Xentral requires.
 
 ## Compatibility
 

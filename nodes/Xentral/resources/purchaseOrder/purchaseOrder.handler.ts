@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates, documentAddress, lineItemUpdatePrice, lineItemAddBody } from '../../transport';
 
 export async function handlePurchaseOrder(
 	this: IExecuteFunctions,
@@ -31,8 +31,8 @@ export async function handlePurchaseOrder(
 		if (additionalFields.vatId !== undefined) body.vatId = additionalFields.vatId;
 
 		// Object-wrapped ID references
-		if (additionalFields.editorId) body.editor = { id: additionalFields.editorId };
-		if (additionalFields.projectId) body.project = { id: additionalFields.projectId };
+		if (additionalFields.editorId || additionalFields.editorId === null) body.editor = { id: additionalFields.editorId };
+		if (additionalFields.projectId || additionalFields.projectId === null) body.project = { id: additionalFields.projectId };
 
 		// Financials
 		const financials: IDataObject = {};
@@ -48,7 +48,7 @@ export async function handlePurchaseOrder(
 		// Fixed collections (address objects)
 		if (additionalFields.documentAddress !== undefined) {
 			const addr = (additionalFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Print settings (fixedCollection)
@@ -111,8 +111,8 @@ export async function handlePurchaseOrder(
 		if (updateFields.vatId !== undefined) body.vatId = updateFields.vatId;
 
 		// Object-wrapped ID references
-		if (updateFields.editorId) body.editor = { id: updateFields.editorId };
-		if (updateFields.projectId) body.project = { id: updateFields.projectId };
+		if (updateFields.editorId || updateFields.editorId === null) body.editor = { id: updateFields.editorId };
+		if (updateFields.projectId || updateFields.projectId === null) body.project = { id: updateFields.projectId };
 
 		// Financials
 		const financials: IDataObject = {};
@@ -128,7 +128,7 @@ export async function handlePurchaseOrder(
 		// Fixed collections (address objects)
 		if (updateFields.documentAddress !== undefined) {
 			const addr = (updateFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Print settings (fixedCollection)
@@ -176,9 +176,12 @@ export async function handlePurchaseOrder(
 		if (lineItemOptions.priceAmount !== undefined) {
 			const currency = (lineItemOptions.priceCurrency as string) || 'EUR';
 			body.price = { net: { amount: lineItemOptions.priceAmount, currency } };
+		} else if (lineItemOptions.priceCurrency) {
+			// A currency on its own is sent too, LineItemFinancials allows it without an amount.
+			body.price = { net: { currency: lineItemOptions.priceCurrency } };
 		}
 
-		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/lineItems`, apiDates(body as IDataObject), {}, 'v3');
+		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/lineItems`, apiDates(lineItemAddBody(body as IDataObject)), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {
@@ -200,12 +203,8 @@ export async function handlePurchaseOrder(
 		if (updateFields.productId) body.product = { id: updateFields.productId };
 
 		// Price structure
-		if (updateFields.priceAmount !== undefined) {
-			// An update only changes the currency when it was set.
-			const net: IDataObject = { amount: updateFields.priceAmount };
-			if (updateFields.priceCurrency) net.currency = updateFields.priceCurrency;
-			body.price = { net };
-		}
+		const price = lineItemUpdatePrice(updateFields);
+		if (price) body.price = price;
 
 		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
 		if (sortOnly) return sortOnly;

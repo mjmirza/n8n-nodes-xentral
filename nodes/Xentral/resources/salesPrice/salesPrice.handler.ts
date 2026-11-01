@@ -52,7 +52,10 @@ function buildSalesPriceBody(fields: IDataObject, isCreate = false): IDataObject
 	];
 
 	for (const key of directFields) {
-		if (fields[key] !== undefined && fields[key] !== '') {
+		if (fields[key] === null && (key === 'validFrom' || key === 'expiresAt')) {
+			// An expression that returns null removes the validity boundary, which the API accepts.
+			body[key] = null;
+		} else if (fields[key] !== undefined && fields[key] !== '') {
 			body[key] = key === 'validFrom' || key === 'expiresAt' ? toApiDate(String(fields[key])) : fields[key];
 		}
 	}
