@@ -30,5 +30,5 @@ only where the field itself says so or where the user opts in.
 - Delivery Date on Invoice and Proforma Invoice updates and on line item updates is cleared by an expression
   that returns null. An empty value is ignored, as in 1.4.4. Proforma Invoice used to send the empty string,
   which is not a date and which Xentral rejected, so leaving it out breaks no working workflow.
-- Age Rating None is an explicit choice in a dropdown, so it sends the empty rating.
+- Age Rating None follows Clear Empty Fields too, because an expression can resolve to the empty value.
 - An expression that returns null clears price validity dates and address overrides.

@@ -14,7 +14,6 @@
 - Hand-written operations whose endpoint Xentral marks beta (Production, Proforma Invoice, Delivery Note, Return writes, Invoice Create From Sales Order) show the beta notice.
 
 - The trigger stops activation when a matching webhook it does not own cannot be deleted, instead of registering a second one beside it.
-- Product Age Rating None sends the empty rating, which the API accepts, so it clears an existing rating.
 - Product Options turns a plain text option value into `{"name": value}`, as the schema requires. The Free Fields and Options help text now shows the shapes Xentral accepts.
 - Liability Status no longer offers Cancelled, which Xentral does not have and which always failed. A saved Cancelled still fails with the same clear message.
 - Line item updates on all eight documents no longer send Product ID or Product Number, and line item adds no longer send Product Number. The V3 schemas accept neither, so Xentral ignored them. The options stay, marked as ignored, and an update that sets only them returns `changed: false` with a note instead of a request.
@@ -30,7 +29,7 @@
 - Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 
 ### Added
-- Product Update has a Clear Empty Fields option. When on, an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason or Region of Origin clears the field, and an empty Country of Origin is sent as null. Off by default, so saved workflows keep ignoring empty values.
+- Product Update has a Clear Empty Fields option. When on, Age Rating None or an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason or Region of Origin clears the field, and an empty Country of Origin is sent as null. Off by default, so saved workflows keep ignoring empty values.
 - Custom API Call has a Full Response option that returns the whole JSON body as one item, keeping pagination cursors and meta such as `totalResults`. Off by default, so the data array is still split into items.
 - Every single-call operation built from the specs, such as Report Execute Query, has a Full Response option that returns the whole body as one item, so `meta.totalResults` shows when Xentral capped a report at 5,000 rows. Off by default.
 - Custom API Call has an Accept option, for example `application/pdf` to download a document PDF in File mode.

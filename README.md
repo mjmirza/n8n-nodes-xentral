@@ -276,14 +276,13 @@ npm run lint    # n8n verification rule set, must report zero problems
 - If you set your own Signature Key on the trigger, the credential must be allowed to list webhooks, or activation stops with an error. With an empty Signature Key nothing changes.
 - Custom API Call and the single-call operations built from the specs (for example Report Execute Query) have a Full Response option for responses that carry a cursor or meta next to the data. Xentral caps a report query at 5,000 rows, and `meta.totalResults` shows when that happened.
 - The trigger also stops activation when a webhook for the same URL and event that it does not own cannot be deleted.
-- Product Age Rating None now clears the rating instead of being ignored.
 - Liability Status no longer lists Cancelled. Xentral has no such status and a saved Cancelled always failed. It still fails, with the same message, so pick Pending or Paid.
 - Product ID on a line item update and Product Number on a line item add or update are no longer sent, because Xentral V3 accepts neither and ignored them. To change a line item's product, delete it and add a new one.
 - Sales Order and Return Get Many with the Sent filter now return documents marked as sent (`isDocumentSent`). Before, the filter asked for a status Xentral does not have.
 - On the first activation after upgrading, the trigger writes its stored signing key to the webhook it adopts, one extra request.
 - The trigger ignores deliveries whose event type is not the one it is set to. Before, a webhook registered with extra events started the workflow for all of them.
 - To remove a price's Valid From or Expires At, use an expression that returns null.
-- Product Update still ignores empty values. Turn on the new Clear Empty Fields option to clear text fields with an empty value.
+- Product Update still ignores empty values. Turn on the new Clear Empty Fields option to clear text fields with an empty value, or the age rating with Age Rating None.
 - Return Create From Delivery Note now checks its line items before the request. Each needs the delivery note line item id, a quantity and a returnReason id, as Xentral requires.
 
 ## Compatibility

@@ -386,15 +386,17 @@ test('[r7-13] a matching webhook that cannot be replaced stops activation instea
 	assert.deepEqual(calls.map((c) => c.method), ['GET', 'DELETE']);
 });
 
-test('[r7-14] Age Rating None sends an empty rating, which clears it, alone or with other fields', async () => {
-	const only = context({ productId: '5', updateFields: { ageRating: '' } });
+test('[r7-14] Age Rating None clears the rating only with Clear Empty Fields, otherwise it is dropped as in 1.4.4', async () => {
+	const legacy = context({ productId: '5', updateFields: { ageRating: '', name: 'Neu' } });
+	await handleProduct.call(legacy, 'update', 0);
+	assert.equal('ageRating' in legacy.calls[0].body, false);
+	const only = context({ productId: '5', updateFields: { ageRating: '', clearEmptyFields: true } });
 	await handleProduct.call(only, 'update', 0);
 	assert.equal(only.calls[0].body.ageRating, '');
-	const enumValues = JSON.stringify(v1Spec).includes('"ageRating":{"type":"string","enum":["",') || JSON.stringify(v1Spec).match(/"ageRating":\{[^}]*"enum":\["",/);
-	assert.ok(enumValues, 'the spec lists the empty rating');
-	const mixed = context({ productId: '5', updateFields: { ageRating: '', name: 'Neu' } });
-	await handleProduct.call(mixed, 'update', 0);
-	assert.equal(mixed.calls[0].body.ageRating, '');
+	assert.ok(JSON.stringify(v1Spec).match(/"ageRating":\{[^}]*"enum":\["",/), 'the spec lists the empty rating');
+	const set = context({ productId: '5', updateFields: { ageRating: '16' } });
+	await handleProduct.call(set, 'update', 0);
+	assert.equal(set.calls[0].body.ageRating, '16');
 });
 
 test('[r7-15] the liability status offers only values Xentral accepts, a saved Cancelled still fails clearly', async () => {

@@ -589,7 +589,7 @@ export const productFields: INodeProperties[] = [
 				name: 'clearEmptyFields',
 				type: 'boolean',
 				default: false,
-				description: 'Whether an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason, Region Of Origin or Country Of Origin clears that field instead of being ignored',
+				description: 'Whether Age Rating None or an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason, Region Of Origin or Country Of Origin clears that field instead of being ignored',
 			},
 			{
 				displayName: 'Country Of Origin',
