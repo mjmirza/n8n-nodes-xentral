@@ -104,6 +104,7 @@ import { handleSalesChannel } from './resources/salesChannel/salesChannel.handle
 import { handleTag } from './resources/tag/tag.handler';
 import { ExecutionItemResult, handleCustomApiCall } from './resources/customApiCall/customApiCall.handler';
 import { customApiCallFields, customApiCallOperations } from './resources/customApiCall/customApiCall.description';
+import { handwrittenBetaNotices } from './resources/betaNotices';
 import { runSpecOperation } from './resources/specDriven/spec.handler';
 import {
 	SPEC_RESOURCES,
@@ -271,6 +272,7 @@ export class Xentral implements INodeType {
 			...tagOperations,
 			...customApiCallOperations,
 			...specOperations,
+			...handwrittenBetaNotices,
 			// Fields
 			...addressFields,
 			...contactFields,

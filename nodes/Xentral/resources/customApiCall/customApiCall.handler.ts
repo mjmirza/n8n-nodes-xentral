@@ -1,15 +1,13 @@
-import type { IBinaryData, IDataObject, IExecuteFunctions, IHttpRequestMethods, INodeExecutionData } from 'n8n-workflow';
+import type { IBinaryData, IDataObject, IExecuteFunctions, IHttpRequestMethods } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest } from '../../transport';
 import { parseJsonParameter } from '../specDriven/spec.handler';
 import { resolveCustomPath } from './customApiCall.path';
+import { ExecutionItemResult } from '../executionItem';
 
 const METHODS = ['DELETE', 'GET', 'PATCH', 'POST', 'PUT'];
 
-/** A finished output item, for example one carrying binary data. The node passes it through unchanged. */
-export class ExecutionItemResult {
-	constructor(public readonly item: INodeExecutionData) {}
-}
+export { ExecutionItemResult };
 
 function headerValue(headers: IDataObject | undefined, name: string): string | undefined {
 	if (!headers) return undefined;
@@ -61,6 +59,7 @@ export async function handleCustomApiCall(
 		throw new NodeOperationError(this.getNode(), (error as Error).message, { itemIndex });
 	}
 	const query = parseJsonParameter(this, this.getNodeParameter('queryParameters', itemIndex, '{}'), 'Query Parameters', itemIndex);
+	// n8n's HTTP helper drops a GET body, so GET never reads one and a saved Body is not parsed.
 	const body = ['DELETE', 'PATCH', 'POST', 'PUT'].includes(method)
 		? parseJsonParameter(this, this.getNodeParameter('body', itemIndex, '{}'), 'Body', itemIndex)
 		: {};
@@ -68,14 +67,28 @@ export async function handleCustomApiCall(
 	if (contentType && !/^[a-z]+\/[a-z0-9.+-]+$/i.test(contentType)) {
 		throw new NodeOperationError(this.getNode(), `Invalid content type: ${contentType}`, { itemIndex });
 	}
-	const headers = contentType && contentType !== 'application/json' ? { 'Content-Type': contentType } : undefined;
+	const accept = String(this.getNodeParameter('accept', itemIndex, '') || '').trim();
+	if (accept && !/^[a-z*]+\/[a-z0-9.+*-]+$/i.test(accept)) {
+		throw new NodeOperationError(this.getNode(), `Invalid accept type: ${accept}`, { itemIndex });
+	}
+	const headerMap: Record<string, string> = {};
+	if (contentType && contentType !== 'application/json') headerMap['Content-Type'] = contentType;
+	if (accept) headerMap.Accept = accept;
+	const headers = Object.keys(headerMap).length > 0 ? headerMap : undefined;
 	const responseFormat = this.getNodeParameter('responseFormat', itemIndex, 'json') as string;
 	if (responseFormat !== 'text' && responseFormat !== 'file') {
-		return xentralRequest.call(this, method as IHttpRequestMethods, resolved.path, body, query, resolved.version, headers);
+		// The body is sent exactly as written, so it is never rewritten.
+		const result = await xentralRequest.call(this, method as IHttpRequestMethods, resolved.path, body, query, resolved.version, headers, false, true);
+		if (this.getNodeParameter('fullResponse', itemIndex, false) === true) {
+			// One item with the whole body, so cursors and meta are not lost when the data array is split.
+			const json = result !== null && typeof result === 'object' && !Array.isArray(result) ? (result as IDataObject) : { data: result };
+			return new ExecutionItemResult({ json }) as unknown as IDataObject;
+		}
+		return result;
 	}
 
 	const response = await xentralRequest.call(
-		this, method as IHttpRequestMethods, resolved.path, body, query, resolved.version, headers, true,
+		this, method as IHttpRequestMethods, resolved.path, body, query, resolved.version, headers, true, true,
 	);
 	const responseHeaders = (response?.headers ?? {}) as IDataObject;
 	const buffer = toBuffer(response?.body);

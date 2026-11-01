@@ -128,7 +128,7 @@ const postalAddressValues: INodeProperties[] = [
 		name: 'type',
 		type: 'string',
 		default: '',
-		description: 'Address type',
+		description: 'Salutation type: mrs, mr, company or other. Leave empty to not set it.',
 	},
 ];
 
@@ -572,7 +572,7 @@ export const offerFields: INodeProperties[] = [
 				name: 'number',
 				type: 'string',
 				default: '',
-				description: 'Override the product number for this line item',
+				description: 'Ignored. Xentral V3 does not accept a product number on a line item and uses the number of the product.',
 			},
 			{
 				displayName: 'Price Amount (Net)',
@@ -962,7 +962,7 @@ export const offerFields: INodeProperties[] = [
 				name: 'deliveryDate',
 				type: 'string',
 				default: '',
-				description: 'Delivery date for this line item (ISO 8601 date string, or empty to clear)',
+				description: 'Delivery date for this line item (ISO 8601 date string). An expression that returns null clears it.',
 			},
 			{
 				displayName: 'Delivery Date as Calendar Week',
@@ -1027,7 +1027,7 @@ export const offerFields: INodeProperties[] = [
 				name: 'productId',
 				type: 'string',
 				default: '',
-				description: 'ID of the product to change this line item to',
+				description: 'Ignored. Xentral V3 cannot change the product of an existing line item. Delete the line item and add a new one.',
 			},
 			{
 				displayName: 'Quantity',

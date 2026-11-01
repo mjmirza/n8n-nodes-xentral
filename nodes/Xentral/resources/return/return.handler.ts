@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemAddBody } from '../../transport';
 
 // Xentral takes returnReason as { id } or null. Saved values may be an id, a number, JSON or "null".
 function returnReasonRef(value: unknown): IDataObject | null {
@@ -14,7 +14,10 @@ function returnReasonRef(value: unknown): IDataObject | null {
 		}
 	}
 	if (v === null || v === 'null') return null;
-	if (v && typeof v === 'object' && 'id' in (v as IDataObject)) return { id: String((v as IDataObject).id) };
+	if (v && typeof v === 'object' && 'id' in (v as IDataObject)) {
+		const id = (v as IDataObject).id;
+		return id === null ? null : { id: String(id) };
+	}
 	return { id: String(v) };
 }
 
@@ -75,7 +78,7 @@ export async function handleReturn(
 		// Document address (fixedCollection)
 		if (additionalFields.documentAddress !== undefined) {
 			const addr = (additionalFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Tags (comma-separated string to array)
@@ -114,6 +117,24 @@ export async function handleReturn(
 			lineItems = lineItemsJson;
 		}
 
+		// Xentral needs at least one entry, each with the delivery note line item id, a quantity and a return reason.
+		const invalid = !Array.isArray(lineItems) || lineItems.length === 0 || lineItems.some((item) => {
+			const entry = (item ?? {}) as IDataObject;
+			const reason = entry.returnReason as IDataObject | undefined;
+			return (
+				entry.id === undefined || entry.id === null || String(entry.id) === '' ||
+				typeof entry.quantity !== 'number' ||
+				!reason || typeof reason !== 'object' || reason.id === undefined || reason.id === null || String(reason.id) === ''
+			);
+		});
+		if (invalid) {
+			throw new NodeOperationError(
+				this.getNode(),
+				'Line Items must list at least one entry, each with id (the delivery note line item), quantity (a number) and returnReason with an id.',
+				{ itemIndex },
+			);
+		}
+
 		const body: IDataObject = {
 			deliveryNote: { id: deliveryNoteId },
 			lineItems,
@@ -135,7 +156,13 @@ export async function handleReturn(
 		const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 		const query: IDataObject = {};
 		let filterIndex = 0;
-		if (filters.status !== undefined && filters.status !== '') {
+		if (filters.status === 'sent') {
+			// Sent is not a status here, Xentral tracks it as isDocumentSent.
+			query[`filter[${filterIndex}][key]`] = 'isDocumentSent';
+			query[`filter[${filterIndex}][op]`] = 'equals';
+			query[`filter[${filterIndex}][value]`] = 'true';
+			filterIndex++;
+		} else if (filters.status !== undefined && filters.status !== '') {
 			query[`filter[${filterIndex}][key]`] = 'status';
 			query[`filter[${filterIndex}][op]`] = 'equals';
 			query[`filter[${filterIndex}][value]`] = filters.status;
@@ -199,7 +226,7 @@ export async function handleReturn(
 		// Document address
 		if (updateFields.documentAddress !== undefined) {
 			const addr = (updateFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Tags
@@ -258,7 +285,7 @@ export async function handleReturn(
 			body.returnReason = returnReasonRef(lineItemOptions.returnReason);
 		}
 
-		return xentralRequest.call(this, 'POST', `returnOrders/${returnId}/lineItems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `returnOrders/${returnId}/lineItems`, lineItemAddBody(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {

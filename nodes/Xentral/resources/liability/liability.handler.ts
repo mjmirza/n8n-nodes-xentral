@@ -8,6 +8,7 @@ function liabilityStatus(node: INode, value: unknown): string {
 	const v = String(value ?? '').trim();
 	const mapped: Record<string, string> = { PENDING: 'open', PARTIALLY_PAID: 'open', PAID: 'paid', OPEN: 'open', open: 'open', paid: 'paid' };
 	if (mapped[v]) return mapped[v];
+	// CANCELLED was offered before 1.4.5 but Xentral has no cancelled status, so it still stops here.
 	throw new NodeOperationError(node, `Liability status "${v}" is not supported. Xentral accepts open or paid.`);
 }
 

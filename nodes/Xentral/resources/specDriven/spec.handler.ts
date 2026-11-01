@@ -8,6 +8,7 @@ import {
 	xentralV3GetAll,
 } from '../../transport';
 import { SPEC_CATALOG } from './spec.catalog';
+import { ExecutionItemResult } from '../executionItem';
 import type { SpecOperation } from './spec.types';
 import { acceptsQuery } from './spec.types';
 
@@ -84,5 +85,10 @@ export async function runSpecOperation(
 			? {}
 			: parseJsonParameter(this, this.getNodeParameter('body', itemIndex, '{}'), 'Body', itemIndex);
 	const headers = op.contentType === 'application/json' ? undefined : { 'Content-Type': op.contentType };
-	return xentralRequest.call(this, op.method, endpoint, body, query, op.version, headers);
+	const result = await xentralRequest.call(this, op.method, endpoint, body, query, op.version, headers);
+	if (this.getNodeParameter('fullResponse', itemIndex, false) === true) {
+		const json = result !== null && typeof result === 'object' && !Array.isArray(result) ? (result as IDataObject) : { data: result };
+		return new ExecutionItemResult({ json }) as unknown as IDataObject;
+	}
+	return result;
 }

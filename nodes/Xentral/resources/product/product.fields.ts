@@ -151,7 +151,7 @@ export const productFields: INodeProperties[] = [
 				name: 'freeFields',
 				type: 'json',
 				default: '',
-				description: 'Free fields as JSON array (e.g. [{"name":"field1","value":"val1"}])',
+				description: 'Free fields as a JSON array. Each entry needs the free field ID and its value, for example ID 17 with value Blue. Xentral does not accept a name here.',
 			},
 			{
 				displayName: 'Has Batches',
@@ -363,7 +363,7 @@ export const productFields: INodeProperties[] = [
 				name: 'options',
 				type: 'json',
 				default: '',
-				description: 'Matrix product options as JSON array (e.g. [{"name":"Color","values":["Red","Blue"]}])',
+				description: 'Matrix product options as JSON array (e.g. [{"name":"Color","values":[{"name":"Red"},{"name":"Blue"}]}]). A plain text value is sent as {"name": value}.',
 			},
 			{
 				displayName: 'Region Of Origin',
@@ -556,6 +556,7 @@ export const productFields: INodeProperties[] = [
 				default: '',
 				description: 'Age rating for the product',
 			},
+
 			{
 				displayName: 'Allow Purchase From All Suppliers',
 				name: 'allowPurchaseFromAllSuppliers',
@@ -583,6 +584,12 @@ export const productFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'The ID of the product category',
+			},			{
+				displayName: 'Clear Empty Fields',
+				name: 'clearEmptyFields',
+				type: 'boolean',
+				default: false,
+				description: 'Whether Age Rating None or an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason, Region Of Origin or Country Of Origin clears that field instead of being ignored',
 			},
 			{
 				displayName: 'Country Of Origin',
@@ -632,7 +639,7 @@ export const productFields: INodeProperties[] = [
 				name: 'freeFields',
 				type: 'json',
 				default: '',
-				description: 'Free fields as JSON array',
+				description: 'Free fields as a JSON array. Each entry needs the free field ID and its value, for example ID 17 with value Blue. Xentral does not accept a name here.',
 			},
 			{
 				displayName: 'Has Batches',
@@ -849,7 +856,7 @@ export const productFields: INodeProperties[] = [
 				name: 'options',
 				type: 'json',
 				default: '',
-				description: 'Matrix product options as JSON array (e.g. [{"name":"Color","values":["Red","Blue"]}])',
+				description: 'Matrix product options as JSON array (e.g. [{"name":"Color","values":[{"name":"Red"},{"name":"Blue"}]}]). A plain text value is sent as {"name": value}.',
 			},
 			{
 				displayName: 'Project ID',

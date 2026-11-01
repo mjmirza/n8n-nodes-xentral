@@ -1,6 +1,6 @@
 import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody, parseJsonValue } from '../../transport';
 import { runProductSearch } from './product.search';
 import { findSpecOperation, runSpecOperation } from '../specDriven/spec.handler';
 
@@ -17,10 +17,24 @@ export function productWriteTarget(body: IDataObject): { version: string; body: 
 	if (body.shopPriceDisplay !== undefined) return { version: 'v1', body };
 	const v2: IDataObject = { ...body };
 	if (v2.category !== undefined) {
-		v2.categories = [v2.category];
+		const category = v2.category as IDataObject | null;
+		// A category id an expression resolved to null removes the category, as an empty list.
+		v2.categories = category === null || category.id === null || category.id === undefined ? [] : [category];
 		delete v2.category;
 	}
 	return { version: 'v2', body: v2 };
+}
+
+/** Option values are objects with a name. A plain text value, as the old example showed, becomes {name}. */
+function matrixOptions(parsed: unknown): unknown {
+	if (!Array.isArray(parsed)) return parsed;
+	return parsed.map((option) => {
+		if (!option || typeof option !== 'object' || !Array.isArray((option as IDataObject).values)) return option;
+		const values = ((option as IDataObject).values as unknown[]).map((value) =>
+			typeof value === 'string' || typeof value === 'number' ? { name: String(value) } : value,
+		);
+		return { ...(option as IDataObject), values };
+	});
 }
 
 /**
@@ -28,7 +42,7 @@ export function productWriteTarget(body: IDataObject): { version: string; body: 
  * Handles object refs (project, category, manufacturer, standardSupplier, variantOf),
  * measurements object, tags array, freeFields JSON, and discount object.
  */
-function buildProductBody(node: INode, fields: IDataObject): IDataObject {
+function buildProductBody(node: INode, fields: IDataObject, isUpdate = false): IDataObject {
 	const body: IDataObject = {};
 
 	// Simple string/boolean/number fields that map 1:1 to the API
@@ -69,6 +83,14 @@ function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 		if (fields[key] !== undefined && fields[key] !== '') {
 			body[key] = fields[key];
 		}
+	}
+	// With Clear Empty Fields on, an update sends an empty text field to clear it. Off by default, so saved
+	// workflows keep dropping empty values as before. Country of origin has a pattern, so it is cleared with null.
+	if (isUpdate && fields.clearEmptyFields === true) {
+		for (const key of ['ageRating', 'customsTariffNumber', 'description', 'disabledReason', 'ean', 'internalComment', 'regionOfOrigin', 'shortDescription']) {
+			if (fields[key] === '') body[key] = '';
+		}
+		if (fields.countryOfOrigin === '') body.countryOfOrigin = null;
 	}
 
 	// Object refs
@@ -164,7 +186,7 @@ function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 	// Free fields: JSON string to array
 	if (fields.freeFields !== undefined && fields.freeFields !== '') {
 		try {
-			body.freeFields = JSON.parse(fields.freeFields as string);
+			body.freeFields = parseJsonValue(fields.freeFields);
 		} catch {
 			throw new NodeOperationError(node, 'Free Fields must be valid JSON (expected an array)');
 		}
@@ -180,11 +202,15 @@ function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 		}
 		if (fields.calculatedPurchasePriceAmount !== undefined || fields.calculatedPurchasePriceCurrency !== undefined) {
 			const price: IDataObject = {};
-			if (fields.calculatedPurchasePriceAmount !== undefined) {
-				price.amount = fields.calculatedPurchasePriceAmount;
+			const amount = fields.calculatedPurchasePriceAmount;
+			if (amount !== undefined && amount !== null && amount !== '') {
+				// The v1 Money object declares amount as a string ("13.37").
+				price.amount = String(amount);
 			}
-			if (fields.calculatedPurchasePriceCurrency !== undefined && fields.calculatedPurchasePriceCurrency !== '') {
-				price.currency = fields.calculatedPurchasePriceCurrency;
+			const currency = fields.calculatedPurchasePriceCurrency;
+			if (currency !== undefined && currency !== null && String(currency).trim() !== '') {
+				// The currency enum is upper case ISO 4217.
+				price.currency = String(currency).trim().toUpperCase();
 			}
 			calculatedPurchasePrice.price = price;
 		}
@@ -206,7 +232,7 @@ function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 	// Options: JSON string to array (matrix product options)
 	if (fields.options !== undefined && fields.options !== '') {
 		try {
-			body.options = JSON.parse(fields.options as string);
+			body.options = matrixOptions(parseJsonValue(fields.options)) as IDataObject[];
 		} catch {
 			throw new NodeOperationError(node, 'Options must be valid JSON (expected an array)');
 		}
@@ -215,7 +241,7 @@ function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 	// Variants: JSON string to array (create only)
 	if (fields.variants !== undefined && fields.variants !== '') {
 		try {
-			body.variants = JSON.parse(fields.variants as string);
+			body.variants = parseJsonValue(fields.variants);
 		} catch {
 			throw new NodeOperationError(node, 'Variants must be valid JSON (expected an array)');
 		}
@@ -224,7 +250,7 @@ function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 	// Selected options: JSON string to array (update only)
 	if (fields.selectedOptions !== undefined && fields.selectedOptions !== '') {
 		try {
-			body.selectedOptions = JSON.parse(fields.selectedOptions as string);
+			body.selectedOptions = parseJsonValue(fields.selectedOptions);
 		} catch {
 			throw new NodeOperationError(node, 'Selected Options must be valid JSON (expected an array)');
 		}
@@ -265,7 +291,7 @@ export async function handleProduct(
 		assertSafeId(productId, 'productId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
-		const body = buildProductBody(this.getNode(), updateFields);
+		const body = buildProductBody(this.getNode(), updateFields, true);
 		assertNonEmptyBody(body, 'product update');
 		const target = productWriteTarget(body);
 		return xentralRequest.call(this, 'PATCH', `products/${productId}`, target.body, {}, target.version);

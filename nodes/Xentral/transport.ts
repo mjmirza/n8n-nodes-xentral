@@ -78,6 +78,13 @@ export function normalizeUrl(raw: string): string {
 		url = `https://${url}`;
 	}
 
+	// The host as typed must be plain ASCII, as the credential test requires. The URL parser would decode a
+	// percent-encoded or non-ASCII host first, so the two checks would disagree.
+	const typedHost = (/^https:\/\/([^/:?#]*)/i.exec(url) ?? [])[1] ?? '';
+	if (!typedHost.startsWith('[') && /[^a-z0-9._-]/i.test(typedHost)) {
+		throw new Error('Invalid Xentral instance host. Only letters, digits, dots and hyphens are allowed.');
+	}
+
 	// SSRF protection: block internal and reserved hosts after canonicalizing them.
 	let hostname = '';
 	try {
@@ -173,6 +180,33 @@ function handleXentralError(
 	});
 }
 
+/**
+ * Field messages at any depth, as "path: message". Nested objects and arrays keep their path, for example
+ * positions.0.price: Must be non-negative. A "_" key means a message without a field.
+ */
+function flattenMessages(value: unknown, path: string, parts: string[], depth = 0): void {
+	if (value === undefined || value === null) return;
+	if (depth > 8) {
+		parts.push(path ? `${path}: ${JSON.stringify(value)}` : JSON.stringify(value));
+		return;
+	}
+	if (Array.isArray(value)) {
+		value.forEach((item, index) => {
+			const nested = item !== null && typeof item === 'object';
+			flattenMessages(item, nested ? (path ? `${path}.${index}` : String(index)) : path, parts, depth + 1);
+		});
+		return;
+	}
+	if (typeof value === 'object') {
+		for (const [key, inner] of Object.entries(value as Record<string, unknown>)) {
+			const next = key === '_' ? path : path ? `${path}.${key}` : key;
+			flattenMessages(inner, next, parts, depth + 1);
+		}
+		return;
+	}
+	parts.push(path ? `${path}: ${String(value)}` : String(value));
+}
+
 function parseXentralError(responseBody: any): string {
 	if (!responseBody) return 'Unknown Xentral API error';
 	if (typeof responseBody === 'string') return responseBody;
@@ -181,36 +215,8 @@ function parseXentralError(responseBody: any): string {
 	if (responseBody.detail) parts.push(responseBody.detail);
 	if (responseBody.message && !responseBody.title) parts.push(responseBody.message);
 	if (responseBody.error) parts.push(String(responseBody.error));
-	if (responseBody.violations) {
-		const v = responseBody.violations;
-		if (typeof v === 'object') {
-			for (const [key, msgs] of Object.entries(v)) {
-				if (Array.isArray(msgs)) {
-					for (const msg of msgs) {
-						parts.push(key === '_' ? String(msg) : `${key}: ${msg}`);
-					}
-				}
-			}
-		}
-	}
-	if (responseBody.errors) {
-		const e = responseBody.errors;
-		if (Array.isArray(e)) {
-			parts.push(...e.map(String));
-		} else if (typeof e === 'object') {
-			for (const [key, msgs] of Object.entries(e)) {
-				const msgStr = Array.isArray(msgs) ? msgs.join(', ') : String(msgs);
-				parts.push(`${key}: ${msgStr}`);
-			}
-		}
-	}
-	if (responseBody.messages && Array.isArray(responseBody.messages)) {
-		parts.push(...responseBody.messages.map(String));
-	} else if (responseBody.messages && typeof responseBody.messages === 'object') {
-		for (const [key, msgs] of Object.entries(responseBody.messages)) {
-			const list = Array.isArray(msgs) ? msgs : [msgs];
-			for (const msg of list) parts.push(key === '_' ? String(msg) : `${key}: ${String(msg)}`);
-		}
+	for (const key of ['violations', 'errors', 'messages']) {
+		if (responseBody[key] !== undefined && responseBody[key] !== null) flattenMessages(responseBody[key], '', parts);
 	}
 	return parts.length > 0 ? parts.join(' | ') : JSON.stringify(responseBody);
 }
@@ -258,16 +264,95 @@ export function applyLineItemHidden(body: IDataObject, fields: IDataObject): voi
 	body.printSettings = { ...existing, hidden: fields.hiddenOnPdf };
 }
 
+/** A JSON parameter as text is parsed. An expression that already resolved to an object or array is used as is. */
+export function parseJsonValue(value: unknown): any {
+	return typeof value === 'string' ? JSON.parse(value) : value;
+}
+
 /**
- * A saved line item update that only sets the legacy Sort option. Xentral V3 ignores a numeric
- * sort, so nothing is sent, and the workflow keeps running as it did before Sort was dropped.
+ * Price for a V3 line item update. Amount and currency are both optional in LineItemFinancials, so a
+ * currency set on its own is sent too. Returns undefined when neither was set.
+ */
+export function lineItemUpdatePrice(fields: IDataObject): IDataObject | undefined {
+	const hasAmount = fields.priceAmount !== undefined && fields.priceAmount !== null && fields.priceAmount !== '';
+	const hasCurrency = typeof fields.priceCurrency === 'string' ? fields.priceCurrency.trim() !== '' : !!fields.priceCurrency;
+	if (!hasAmount && !hasCurrency) return undefined;
+	const net: IDataObject = {};
+	if (hasAmount) net.amount = fields.priceAmount;
+	if (hasCurrency) net.currency = fields.priceCurrency;
+	return { net };
+}
+
+/** Salutation types the V3 document address schemas accept. */
+export const DOCUMENT_ADDRESS_TYPES = ['mrs', 'mr', 'company', 'other'];
+
+/**
+ * A document address override as Xentral expects it. An empty Type or Country is left out,
+ * a set Type must be mrs, mr, company or other, a set Country a two-letter code.
+ */
+export function documentAddress(address: IDataObject): IDataObject;
+export function documentAddress(address: IDataObject | null): IDataObject | null;
+export function documentAddress(address: IDataObject | null): IDataObject | null {
+	// An explicit null clears the override on update, as the schema allows.
+	if (address === null) return null;
+	const result: IDataObject = { ...address };
+	const type = result.type;
+	if (type === null) {
+		// An explicit null clears it on update, as the schema allows.
+	} else if (type === undefined || String(type).trim() === '') {
+		delete result.type;
+	} else {
+		const normalized = String(type).trim().toLowerCase();
+		if (!DOCUMENT_ADDRESS_TYPES.includes(normalized)) {
+			throw new Error(`Invalid address Type "${String(type)}". Use one of: ${DOCUMENT_ADDRESS_TYPES.join(', ')}, or leave it empty.`);
+		}
+		result.type = normalized;
+	}
+	// Country must match ^[A-Z]{2}$, so an empty one is left out and a set one is upper-cased.
+	const country = result.country;
+	if (country === null) {
+		// An explicit null clears it on update, as the schema allows.
+	} else if (country === undefined || String(country).trim() === '') {
+		delete result.country;
+	} else {
+		const code = String(country).trim().toUpperCase();
+		if (!/^[A-Z]{2}$/.test(code)) {
+			throw new Error(`Invalid address Country "${String(country)}". Use a two-letter ISO code such as DE.`);
+		}
+		result.country = code;
+	}
+	return result;
+}
+
+/**
+ * A V3 line item create has no product number field, so a saved Product Number option is not sent.
+ */
+export function lineItemAddBody(body: IDataObject): IDataObject {
+	delete body.number;
+	return dropEmptyDates(body);
+}
+
+/**
+ * A V3 line item update cannot change the product or the product number, and ignores a numeric Sort.
+ * Those saved options are left out. When nothing else was set, nothing is sent and the item says why.
  */
 export function sortOnlyLineItemUpdate(body: IDataObject, fields: IDataObject): IDataObject | undefined {
-	if (Object.keys(body).length > 0 || fields.sort === undefined) return undefined;
+	delete body.product;
+	delete body.number;
+	dropEmptyDates(body);
+	if (Object.keys(body).length > 0) return undefined;
+	const ignored: string[] = [];
+	if (fields.sort !== undefined) ignored.push('Sort');
+	if (fields.productId !== undefined && fields.productId !== '') ignored.push('Product ID');
+	if (fields.number !== undefined && fields.number !== '') ignored.push('Product Number');
+	if (ignored.length === 0) return undefined;
+	const notes: string[] = [];
+	if (ignored.includes('Sort')) notes.push('Use Position After Line Item ID to move a line item.');
+	if (ignored.includes('Product ID')) notes.push('To change the product, delete the line item and add a new one.');
 	return {
 		success: true,
 		changed: false,
-		message: 'Sort is ignored by Xentral V3, so nothing was sent. Use Position After Line Item ID to move a line item.',
+		message: `${ignored.join(', ')} ${ignored.length > 1 ? 'are' : 'is'} not accepted by Xentral V3 on a line item update, so nothing was sent. ${notes.join(' ')}`.trim(),
 	};
 }
 
@@ -320,12 +405,35 @@ export function toApiDate(value: string | undefined): string {
 
 const DOCUMENT_DATE_KEYS = ['documentDate', 'deliveryDate', 'desiredDeliveryDate', 'confirmedDeliveryDate'];
 
+/** An empty string is not a date. It is left out, so an empty expression fallback never invalidates a request. */
+export function dropEmptyDates(body: IDataObject): IDataObject {
+	for (const key of DOCUMENT_DATE_KEYS) {
+		if (body[key] === '') delete body[key];
+	}
+	return body;
+}
+
 /** Trims the date picker timestamps in a document or line item body to YYYY-MM-DD. */
 export function apiDates(body: IDataObject): IDataObject {
+	dropEmptyDates(body);
 	for (const key of DOCUMENT_DATE_KEYS) {
 		if (typeof body[key] === 'string' && body[key] !== '') body[key] = toApiDate(body[key] as string);
 	}
 	return body;
+}
+
+/**
+ * A reference whose id an expression resolved to null, { "id": null }, becomes null, which is how Xentral
+ * removes a reference. A reference with a null id is never valid.
+ */
+export function nullReferences<T>(value: T, depth = 0): T {
+	if (depth > 20 || value === null || typeof value !== 'object') return value;
+	if (Array.isArray(value)) return value.map((item) => nullReferences(item, depth + 1)) as unknown as T;
+	const entries = Object.entries(value as Record<string, unknown>);
+	if (entries.length === 1 && entries[0][0] === 'id' && entries[0][1] === null) return null as unknown as T;
+	const result: Record<string, unknown> = {};
+	for (const [key, inner] of entries) result[key] = nullReferences(inner, depth + 1);
+	return result as T;
 }
 
 // ---------- core request ----------
@@ -339,6 +447,7 @@ export async function xentralRequest(
 	apiVersion: string = 'v1',
 	extraHeaders?: Record<string, string>,
 	raw: boolean = false,
+	verbatimBody: boolean = false,
 ): Promise<any> {
 	const credentials = await getCredentials(this);
 	const instanceUrl = credentials.instanceUrl as string;
@@ -370,7 +479,8 @@ export async function xentralRequest(
 
 	const hasBody = Array.isArray(body) ? body.length > 0 : body !== null && typeof body === 'object' && Object.keys(body).length > 0;
 	if ((['POST', 'PATCH', 'PUT'].includes(method) && body) || (method === 'DELETE' && hasBody)) {
-		options.body = body;
+		// Every node-built body: an empty date is left out and a null reference id becomes null.
+		options.body = verbatimBody ? body : nullReferences(Array.isArray(body) ? body : dropEmptyDates({ ...body }));
 	}
 
 	// Read Location so a create that answers with an empty body still yields its new id.

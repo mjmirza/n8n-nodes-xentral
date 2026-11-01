@@ -128,7 +128,7 @@ const postalAddressValues: INodeProperties[] = [
 		name: 'type',
 		type: 'string',
 		default: '',
-		description: 'Address type',
+		description: 'Salutation type: mrs, mr, company or other. Leave empty to not set it.',
 	},
 ];
 
@@ -374,7 +374,7 @@ export const returnFields: INodeProperties[] = [
 				operation: ['createFromDeliveryNote'],
 			},
 		},
-		description: 'JSON array of line items for the return order. Each item should have product (object with ID) and quantity (number).',
+		description: 'JSON array with at least one entry. Each entry needs the delivery note line item ID as ID, a quantity, and the return reason as an object with its ID. A return note text is optional.',
 	},
 
 	// ----------------------------------
@@ -526,7 +526,7 @@ export const returnFields: INodeProperties[] = [
 				name: 'number',
 				type: 'string',
 				default: '',
-				description: 'Override the product number for this line item',
+				description: 'Ignored. Xentral V3 does not accept a product number on a line item and uses the number of the product.',
 			},
 			{
 				displayName: 'Return Reason',
@@ -884,7 +884,7 @@ export const returnFields: INodeProperties[] = [
 				name: 'productId',
 				type: 'string',
 				default: '',
-				description: 'ID of the product to change this line item to',
+				description: 'Ignored. Xentral V3 cannot change the product of an existing line item. Delete the line item and add a new one.',
 			},
 			{
 				displayName: 'Quantity',

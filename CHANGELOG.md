@@ -1,5 +1,54 @@
 # Changelog
 
+## [1.4.5] - 2026-11-01
+
+### Fixed
+- Address overrides (Document Address, Deviating Ship-To Address) on Sales Order, Purchase Order, Offer, Invoice, Credit Note, Proforma Invoice, Delivery Note and Return no longer send an empty Type. Xentral accepts only mrs, mr, company or other. A set Type is trimmed and lower-cased, an unknown one fails before the request.
+- Proforma Invoice Get Many sends the Created After filter as `createdAt greaterThanOrEquals`. It was ignored.
+- Line item updates that set only Price Currency send it on Sales Order, Purchase Order, Offer, Invoice, Credit Note and Proforma Invoice. They failed with "No fields provided" or dropped the currency.
+- Product Create and Update send the calculated purchase price amount as a string and the currency in upper case, as the v1 Money schema declares.
+- The trigger keeps its webhook ID and signing key when the webhook delete fails, so a later deactivation can retry it. A 404 or 410 still clears them.
+- The trigger removes a webhook kept from a failed delete before it registers a new one, and only on the Xentral instance it was registered on, so a stored ID never removes another registration. A webhook stored by an older version is read back first and removed only when it still points at this node's URL. A registration on another instance is never adopted with the stored signing key. If that removal fails (anything but 404 or 410), activation stops with a clear error instead of leaving two active registrations.
+- Address overrides leave an empty Country out, and still send an explicit `null` to clear it on update. A set Country is upper-cased and must be a two-letter code, as the schema's `^[A-Z]{2}$` requires.
+- Delivery Date on Offer, Invoice, Credit Note and Proforma Invoice line item updates, and on Invoice and Proforma Invoice updates, is cleared by an expression that returns null. An empty value is ignored, as before, so saved workflows with an empty fallback keep their dates. The help text no longer says "empty to clear". Proforma Invoice no longer sends an empty string as the date, which Xentral rejected.
+- Hand-written operations whose endpoint Xentral marks beta (Production, Proforma Invoice, Delivery Note, Return writes, Invoice Create From Sales Order) show the beta notice.
+
+- The trigger stops activation when a matching webhook it does not own cannot be deleted, instead of registering a second one beside it.
+- Product Options turns a plain text option value into `{"name": value}`, as the schema requires. The Free Fields and Options help text now shows the shapes Xentral accepts.
+- Liability Status no longer offers Cancelled, which Xentral does not have and which always failed. A saved Cancelled still fails with the same clear message.
+- Line item updates on all eight documents no longer send Product ID or Product Number, and line item adds no longer send Product Number. The V3 schemas accept neither, so Xentral ignored them. The options stay, marked as ignored, and an update that sets only them returns `changed: false` with a note instead of a request.
+- Purchase Price and Sales Price send `null` for Valid From or Expires At when an expression returns null, so the boundary can be removed. 1.4.4 sent the text "null".
+- The trigger starts the workflow only for deliveries of its own event type. A delivery of another type is answered 200 and dropped. A delivery without a type still runs, as before.
+- Return Create From Delivery Note checks that each line item has the delivery note line item `id`, a numeric `quantity` and a `returnReason` with an `id`, and that there is at least one, before the request. The help text described a `product` shape Xentral rejects.
+- An address override set to `null` by an expression clears it again, as in 1.4.4. Offer Update clears its ship-to override the same way.
+- With a configured Signature Key, the trigger stops activation when it cannot list webhooks, because an unseen older registration with the same key would run every event twice. With a generated key it still creates a new registration, as before.
+- The trigger adopts the registration it owns when several exist for its URL and event, and removes the others. Before, it could delete its own registration's sibling, forget its own, and create a third.
+- The Sent filter on Sales Order and Return uses `isDocumentSent`, because their status has no `sent` value.
+- When the trigger adopts a registration stored by a version before 1.4.5, it writes the stored signing key to it first, so deliveries verify even if the credential now points at another tenant with the same webhook ID. If that write fails, the registration is replaced.
+- JSON fields on Product (Free Fields, Options, Variants, Selected Options), Customer (Custom Fields, Additional Contact Data), Credit Note (Debt Status) and Invoice (Dunning Settings) accept an expression that already resolved to an object or array. They threw "must be valid JSON".
+- Add Line Item sends a Price Currency set without a Price Amount on Sales Order, Purchase Order, Offer, Invoice, Credit Note and Proforma Invoice. It was dropped.
+- Customer Create accepts a person (Customer Type Person) with First Name and Last Name and no Name, as Xentral requires. Name is still required for a company.
+
+- A reference whose ID an expression resolves to null (Project, Editor, Sales Order, Customer, Customer Group and the rest) is sent as `null`, which removes the reference, instead of `{"id": null}` or nothing at all. An empty ID is still left out. Custom API Call bodies are still sent exactly as written.
+- An empty Document Date, Delivery Date, Desired Delivery Date or Confirmed Delivery Date is no longer sent in any request the node builds (documents, line items, production). Custom API Call bodies are sent as written. An empty string is not a date, and Sales Order, Purchase Order, Delivery Note and Return line item updates failed on it.
+- Product Category ID set to null by an expression clears the categories with an empty list. It became `[null]`.
+- Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
+- Purchase Price Get Many keeps the v1 endpoint and numeric price amounts for saved node version 1 workflows; node version 2 keeps v2 and string amounts.
+- Return line item Add and Update send `returnReason: null` when the reason is an object or JSON text with a null ID, instead of `{"id":"null"}`.
+
+### Security
+- When the Signature Key on the trigger changes, activation replaces a registration kept from a failed delete instead of adopting it, so the old key stops verifying deliveries.
+- The runtime refuses a Xentral host that is percent-encoded or contains non-ASCII characters, as the credential test already did, so both checks agree on the host.
+
+### Added
+- Product Update has a Clear Empty Fields option. When on, Age Rating None or an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason or Region of Origin clears the field, and an empty Country of Origin is sent as null. Off by default, so saved workflows keep ignoring empty values.
+- Custom API Call has a Full Response option that returns the whole JSON body as one item, keeping pagination cursors and meta such as `totalResults`. Off by default, so the data array is still split into items.
+- Every single-call operation built from the specs, such as Report Execute Query, has a Full Response option that returns the whole body as one item, so `meta.totalResults` shows when Xentral capped a report at 5,000 rows. Off by default.
+- Custom API Call has an Accept option, for example `application/pdf` to download a document PDF in File mode.
+
+### Release
+- The publish workflow packs the tarball, runs n8n's community package scanner on it and on the source, and only then publishes that same tarball. CI runs the same preflight on every push and pull request. The post-publish scan stays for the provenance check.
+
 ## [1.4.4] - 2026-11-01
 
 ### Security
