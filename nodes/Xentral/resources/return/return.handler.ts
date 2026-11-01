@@ -2,6 +2,21 @@ import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
 
+// Xentral takes returnReason as { id }. Saved values may be an id, a number or a JSON object.
+function returnReasonRef(value: unknown): IDataObject {
+	let v: unknown = value;
+	if (typeof v === 'string') {
+		const text = v.trim();
+		try {
+			v = JSON.parse(text);
+		} catch {
+			v = text;
+		}
+	}
+	if (v && typeof v === 'object' && 'id' in (v as IDataObject)) return { id: String((v as IDataObject).id) };
+	return { id: String(v) };
+}
+
 export async function handleReturn(
 	this: IExecuteFunctions,
 	operation: string,
@@ -239,12 +254,7 @@ export async function handleReturn(
 
 		// returnReason as object or null
 		if (lineItemOptions.returnReason !== undefined && (lineItemOptions.returnReason as string) !== '') {
-			const reason = lineItemOptions.returnReason as string;
-			try {
-				body.returnReason = JSON.parse(reason);
-			} catch {
-				body.returnReason = reason;
-			}
+			body.returnReason = returnReasonRef(lineItemOptions.returnReason);
 		}
 
 		return xentralRequest.call(this, 'POST', `returnOrders/${returnId}/lineItems`, body as IDataObject, {}, 'v3');
@@ -276,12 +286,7 @@ export async function handleReturn(
 		}
 
 		if (updateFields.returnReason !== undefined && (updateFields.returnReason as string) !== '') {
-			const reason = updateFields.returnReason as string;
-			try {
-				body.returnReason = JSON.parse(reason);
-			} catch {
-				body.returnReason = reason;
-			}
+			body.returnReason = returnReasonRef(updateFields.returnReason);
 		}
 
 		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);

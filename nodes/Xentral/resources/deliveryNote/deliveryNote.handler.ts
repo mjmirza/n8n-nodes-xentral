@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates } from '../../transport';
 
 export async function handleDeliveryNote(
 	this: IExecuteFunctions,
@@ -55,7 +55,7 @@ export async function handleDeliveryNote(
 			if (ps !== undefined) body.printSettings = ps;
 		}
 
-		return xentralRequest.call(this, 'POST', 'deliveryNotes', body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', 'deliveryNotes', apiDates(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'get') {
@@ -140,7 +140,7 @@ export async function handleDeliveryNote(
 		}
 
 		assertNonEmptyBody(body, 'delivery note update');
-		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}`, apiDates(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'delete') {
@@ -174,7 +174,7 @@ export async function handleDeliveryNote(
 		if (lineItemOptions.number !== undefined) body.number = lineItemOptions.number;
 		applyLineItemHidden(body, lineItemOptions);
 
-		return xentralRequest.call(this, 'POST', `deliveryNotes/${deliveryNoteId}/lineItems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `deliveryNotes/${deliveryNoteId}/lineItems`, apiDates(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {
@@ -198,7 +198,7 @@ export async function handleDeliveryNote(
 		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
 		if (sortOnly) return sortOnly;
 		assertNonEmptyBody(body, 'delivery note line item update');
-		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/lineItems/${lineItemId}`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'PATCH', `deliveryNotes/${deliveryNoteId}/lineItems/${lineItemId}`, apiDates(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'deleteLineItem') {

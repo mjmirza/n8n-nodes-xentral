@@ -301,6 +301,33 @@ export function retryAfterMs(header: unknown, attempt: number): number {
 	return Math.min(1000 * Math.pow(2, attempt), 10000);
 }
 
+function redirectError(
+	ctx: IExecuteFunctions | ILoadOptionsFunctions | IHookFunctions,
+	status: number,
+	headers: any,
+): NodeApiError {
+	const location = headers?.location ?? headers?.Location ?? 'an unknown location';
+	const message = `Xentral answered ${status} with a redirect to ${String(location)}. Redirects are not followed; check the instance URL.`;
+	return new NodeApiError(ctx.getNode(), { message } as JsonObject, { message, httpCode: String(status) });
+}
+
+/** The v2 and v3 date fields use format date. n8n date pickers produce full ISO timestamps. */
+export function toApiDate(value: string | undefined): string {
+	const v = (value || '').trim();
+	if (!v) return '';
+	return /^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0, 10) : v;
+}
+
+const DOCUMENT_DATE_KEYS = ['documentDate', 'deliveryDate', 'desiredDeliveryDate', 'confirmedDeliveryDate'];
+
+/** Trims the date picker timestamps in a document or line item body to YYYY-MM-DD. */
+export function apiDates(body: IDataObject): IDataObject {
+	for (const key of DOCUMENT_DATE_KEYS) {
+		if (typeof body[key] === 'string' && body[key] !== '') body[key] = toApiDate(body[key] as string);
+	}
+	return body;
+}
+
 // ---------- core request ----------
 
 export async function xentralRequest(
@@ -332,6 +359,9 @@ export async function xentralRequest(
 		},
 		json: true,
 		timeout: 30000,
+		// A redirect could leave HTTPS or reach an internal host after the URL checks, so never follow one.
+		disableFollowRedirect: true,
+		maxRedirects: 0,
 	};
 
 	if (Object.keys(query).length > 0) {
@@ -359,11 +389,14 @@ export async function xentralRequest(
 	const safeMethod = ['GET', 'HEAD', 'DELETE', 'OPTIONS'].includes(method);
 	const retryableStatuses = safeMethod ? [429, 502, 503, 504] : [429];
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
+		let response: any;
 		try {
-			const response = await this.helpers.httpRequest(options);
-			return raw ? response : unwrapResponse(method, response);
+			response = await this.helpers.httpRequest(options);
 		} catch (error: any) {
 			const statusCode = errorStatus(error);
+			if (statusCode !== undefined && statusCode >= 300 && statusCode < 400) {
+				throw redirectError(this, statusCode, error.response?.headers);
+			}
 			if (statusCode !== undefined && retryableStatuses.includes(statusCode) && attempt < maxRetries) {
 				const baseMs = retryAfterMs(error.response?.headers?.['retry-after'], attempt);
 				const jitter = Math.floor(Math.random() * baseMs * 0.25);
@@ -372,6 +405,9 @@ export async function xentralRequest(
 			}
 			handleXentralError(this, error);
 		}
+		const redirectStatus = Number(response?.statusCode ?? response?.status);
+		if (redirectStatus >= 300 && redirectStatus < 400) throw redirectError(this, redirectStatus, response?.headers);
+		return raw ? response : unwrapResponse(method, response);
 	}
 }
 

@@ -1,11 +1,11 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmptyBody, toApiDate } from '../../transport';
 
 /**
  * Build the purchase price body from a flat field map.
  * Handles object refs (product, supplier) and the price object { amount, currency }.
  */
-function buildPurchasePriceBody(fields: IDataObject): IDataObject {
+function buildPurchasePriceBody(fields: IDataObject, isCreate = false): IDataObject {
 	const body: IDataObject = {};
 
 	// Object refs
@@ -24,7 +24,7 @@ function buildPurchasePriceBody(fields: IDataObject): IDataObject {
 		if (priceAmount !== undefined) price.amount = priceAmount;
 		if (priceCurrency !== undefined) price.currency = priceCurrency;
 		// Default currency to EUR if only amount is provided
-		if (priceAmount !== undefined && priceCurrency === undefined) {
+		if (priceAmount !== undefined && priceCurrency === undefined && isCreate) {
 			price.currency = 'EUR';
 		}
 		body.price = price;
@@ -50,12 +50,7 @@ function buildPurchasePriceBody(fields: IDataObject): IDataObject {
 	return body;
 }
 
-/** The v2 schema uses format date (YYYY-MM-DD). n8n date pickers produce full ISO timestamps. */
-export function toApiDate(value: string | undefined): string {
-	const v = (value || '').trim();
-	if (!v) return '';
-	return /^\d{4}-\d{2}-\d{2}/.test(v) ? v.slice(0, 10) : v;
-}
+export { toApiDate };
 
 export async function handlePurchasePrice(
 	this: IExecuteFunctions,
@@ -81,7 +76,7 @@ export async function handlePurchasePrice(
 			validFrom,
 			expiresAt,
 			...additionalFields,
-		});
+		}, true);
 
 		return xentralRequest.call(this, 'POST', 'purchasePrices', body as IDataObject, {}, 'v2');
 	}
