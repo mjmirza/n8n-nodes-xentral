@@ -34,22 +34,23 @@ export class XentralApi implements ICredentialType {
 		},
 	];
 
-	// Strips quotes, a pasted Bearer prefix, and whitespace. Xentral accepts both the full token and the key part.
+	// Same rule as normalizeToken in transport.ts. Leading digits go only when exactly a 40 char key remains.
 	authenticate: IAuthenticateGeneric = {
 		type: 'generic',
 		properties: {
 			headers: {
 				Authorization:
-					'=Bearer {{ $credentials.accessToken.trim().replace(/^["\'`]+|["\'`]+$/g, "").replace(/^Bearer\\s+/i, "").replace(/\\s/g, "") }}',
+					'=Bearer {{ $credentials.accessToken.trim().replace(/^["\'`]+|["\'`]+$/g, "").replace(/^Bearer\\s+/i, "").replace(/\\s/g, "").replace(/^\\d{1,4}(?=[A-Za-z0-9]{40}$)/, "") }}',
 				Accept: 'application/json',
 			},
 		},
 	};
 
+	// Internal, loopback, link-local and private hosts map to an unroutable .invalid host, the same block list as normalizeUrl in transport.ts.
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL:
-				'={{ (/^https:\\/\\//i.test($credentials.instanceUrl.trim()) ? "" : "https://") + $credentials.instanceUrl.trim().replace(/\\/+$/, "") }}',
+				'={{ (() => { const raw = $credentials.instanceUrl.trim().replace(/\\/+$/, ""); if (/^http:\\/\\//i.test(raw)) return "https://blocked.invalid"; const url = (/^https:\\/\\//i.test(raw) ? "" : "https://") + raw; const host = ((url.match(/^https:\\/\\/(?:[^@/]*@)?([^/:?#]+)/i) || [])[1] || "").toLowerCase(); const internal = !host || host === "localhost" || host === "0" || host === "0.0.0.0" || host.startsWith("[") || /^(127|10)\\./.test(host) || /^172\\.(1[6-9]|2\\d|3[01])\\./.test(host) || /^192\\.168\\./.test(host) || /^169\\.254\\./.test(host) || /^0+\\./.test(host); return internal ? "https://blocked.invalid" : url; })() }}',
 			url: '/api/v1/products',
 			qs: { 'page[number]': 1, 'page[size]': 1 },
 			method: 'GET',
