@@ -643,7 +643,7 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				name: 'deliveryDate',
 				type: 'string',
 				default: '',
-				description: 'Delivery date (ISO 8601)',
+				description: 'Delivery date (ISO 8601), or empty to clear',
 			},
 			{
 				displayName: 'Delivery Terms',

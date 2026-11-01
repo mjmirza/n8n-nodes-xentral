@@ -28,6 +28,7 @@ only where the field itself says so or where the user opts in.
 
 - Product Update ignores empty values unless the Clear Empty Fields option is on.
 - Delivery Date on Invoice and Proforma Invoice updates and on line item updates clears when empty,
-  because those fields have always promised "empty to clear" in their help text.
+  because those fields promise "empty to clear" in their help text. The Proforma Invoice update sent the
+  empty string as the date before 1.4.5, which is not a valid date, so no working workflow relied on it.
 - Age Rating None is an explicit choice in a dropdown, so it sends the empty rating.
 - An expression that returns null clears price validity dates and address overrides.
