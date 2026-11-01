@@ -777,3 +777,31 @@ test('[r7-36] JSON fields accept an expression that already resolved to an objec
 	await handleInvoice.call(invoice, 'update', 0);
 	assert.deepEqual(invoice.calls[0].body.dunningSettings, { level: 1 });
 });
+
+// ---------- 16. tenth pre-release review ----------
+
+test('[r7-37] Report Execute Query Full Response keeps meta.totalResults, off keeps the 1.4.4 split', async () => {
+	const response = { data: { header: ['a'], rows: [[1]] }, meta: { totalResults: 20000 } };
+	const run = async (fullResponse) => {
+		const params = { resource: 'report', operation: 'executeQuery', reportId: '42', body: '{}', queryParameters: '{}' };
+		if (fullResponse !== undefined) params.fullResponse = fullResponse;
+		const calls = [];
+		const ctx = {
+			getNode: () => ({ name: 'Xentral', typeVersion: 2, parameters: {} }),
+			getNodeParameter: (name, _i, fallback) => (name in params ? params[name] : fallback),
+			getCredentials: async () => ({ instanceUrl: 'acme.xentral.com', accessToken: '2|token' }),
+			getInputData: () => [{ json: {} }],
+			continueOnFail: () => false,
+			helpers: { httpRequest: async (o) => { calls.push(o); return response; } },
+		};
+		const out = (await new Xentral().execute.call(ctx))[0];
+		assert.ok(calls[0].url.endsWith('/v1/analytics/report/42/query'));
+		return out;
+	};
+	const full = await run(true);
+	assert.equal(full[0].json.meta.totalResults, 20000);
+	const plain = await run(undefined);
+	assert.equal(plain[0].json.meta, undefined);
+	const field = new Xentral().description.properties.find((p) => p.name === 'fullResponse' && p.displayOptions?.show?.resource?.includes('report'));
+	assert.ok(field.displayOptions.show.operation.includes('executeQuery'));
+});

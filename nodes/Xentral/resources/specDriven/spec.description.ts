@@ -118,6 +118,20 @@ export function specFields(resource: SpecResource): INodeProperties[] {
 		);
 	}
 
+	// Single-call operations can return the whole body, so meta such as totalResults is not lost when data is split.
+	const singleOps = resource.ops.filter((o) => o.pager === 'none').map((o) => o.value);
+	if (singleOps.length > 0) {
+		fields.push({
+			displayName: 'Full Response',
+			name: 'fullResponse',
+			type: 'boolean',
+			default: false,
+			displayOptions: show(resource.resource, singleOps),
+			description:
+				'Whether to return the whole response body as one item, keeping meta such as totalResults, which shows when a report query was capped. Off splits the data into items, as before.',
+		});
+	}
+
 	// GET operations, plus writes that declare query parameters (for example Report Execute Query preview).
 	const getOps = resource.ops.filter((o) => acceptsQuery(o)).map((o) => o.value);
 	if (getOps.length > 0) {

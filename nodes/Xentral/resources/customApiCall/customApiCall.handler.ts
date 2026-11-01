@@ -1,15 +1,13 @@
-import type { IBinaryData, IDataObject, IExecuteFunctions, IHttpRequestMethods, INodeExecutionData } from 'n8n-workflow';
+import type { IBinaryData, IDataObject, IExecuteFunctions, IHttpRequestMethods } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest } from '../../transport';
 import { parseJsonParameter } from '../specDriven/spec.handler';
 import { resolveCustomPath } from './customApiCall.path';
+import { ExecutionItemResult } from '../executionItem';
 
 const METHODS = ['DELETE', 'GET', 'PATCH', 'POST', 'PUT'];
 
-/** A finished output item, for example one carrying binary data. The node passes it through unchanged. */
-export class ExecutionItemResult {
-	constructor(public readonly item: INodeExecutionData) {}
-}
+export { ExecutionItemResult };
 
 function headerValue(headers: IDataObject | undefined, name: string): string | undefined {
 	if (!headers) return undefined;

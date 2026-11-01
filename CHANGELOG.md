@@ -32,6 +32,7 @@
 ### Added
 - Product Update has a Clear Empty Fields option. When on, an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason or Region of Origin clears the field, and an empty Country of Origin is sent as null. Off by default, so saved workflows keep ignoring empty values.
 - Custom API Call has a Full Response option that returns the whole JSON body as one item, keeping pagination cursors and meta such as `totalResults`. Off by default, so the data array is still split into items.
+- Every single-call operation built from the specs, such as Report Execute Query, has a Full Response option that returns the whole body as one item, so `meta.totalResults` shows when Xentral capped a report at 5,000 rows. Off by default.
 - Custom API Call has an Accept option, for example `application/pdf` to download a document PDF in File mode.
 
 ### Release

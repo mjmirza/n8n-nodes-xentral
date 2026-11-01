@@ -274,7 +274,7 @@ npm run lint    # n8n verification rule set, must report zero problems
 - An empty Country in an address override is left out. A set Country must be a two-letter code (any case).
 - To clear a Delivery Date on an Invoice or Proforma Invoice update or a line item update, use an expression that returns null. An empty value is still ignored.
 - If you set your own Signature Key on the trigger, the credential must be allowed to list webhooks, or activation stops with an error. With an empty Signature Key nothing changes.
-- Custom API Call has a Full Response option for endpoints whose response carries a cursor or meta next to the data.
+- Custom API Call and the single-call operations built from the specs (for example Report Execute Query) have a Full Response option for responses that carry a cursor or meta next to the data. Xentral caps a report query at 5,000 rows, and `meta.totalResults` shows when that happened.
 - The trigger also stops activation when a webhook for the same URL and event that it does not own cannot be deleted.
 - Product Age Rating None now clears the rating instead of being ignored.
 - Liability Status no longer lists Cancelled. Xentral has no such status and a saved Cancelled always failed. It still fails, with the same message, so pick Pending or Paid.
