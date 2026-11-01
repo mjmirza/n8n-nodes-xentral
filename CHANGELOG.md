@@ -33,6 +33,8 @@
 - An empty Document Date, Delivery Date, Desired Delivery Date or Confirmed Delivery Date is no longer sent in any request the node builds (documents, line items, production). Custom API Call bodies are sent as written. An empty string is not a date, and Sales Order, Purchase Order, Delivery Note and Return line item updates failed on it.
 - Product Category ID set to null by an expression clears the categories with an empty list. It became `[null]`.
 - Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
+- Purchase Price Get Many keeps the v1 endpoint and numeric price amounts for saved node version 1 workflows; node version 2 keeps v2 and string amounts.
+- Return line item Add and Update send `returnReason: null` when the reason is an object or JSON text with a null ID, instead of `{"id":"null"}`.
 
 ### Security
 - When the Signature Key on the trigger changes, activation replaces a registration kept from a failed delete instead of adopting it, so the old key stops verifying deliveries.

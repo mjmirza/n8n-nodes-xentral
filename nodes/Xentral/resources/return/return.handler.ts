@@ -14,7 +14,10 @@ function returnReasonRef(value: unknown): IDataObject | null {
 		}
 	}
 	if (v === null || v === 'null') return null;
-	if (v && typeof v === 'object' && 'id' in (v as IDataObject)) return { id: String((v as IDataObject).id) };
+	if (v && typeof v === 'object' && 'id' in (v as IDataObject)) {
+		const id = (v as IDataObject).id;
+		return id === null ? null : { id: String(id) };
+	}
 	return { id: String(v) };
 }
 

@@ -941,3 +941,49 @@ test('[r7-46] empty dates are left out of every node-built request', async () =>
 	await handleCustomApiCall.call(custom, 'request', 0);
 	assert.equal(custom.calls[0].body.documentDate, '');
 });
+
+// ---------- 21. seventeenth pre-release review ----------
+
+test('[r7-47] Purchase Price Get Many preserves versioned amounts and page pagination', async () => {
+	for (const [typeVersion, version, amountType] of [[1, 'v1', 'number'], [2, 'v2', 'string']]) {
+		const operation = v1Spec.paths[`/api/${version}/purchasePrices`].get;
+		const content = operation.responses['200'].content['application/json'];
+		assert.equal(content.schema.properties.data.items.properties.price.properties.amount.type, amountType);
+		assert.equal(operation.parameters.find((p) => p.name === 'page').style, 'deepObject');
+		for (const [returnAll, limit, count, pages] of [[true, undefined, 100, 2], [false, 55, 55, 2], [false, 10, 10, 1]]) {
+			const ctx = context({ returnAll, limit, maxPages: 2 });
+			const getNode = ctx.getNode;
+			ctx.getNode = () => ({ ...getNode(), typeVersion });
+			ctx.helpers.httpRequest = async (options) => {
+				ctx.calls.push(options);
+				const apiPath = new URL(options.url).pathname;
+				const fixture = v1Spec.paths[apiPath].get.responses['200'].content['application/json'].examples['Lists all purchase prices'].value.data[0];
+				const page = options.qs['page[number]'];
+				return {
+					data: Array.from({ length: 50 }, (_, i) => ({ ...fixture, id: String((page - 1) * 50 + i + 1) })),
+					extra: { totalCount: 100, page: { number: page, size: 50 } },
+				};
+			};
+			const output = await handlePurchasePrice.call(ctx, 'getAll', 0);
+			assert.deepEqual(ctx.calls.map((c) => new URL(c.url).pathname), Array(pages).fill(`/api/${version}/purchasePrices`));
+			assert.deepEqual(ctx.calls.map((c) => c.qs), Array.from({ length: pages }, (_, i) => ({ 'page[number]': i + 1, 'page[size]': 50 })));
+			assert.equal(output.length, count);
+			assert.deepEqual(output.map((item) => item.id), Array.from({ length: count }, (_, i) => String(i + 1)));
+			assert.ok(output.every((item) => typeof item.price.amount === amountType));
+			assert.equal(output[0].price.amount, content.examples['Lists all purchase prices'].value.data[0].price.amount);
+		}
+	}
+});
+
+test('[r7-48] Return line item reasons with a null id clear the reference in object and JSON form', async () => {
+	for (const [operation, field] of [['addLineItem', 'lineItemOptions'], ['updateLineItem', 'updateFields']]) {
+		for (const [value, expected] of [
+			[{ id: null }, null], ['{"id":null}', null], [null, null], ['null', null],
+			[{ id: 7 }, { id: '7' }], ['{"id":"7"}', { id: '7' }], [7, { id: '7' }], ['7', { id: '7' }],
+		]) {
+			const ctx = context({ returnId: '1', lineItemId: '2', productId: '5', quantity: 1, [field]: { returnReason: value } });
+			await handleReturn.call(ctx, operation, 0);
+			assert.deepEqual(ctx.calls[0].body.returnReason, expected, `${operation}: ${JSON.stringify(value)}`);
+		}
+	}
+});
