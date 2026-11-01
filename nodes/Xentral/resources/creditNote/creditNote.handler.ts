@@ -21,13 +21,13 @@ function buildCreditNoteBody(node: INode, fields: IDataObject): IDataObject {
 	}
 
 	// Nested object refs: wrap as { id: "..." }
-	if (fields.editorId) body.editor = { id: fields.editorId };
+	if (fields.editorId || fields.editorId === null) body.editor = { id: fields.editorId };
 	if (fields.projectId !== undefined) {
 		body.project = fields.projectId === '' ? null : { id: fields.projectId };
 	}
 
 	// Sales: { id: "..." }
-	if (fields.salesId) {
+	if (fields.salesId || fields.salesId === null) {
 		body.sales = { id: fields.salesId };
 	}
 

@@ -45,7 +45,7 @@ export async function handlePaymentTermsGroup(
 		}
 
 		// Project object ref
-		if (additionalFields.projectId) {
+		if (additionalFields.projectId || additionalFields.projectId === null) {
 			body.project = { id: additionalFields.projectId };
 		}
 

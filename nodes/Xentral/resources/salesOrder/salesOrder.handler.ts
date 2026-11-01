@@ -29,16 +29,16 @@ export async function handleSalesOrder(
 
 		// Object-wrapped ID references
 		// The saved warehouse field keeps the key it always sent; storage location is a separate field.
-		if (additionalFields.commissionConsignmentWarehouseId) {
+		if (additionalFields.commissionConsignmentWarehouseId || additionalFields.commissionConsignmentWarehouseId === null) {
 			body.commissionConsignmentWarehouse = { id: additionalFields.commissionConsignmentWarehouseId };
 		}
-		if (additionalFields.commissionConsignmentStorageLocationId) {
+		if (additionalFields.commissionConsignmentStorageLocationId || additionalFields.commissionConsignmentStorageLocationId === null) {
 			body.commissionConsignmentStorageLocation = { id: additionalFields.commissionConsignmentStorageLocationId };
 		}
-		if (additionalFields.editorId) body.editor = { id: additionalFields.editorId };
-		if (additionalFields.preferredWarehouseId) body.preferredWarehouse = { id: additionalFields.preferredWarehouseId };
-		if (additionalFields.projectId) body.project = { id: additionalFields.projectId };
-		if (additionalFields.salesId) body.sales = { id: additionalFields.salesId };
+		if (additionalFields.editorId || additionalFields.editorId === null) body.editor = { id: additionalFields.editorId };
+		if (additionalFields.preferredWarehouseId || additionalFields.preferredWarehouseId === null) body.preferredWarehouse = { id: additionalFields.preferredWarehouseId };
+		if (additionalFields.projectId || additionalFields.projectId === null) body.project = { id: additionalFields.projectId };
+		if (additionalFields.salesId || additionalFields.salesId === null) body.sales = { id: additionalFields.salesId };
 
 		// Financials
 		const financials: IDataObject = {};
@@ -131,16 +131,16 @@ export async function handleSalesOrder(
 
 		// Object-wrapped ID references
 		// The saved warehouse field keeps the key it always sent; storage location is a separate field.
-		if (updateFields.commissionConsignmentWarehouseId) {
+		if (updateFields.commissionConsignmentWarehouseId || updateFields.commissionConsignmentWarehouseId === null) {
 			body.commissionConsignmentWarehouse = { id: updateFields.commissionConsignmentWarehouseId };
 		}
-		if (updateFields.commissionConsignmentStorageLocationId) {
+		if (updateFields.commissionConsignmentStorageLocationId || updateFields.commissionConsignmentStorageLocationId === null) {
 			body.commissionConsignmentStorageLocation = { id: updateFields.commissionConsignmentStorageLocationId };
 		}
-		if (updateFields.editorId) body.editor = { id: updateFields.editorId };
-		if (updateFields.preferredWarehouseId) body.preferredWarehouse = { id: updateFields.preferredWarehouseId };
-		if (updateFields.projectId) body.project = { id: updateFields.projectId };
-		if (updateFields.salesId) body.sales = { id: updateFields.salesId };
+		if (updateFields.editorId || updateFields.editorId === null) body.editor = { id: updateFields.editorId };
+		if (updateFields.preferredWarehouseId || updateFields.preferredWarehouseId === null) body.preferredWarehouse = { id: updateFields.preferredWarehouseId };
+		if (updateFields.projectId || updateFields.projectId === null) body.project = { id: updateFields.projectId };
+		if (updateFields.salesId || updateFields.salesId === null) body.sales = { id: updateFields.salesId };
 
 		// Financials
 		const financials: IDataObject = {};

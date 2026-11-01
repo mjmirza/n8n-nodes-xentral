@@ -28,15 +28,15 @@ export async function handleDeliveryNote(
 		if (additionalFields.vatId !== undefined) body.vatId = additionalFields.vatId;
 
 		// Object-wrapped ID references
-		if (additionalFields.commissionConsignmentWarehouseId) {
+		if (additionalFields.commissionConsignmentWarehouseId || additionalFields.commissionConsignmentWarehouseId === null) {
 			body.commissionConsignmentWarehouse = { id: additionalFields.commissionConsignmentWarehouseId };
 		}
-		if (additionalFields.editorId) body.editor = { id: additionalFields.editorId };
-		if (additionalFields.orderPickingId) body.orderPicking = { id: additionalFields.orderPickingId };
-		if (additionalFields.preferredWarehouseId) body.preferredWarehouse = { id: additionalFields.preferredWarehouseId };
-		if (additionalFields.projectId) body.project = { id: additionalFields.projectId };
-		if (additionalFields.salesId) body.sales = { id: additionalFields.salesId };
-		if (additionalFields.salesOrderId) body.salesOrder = { id: additionalFields.salesOrderId };
+		if (additionalFields.editorId || additionalFields.editorId === null) body.editor = { id: additionalFields.editorId };
+		if (additionalFields.orderPickingId || additionalFields.orderPickingId === null) body.orderPicking = { id: additionalFields.orderPickingId };
+		if (additionalFields.preferredWarehouseId || additionalFields.preferredWarehouseId === null) body.preferredWarehouse = { id: additionalFields.preferredWarehouseId };
+		if (additionalFields.projectId || additionalFields.projectId === null) body.project = { id: additionalFields.projectId };
+		if (additionalFields.salesId || additionalFields.salesId === null) body.sales = { id: additionalFields.salesId };
+		if (additionalFields.salesOrderId || additionalFields.salesOrderId === null) body.salesOrder = { id: additionalFields.salesOrderId };
 
 		// Tags
 		if (additionalFields.tags !== undefined && (additionalFields.tags as string).trim() !== '') {
@@ -112,15 +112,15 @@ export async function handleDeliveryNote(
 		if (updateFields.vatId !== undefined) body.vatId = updateFields.vatId;
 
 		// Object-wrapped ID references
-		if (updateFields.commissionConsignmentWarehouseId) {
+		if (updateFields.commissionConsignmentWarehouseId || updateFields.commissionConsignmentWarehouseId === null) {
 			body.commissionConsignmentWarehouse = { id: updateFields.commissionConsignmentWarehouseId };
 		}
-		if (updateFields.editorId) body.editor = { id: updateFields.editorId };
-		if (updateFields.orderPickingId) body.orderPicking = { id: updateFields.orderPickingId };
-		if (updateFields.preferredWarehouseId) body.preferredWarehouse = { id: updateFields.preferredWarehouseId };
-		if (updateFields.projectId) body.project = { id: updateFields.projectId };
-		if (updateFields.salesId) body.sales = { id: updateFields.salesId };
-		if (updateFields.salesOrderId) body.salesOrder = { id: updateFields.salesOrderId };
+		if (updateFields.editorId || updateFields.editorId === null) body.editor = { id: updateFields.editorId };
+		if (updateFields.orderPickingId || updateFields.orderPickingId === null) body.orderPicking = { id: updateFields.orderPickingId };
+		if (updateFields.preferredWarehouseId || updateFields.preferredWarehouseId === null) body.preferredWarehouse = { id: updateFields.preferredWarehouseId };
+		if (updateFields.projectId || updateFields.projectId === null) body.project = { id: updateFields.projectId };
+		if (updateFields.salesId || updateFields.salesId === null) body.sales = { id: updateFields.salesId };
+		if (updateFields.salesOrderId || updateFields.salesOrderId === null) body.salesOrder = { id: updateFields.salesOrderId };
 
 		// Tags
 		if (updateFields.tags !== undefined && (updateFields.tags as string).trim() !== '') {

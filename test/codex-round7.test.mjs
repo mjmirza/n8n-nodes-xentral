@@ -911,3 +911,33 @@ test('[r7-44] an empty Delivery Date is never sent on any line item update or ad
 	await handleSalesOrder.call(doc, 'update', 0);
 	assert.equal('deliveryDate' in doc.calls[0].body, false);
 });
+
+// ---------- 20. fifteenth pre-release review ----------
+
+test('[r7-45] a null reference id clears it even where an empty value is skipped', async () => {
+	const order = context({ salesOrderId: '1', updateFields: { projectId: null, internalComment: 'keep' } });
+	await handleSalesOrder.call(order, 'update', 0);
+	assert.equal(order.calls[0].body.project, null);
+	assert.ok('project' in order.calls[0].body);
+	const empty = context({ salesOrderId: '1', updateFields: { projectId: '', internalComment: 'keep' } });
+	await handleSalesOrder.call(empty, 'update', 0);
+	assert.equal('project' in empty.calls[0].body, false);
+	const offer = context({ offerId: '1', updateFields: { editorId: null } });
+	await handleOffer.call(offer, 'update', 0);
+	assert.equal(offer.calls[0].body.editor, null);
+});
+
+test('[r7-46] empty dates are left out of every node-built request', async () => {
+	const proforma = context({ customerId: '4', additionalFields: { documentDate: '', deliveryDate: '', vatId: 'DE1' } });
+	await handleProformaInvoice.call(proforma, 'create', 0);
+	assert.equal('documentDate' in proforma.calls[0].body || 'deliveryDate' in proforma.calls[0].body, false);
+	const ret = context({ returnId: '1', updateFields: { documentDate: '', internalComment: 'x' } });
+	await handleReturn.call(ret, 'update', 0);
+	assert.equal('documentDate' in ret.calls[0].body, false);
+	const production = context({ productId: '5', quantity: 1, additionalFields: { documentDate: '' } });
+	await handleProduction.call(production, 'create', 0);
+	assert.equal('documentDate' in production.calls[0].body, false);
+	const custom = apiCallContext({ method: 'POST', apiVersion: 'v3', path: 'proformaInvoices', body: '{"documentDate":""}' });
+	await handleCustomApiCall.call(custom, 'request', 0);
+	assert.equal(custom.calls[0].body.documentDate, '');
+});

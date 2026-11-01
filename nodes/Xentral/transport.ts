@@ -479,7 +479,8 @@ export async function xentralRequest(
 
 	const hasBody = Array.isArray(body) ? body.length > 0 : body !== null && typeof body === 'object' && Object.keys(body).length > 0;
 	if ((['POST', 'PATCH', 'PUT'].includes(method) && body) || (method === 'DELETE' && hasBody)) {
-		options.body = verbatimBody ? body : nullReferences(body);
+		// Every node-built body: an empty date is left out and a null reference id becomes null.
+		options.body = verbatimBody ? body : nullReferences(Array.isArray(body) ? body : dropEmptyDates({ ...body }));
 	}
 
 	// Read Location so a create that answers with an empty body still yields its new id.

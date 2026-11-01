@@ -34,15 +34,15 @@ function buildOfferBody(fields: IDataObject): IDataObject {
 	}
 
 	// Nested object refs: wrap as { id: "..." }
-	if (fields.editorId) body.editor = { id: fields.editorId };
+	if (fields.editorId || fields.editorId === null) body.editor = { id: fields.editorId };
 	if (fields.projectId !== undefined) {
 		body.project = fields.projectId === '' ? null : { id: fields.projectId };
 	}
-	if (fields.preferredWarehouseId) body.preferredWarehouse = { id: fields.preferredWarehouseId };
-	if (fields.shippingMethodId) body.shippingMethod = { id: fields.shippingMethodId };
+	if (fields.preferredWarehouseId || fields.preferredWarehouseId === null) body.preferredWarehouse = { id: fields.preferredWarehouseId };
+	if (fields.shippingMethodId || fields.shippingMethodId === null) body.shippingMethod = { id: fields.shippingMethodId };
 
 	// Sales: { id: "..." }
-	if (fields.salesId) {
+	if (fields.salesId || fields.salesId === null) {
 		body.sales = { id: fields.salesId };
 	}
 
@@ -50,7 +50,7 @@ function buildOfferBody(fields: IDataObject): IDataObject {
 	const financials: IDataObject = {};
 	if (fields.currency) financials.currency = fields.currency;
 	if (fields.taxation) financials.tax = { taxation: fields.taxation };
-	if (fields.paymentMethodId) financials.paymentMethod = { id: fields.paymentMethodId };
+	if (fields.paymentMethodId || fields.paymentMethodId === null) financials.paymentMethod = { id: fields.paymentMethodId };
 	if (Object.keys(financials).length > 0) body.financials = financials;
 
 	// Document address (fixedCollection)

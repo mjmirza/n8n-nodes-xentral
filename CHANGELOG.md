@@ -29,8 +29,8 @@
 - Add Line Item sends a Price Currency set without a Price Amount on Sales Order, Purchase Order, Offer, Invoice, Credit Note and Proforma Invoice. It was dropped.
 - Customer Create accepts a person (Customer Type Person) with First Name and Last Name and no Name, as Xentral requires. Name is still required for a company.
 
-- A reference whose ID an expression resolves to null (Project, Editor, Sales Order, Customer, Customer Group and the rest) is sent as `null`, which removes the reference, instead of `{"id": null}`, which Xentral rejects. Custom API Call bodies are still sent exactly as written.
-- An empty Document Date, Delivery Date, Desired Delivery Date or Confirmed Delivery Date is no longer sent on any document or line item create, update or add. An empty string is not a date, and Sales Order, Purchase Order, Delivery Note and Return line item updates failed on it.
+- A reference whose ID an expression resolves to null (Project, Editor, Sales Order, Customer, Customer Group and the rest) is sent as `null`, which removes the reference, instead of `{"id": null}` or nothing at all. An empty ID is still left out. Custom API Call bodies are still sent exactly as written.
+- An empty Document Date, Delivery Date, Desired Delivery Date or Confirmed Delivery Date is no longer sent in any request the node builds (documents, line items, production). Custom API Call bodies are sent as written. An empty string is not a date, and Sales Order, Purchase Order, Delivery Note and Return line item updates failed on it.
 - Product Category ID set to null by an expression clears the categories with an empty list. It became `[null]`.
 - Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 

@@ -31,8 +31,8 @@ export async function handlePurchaseOrder(
 		if (additionalFields.vatId !== undefined) body.vatId = additionalFields.vatId;
 
 		// Object-wrapped ID references
-		if (additionalFields.editorId) body.editor = { id: additionalFields.editorId };
-		if (additionalFields.projectId) body.project = { id: additionalFields.projectId };
+		if (additionalFields.editorId || additionalFields.editorId === null) body.editor = { id: additionalFields.editorId };
+		if (additionalFields.projectId || additionalFields.projectId === null) body.project = { id: additionalFields.projectId };
 
 		// Financials
 		const financials: IDataObject = {};
@@ -111,8 +111,8 @@ export async function handlePurchaseOrder(
 		if (updateFields.vatId !== undefined) body.vatId = updateFields.vatId;
 
 		// Object-wrapped ID references
-		if (updateFields.editorId) body.editor = { id: updateFields.editorId };
-		if (updateFields.projectId) body.project = { id: updateFields.projectId };
+		if (updateFields.editorId || updateFields.editorId === null) body.editor = { id: updateFields.editorId };
+		if (updateFields.projectId || updateFields.projectId === null) body.project = { id: updateFields.projectId };
 
 		// Financials
 		const financials: IDataObject = {};
