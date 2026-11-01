@@ -29,4 +29,5 @@ Ready-to-import n8n workflow files for testing and verifying `n8n-nodes-xentral`
 - A running Xentral instance with API access
 - A Personal Access Token (PAT) configured in n8n as **Xentral API** credentials
 - At least one existing customer in Xentral (Workflow 2 fetches the first customer)
+- Set Product ID in Workflow 2's Add Line Item nodes to existing product IDs in your instance (the examples use `1` and `2`)
 - At least one existing project in Xentral (Workflow 3 fetches the first project)

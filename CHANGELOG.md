@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.6] - 2026-11-01
+
+### Fixed
+- Production Create leaves empty Production Start Date, Production End Date, Stock Provisioning Date and Stock Retrieval Date out of the request, as the v3 schema requires. Set dates are still sent unchanged.
+- Example workflows use the supported Company customer type, put Address Type at the top level, and add offer line items with Product ID and Price Amount. The example instructions explain how to choose existing products.
+
 ## [1.4.5] - 2026-11-01
 
 ### Fixed

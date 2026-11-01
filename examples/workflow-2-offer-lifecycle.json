@@ -57,10 +57,10 @@
         "resource": "offer",
         "operation": "addLineItem",
         "offerId": "={{ $json.id }}",
-        "productName": "Test Product A",
+        "productId": "1",
         "quantity": 5,
         "lineItemOptions": {
-          "unitPrice": 29.99,
+          "priceAmount": 29.99,
           "description": "First test line item"
         }
       },
@@ -81,10 +81,10 @@
         "resource": "offer",
         "operation": "addLineItem",
         "offerId": "={{ $('Create Offer').item.json.id }}",
-        "productName": "Test Product B",
+        "productId": "2",
         "quantity": 2,
         "lineItemOptions": {
-          "unitPrice": 149.50,
+          "priceAmount": 149.50,
           "description": "Second test line item"
         }
       },
