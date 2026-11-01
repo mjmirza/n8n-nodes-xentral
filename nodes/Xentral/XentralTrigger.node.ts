@@ -10,7 +10,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes } from 'n8n-workflow';
 
-import { xentralRequest, assertSafeId } from './transport';
+import { xentralRequest, assertSafeId, errorStatus } from './transport';
 import { resolveSigningKey, verifyXentralSignature } from './trigger.signature';
 
 /**
@@ -322,15 +322,24 @@ export class XentralTrigger implements INodeType {
 				const webhookData = this.getWorkflowStaticData('node');
 				const webhookId = webhookData.webhookId as string;
 
-				if (webhookId) {
+				if (webhookId && !/^[a-zA-Z0-9_-]+$/.test(String(webhookId))) {
+					// A stored ID that can never be a valid path segment cannot be deleted, so it is dropped.
+					this.logger.warn('Xentral: the stored webhook ID is not valid and was discarded.');
+				} else if (webhookId) {
 					try {
-						assertSafeId(webhookId, 'webhookId');
+						assertSafeId(String(webhookId), 'webhookId');
 						await xentralRequest.call(this, 'DELETE', `webhooks/${webhookId}`, {}, {}, 'v1');
 					} catch (error) {
-						// The webhook may already be gone on the Xentral side, so deactivation must not fail.
-						this.logger.warn(
-							`Xentral: failed to delete webhook ${webhookId}. ${(error as Error).message || 'unknown error'}`,
-						);
+						const status = errorStatus(error);
+						if (status !== 404 && status !== 410) {
+							// Keep the registration ID and signing key, so the next activation adopts the webhook
+							// and the next deactivation retries the delete instead of orphaning it.
+							this.logger.warn(
+								`Xentral: failed to delete webhook ${webhookId}, it is kept for a retry. ${(error as Error).message || 'unknown error'}`,
+							);
+							return false;
+						}
+						// Already gone on the Xentral side, so the stored state can be cleared.
 					}
 				}
 

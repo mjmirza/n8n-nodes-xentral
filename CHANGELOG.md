@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.5] - 2026-11-01
+
+### Fixed
+- Address overrides (Document Address, Deviating Ship-To Address) on Sales Order, Purchase Order, Offer, Invoice, Credit Note, Proforma Invoice, Delivery Note and Return no longer send an empty Type. Xentral accepts only mrs, mr, company or other. A set Type is trimmed and lower-cased, an unknown one fails before the request.
+- Proforma Invoice Get Many sends the Created After filter as `createdAt greaterThanOrEquals`. It was ignored.
+- Line item updates that set only Price Currency send it on Sales Order, Purchase Order, Offer, Invoice, Credit Note and Proforma Invoice. They failed with "No fields provided" or dropped the currency.
+- Product Create and Update send the calculated purchase price amount as a string and the currency in upper case, as the v1 Money schema declares.
+- The trigger keeps its webhook ID and signing key when the webhook delete fails, so a later deactivation can retry it. A 404 or 410 still clears them.
+
+### Release
+- The publish workflow packs the tarball, runs n8n's community package scanner on it and on the source, and only then publishes that same tarball. CI runs the same preflight on every push and pull request. The post-publish scan stays for the provenance check.
+
 ## [1.4.4] - 2026-11-01
 
 ### Security

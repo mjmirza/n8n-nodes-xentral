@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates, documentAddress, lineItemUpdatePrice } from '../../transport';
 
 export async function handleSalesOrder(
 	this: IExecuteFunctions,
@@ -54,11 +54,11 @@ export async function handleSalesOrder(
 		// Fixed collections (address objects)
 		if (additionalFields.deviatingShipToAddress !== undefined) {
 			const addr = (additionalFields.deviatingShipToAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.deviatingShipToAddress = addr;
+			if (addr !== undefined) body.deviatingShipToAddress = documentAddress(addr);
 		}
 		if (additionalFields.documentAddress !== undefined) {
 			const addr = (additionalFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Print settings (fixedCollection)
@@ -150,11 +150,11 @@ export async function handleSalesOrder(
 		// Fixed collections (address objects)
 		if (updateFields.deviatingShipToAddress !== undefined) {
 			const addr = (updateFields.deviatingShipToAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.deviatingShipToAddress = addr;
+			if (addr !== undefined) body.deviatingShipToAddress = documentAddress(addr);
 		}
 		if (updateFields.documentAddress !== undefined) {
 			const addr = (updateFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Print settings (fixedCollection)
@@ -230,12 +230,8 @@ export async function handleSalesOrder(
 		if (updateFields.productId) body.product = { id: updateFields.productId };
 
 		// Price structure
-		if (updateFields.priceAmount !== undefined) {
-			// An update only changes the currency when it was set.
-			const net: IDataObject = { amount: updateFields.priceAmount };
-			if (updateFields.priceCurrency) net.currency = updateFields.priceCurrency;
-			body.price = { net };
-		}
+		const price = lineItemUpdatePrice(updateFields);
+		if (price) body.price = price;
 
 		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
 		if (sortOnly) return sortOnly;

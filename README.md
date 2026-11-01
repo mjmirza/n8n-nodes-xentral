@@ -220,7 +220,7 @@ Creating a token needs admin rights in Xentral. The [Xentral authentication guid
 | Pagination | Cursor, page number and V3 pages, handled per endpoint |
 | Errors | Xentral problem details (RFC 9457) surfaced through `NodeApiError` |
 | Retries | 429, 502, 503 and 504 retried with exponential backoff, jitter and `Retry-After` |
-| Lint | The same rule set n8n uses to verify community packages. The release workflow runs the n8n verification scanner on every published version |
+| Lint | The same rule set n8n uses to verify community packages. CI and the release workflow run the n8n verification scanner on the packed tarball before anything is published, and again on the published version |
 | Release | Signed npm provenance from GitHub Actions |
 
 ### Project structure
@@ -257,7 +257,14 @@ npm run lint    # n8n verification rule set, must report zero problems
 1. Bump `version` in `package.json` and add a `CHANGELOG.md` entry on a branch.
 2. Open a pull request. CI builds, lints and tests it.
 3. After merge, tag the merge commit with `v<version>` and push the tag.
-4. The Publish workflow checks that the tag matches `package.json`, runs the tests, and publishes to npm with `--provenance`, which signs the package against that exact commit.
+4. The Publish workflow checks that the tag matches `package.json`, runs the tests, packs the tarball and scans it with n8n's community package scanner. Only a tarball that passes is published to npm with `--provenance`, which signs the package against that exact commit. The scan runs once more on the published version to check provenance.
+
+## Upgrade notes
+
+### 1.4.5
+- Address overrides on documents leave Type out when it is empty. A set Type must be mrs, mr, company or other (any case). Any other value now stops the item with a clear error before the request, where Xentral used to reject it.
+- A line item update that sets only Price Currency now sends it. Before, it failed with "No fields provided" or the currency was dropped.
+- When the trigger cannot delete its webhook on deactivation (anything but 404 or 410), it keeps the webhook ID and signing key. The next activation adopts the webhook and the next deactivation retries the delete.
 
 ## Compatibility
 

@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates, documentAddress, lineItemUpdatePrice } from '../../transport';
 
 export async function handlePurchaseOrder(
 	this: IExecuteFunctions,
@@ -48,7 +48,7 @@ export async function handlePurchaseOrder(
 		// Fixed collections (address objects)
 		if (additionalFields.documentAddress !== undefined) {
 			const addr = (additionalFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Print settings (fixedCollection)
@@ -128,7 +128,7 @@ export async function handlePurchaseOrder(
 		// Fixed collections (address objects)
 		if (updateFields.documentAddress !== undefined) {
 			const addr = (updateFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Print settings (fixedCollection)
@@ -200,12 +200,8 @@ export async function handlePurchaseOrder(
 		if (updateFields.productId) body.product = { id: updateFields.productId };
 
 		// Price structure
-		if (updateFields.priceAmount !== undefined) {
-			// An update only changes the currency when it was set.
-			const net: IDataObject = { amount: updateFields.priceAmount };
-			if (updateFields.priceCurrency) net.currency = updateFields.priceCurrency;
-			body.price = { net };
-		}
+		const price = lineItemUpdatePrice(updateFields);
+		if (price) body.price = price;
 
 		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
 		if (sortOnly) return sortOnly;

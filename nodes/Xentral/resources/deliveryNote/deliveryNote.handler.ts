@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates, documentAddress } from '../../transport';
 
 export async function handleDeliveryNote(
 	this: IExecuteFunctions,
@@ -46,7 +46,7 @@ export async function handleDeliveryNote(
 		// Fixed collections (address objects)
 		if (additionalFields.documentAddress !== undefined) {
 			const addr = (additionalFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Print settings (fixedCollection)
@@ -130,7 +130,7 @@ export async function handleDeliveryNote(
 		// Fixed collections (address objects)
 		if (updateFields.documentAddress !== undefined) {
 			const addr = (updateFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Print settings (fixedCollection)

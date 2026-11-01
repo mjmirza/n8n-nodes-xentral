@@ -259,6 +259,42 @@ export function applyLineItemHidden(body: IDataObject, fields: IDataObject): voi
 }
 
 /**
+ * Price for a V3 line item update. Amount and currency are both optional in LineItemFinancials, so a
+ * currency set on its own is sent too. Returns undefined when neither was set.
+ */
+export function lineItemUpdatePrice(fields: IDataObject): IDataObject | undefined {
+	const hasAmount = fields.priceAmount !== undefined && fields.priceAmount !== null && fields.priceAmount !== '';
+	const hasCurrency = typeof fields.priceCurrency === 'string' ? fields.priceCurrency.trim() !== '' : !!fields.priceCurrency;
+	if (!hasAmount && !hasCurrency) return undefined;
+	const net: IDataObject = {};
+	if (hasAmount) net.amount = fields.priceAmount;
+	if (hasCurrency) net.currency = fields.priceCurrency;
+	return { net };
+}
+
+/** Salutation types the V3 document address schemas accept. */
+export const DOCUMENT_ADDRESS_TYPES = ['mrs', 'mr', 'company', 'other'];
+
+/**
+ * A document address override as Xentral expects it. An empty Type means "not set" and is left out,
+ * a set Type must be one of mrs, mr, company or other.
+ */
+export function documentAddress(address: IDataObject): IDataObject {
+	const result: IDataObject = { ...address };
+	const type = result.type;
+	if (type === undefined || type === null || String(type).trim() === '') {
+		delete result.type;
+		return result;
+	}
+	const normalized = String(type).trim().toLowerCase();
+	if (!DOCUMENT_ADDRESS_TYPES.includes(normalized)) {
+		throw new Error(`Invalid address Type "${String(type)}". Use one of: ${DOCUMENT_ADDRESS_TYPES.join(', ')}, or leave it empty.`);
+	}
+	result.type = normalized;
+	return result;
+}
+
+/**
  * A saved line item update that only sets the legacy Sort option. Xentral V3 ignores a numeric
  * sort, so nothing is sent, and the workflow keeps running as it did before Sort was dropped.
  */

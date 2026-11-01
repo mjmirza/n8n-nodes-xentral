@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress } from '../../transport';
 
 // Xentral takes returnReason as { id } or null. Saved values may be an id, a number, JSON or "null".
 function returnReasonRef(value: unknown): IDataObject | null {
@@ -75,7 +75,7 @@ export async function handleReturn(
 		// Document address (fixedCollection)
 		if (additionalFields.documentAddress !== undefined) {
 			const addr = (additionalFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Tags (comma-separated string to array)
@@ -199,7 +199,7 @@ export async function handleReturn(
 		// Document address
 		if (updateFields.documentAddress !== undefined) {
 			const addr = (updateFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Tags

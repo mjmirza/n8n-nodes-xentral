@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice } from '../../transport';
 
 export async function handleProformaInvoice(
 	this: IExecuteFunctions,
@@ -49,7 +49,7 @@ export async function handleProformaInvoice(
 		// Document address (fixedCollection)
 		if (additionalFields.documentAddress !== undefined) {
 			const addr = (additionalFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Tags (comma-separated string to array)
@@ -105,6 +105,12 @@ export async function handleProformaInvoice(
 			query[`filter[${filterIndex}][value]`] = filters.customerId;
 			filterIndex++;
 		}
+		if (filters.createdAfter !== undefined && filters.createdAfter !== '') {
+			query[`filter[${filterIndex}][key]`] = 'createdAt';
+			query[`filter[${filterIndex}][op]`] = 'greaterThanOrEquals';
+			query[`filter[${filterIndex}][value]`] = filters.createdAfter;
+			filterIndex++;
+		}
 		return xentralV3GetAll.call(this, 'proformaInvoices', query, limit, maxPages);
 	}
 
@@ -143,7 +149,7 @@ export async function handleProformaInvoice(
 		// Document address
 		if (updateFields.documentAddress !== undefined) {
 			const addr = (updateFields.documentAddress as IDataObject).address as IDataObject;
-			if (addr !== undefined) body.documentAddress = addr;
+			if (addr !== undefined) body.documentAddress = documentAddress(addr);
 		}
 
 		// Tags
@@ -243,12 +249,8 @@ export async function handleProformaInvoice(
 		applyLineItemHidden(body, updateFields);
 
 		// Price object
-		if (updateFields.priceAmount !== undefined) {
-			// An update only changes the currency when it was set.
-			const net: IDataObject = { amount: updateFields.priceAmount };
-			if (updateFields.priceCurrency) net.currency = updateFields.priceCurrency;
-			body.price = { net };
-		}
+		const price = lineItemUpdatePrice(updateFields);
+		if (price) body.price = price;
 
 		const sortOnly = sortOnlyLineItemUpdate(body, updateFields);
 		if (sortOnly) return sortOnly;

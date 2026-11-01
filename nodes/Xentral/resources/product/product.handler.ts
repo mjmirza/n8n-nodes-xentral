@@ -180,11 +180,15 @@ function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 		}
 		if (fields.calculatedPurchasePriceAmount !== undefined || fields.calculatedPurchasePriceCurrency !== undefined) {
 			const price: IDataObject = {};
-			if (fields.calculatedPurchasePriceAmount !== undefined) {
-				price.amount = fields.calculatedPurchasePriceAmount;
+			const amount = fields.calculatedPurchasePriceAmount;
+			if (amount !== undefined && amount !== null && amount !== '') {
+				// The v1 Money object declares amount as a string ("13.37").
+				price.amount = String(amount);
 			}
-			if (fields.calculatedPurchasePriceCurrency !== undefined && fields.calculatedPurchasePriceCurrency !== '') {
-				price.currency = fields.calculatedPurchasePriceCurrency;
+			const currency = fields.calculatedPurchasePriceCurrency;
+			if (currency !== undefined && currency !== null && String(currency).trim() !== '') {
+				// The currency enum is upper case ISO 4217.
+				price.currency = String(currency).trim().toUpperCase();
 			}
 			calculatedPurchasePrice.price = price;
 		}

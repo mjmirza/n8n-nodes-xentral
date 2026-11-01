@@ -128,7 +128,7 @@ const postalAddressValues: INodeProperties[] = [
 		name: 'type',
 		type: 'string',
 		default: '',
-		description: 'Address type',
+		description: 'Salutation type: mrs, mr, company or other. Leave empty to not set it.',
 	},
 ];
 

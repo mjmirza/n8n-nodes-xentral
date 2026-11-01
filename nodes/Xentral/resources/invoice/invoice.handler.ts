@@ -1,6 +1,6 @@
 import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for invoice create/update.
@@ -50,7 +50,7 @@ function buildInvoiceBody(node: INode, fields: IDataObject): IDataObject {
 	if (fields.documentAddress !== undefined) {
 		const fc = fields.documentAddress as IDataObject;
 		const addr = fc.address as IDataObject;
-		if (addr) body.documentAddress = addr;
+		if (addr) body.documentAddress = documentAddress(addr);
 	}
 
 	// Tags: comma-separated string to array
@@ -122,12 +122,15 @@ function buildLineItemBody(fields: IDataObject, isAdd = false): IDataObject {
 	if (fields.productId) body.product = { id: fields.productId };
 
 	// Price object: { net: { amount: X, currency: "EUR" } }
-	if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
-		const net: IDataObject = { amount: fields.priceAmount };
-		// An update only changes the currency when it was set; a new line item defaults to EUR.
-		if (fields.priceCurrency) net.currency = fields.priceCurrency;
-		else if (isAdd) net.currency = 'EUR';
-		body.price = { net };
+	if (isAdd) {
+		if (fields.priceAmount !== undefined && fields.priceAmount !== '') {
+			// A new line item defaults to EUR when no currency was set.
+			body.price = { net: { amount: fields.priceAmount, currency: fields.priceCurrency || 'EUR' } };
+		}
+	} else {
+		// An update sends what was set, so a currency-only change is kept.
+		const price = lineItemUpdatePrice(fields);
+		if (price) body.price = price;
 	}
 
 	return body;
