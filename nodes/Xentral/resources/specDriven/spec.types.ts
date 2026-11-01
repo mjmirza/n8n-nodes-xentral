@@ -11,6 +11,7 @@ export interface SpecOperation {
 	body: 'none' | 'optional' | 'required';
 	contentType: string;
 	requiredKeys: string[];
+	queryKeys: string[];
 	beta: boolean;
 	summary: string;
 }
@@ -20,4 +21,9 @@ export interface SpecResource {
 	displayName: string;
 	extendsExisting: boolean;
 	ops: SpecOperation[];
+}
+
+/** GET operations take query parameters, and so does any write whose spec declares them. */
+export function acceptsQuery(op: SpecOperation): boolean {
+	return op.method === 'GET' || (op.queryKeys ?? []).length > 0;
 }

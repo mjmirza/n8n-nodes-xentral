@@ -171,6 +171,20 @@ function pager(params) {
 	return 'none';
 }
 
+// Required keys of a schema. Top-level required wins, otherwise the keys every anyOf or oneOf branch requires.
+function requiredOf(s, schema) {
+	if (Array.isArray(schema.required) && schema.required.length) return schema.required;
+	const branches = (schema.anyOf || schema.oneOf || []).map((b) => resolve(s, b) || {});
+	if (!branches.length) return [];
+	const sets = branches.map((b) => new Set(requiredOf(s, b)));
+	return [...sets[0]].filter((k) => sets.every((set) => set.has(k)));
+}
+
+function branchesAllRequire(s, schema) {
+	const branches = (schema.anyOf || schema.oneOf || []).map((b) => resolve(s, b) || {});
+	return branches.length > 0 && branches.every((b) => requiredOf(s, b).length > 0);
+}
+
 const catalog = [];
 for (const [resource, def] of Object.entries(PICKS)) {
 	const ops = [];
@@ -199,9 +213,11 @@ for (const [resource, def] of Object.entries(PICKS)) {
 			const types = Object.keys(rb.content || {});
 			contentType = types.includes('application/json') ? 'application/json' : types[0];
 			const schema = resolve(s, rb.content[contentType].schema) || {};
-			requiredKeys = Array.isArray(schema.required) ? schema.required : [];
-			body = rb.required ? 'required' : 'optional';
+			requiredKeys = requiredOf(s, schema);
+			// A body whose every alternative needs fields is required even when the spec omits requestBody.required.
+			body = rb.required || branchesAllRequire(s, schema) ? 'required' : 'optional';
 		}
+		const queryKeys = params.filter((p) => p.in === 'query').map((p) => p.name);
 		const isList = method === 'get' && !specPath.trim().endsWith('}') && pager(params) !== 'none';
 		const beta = Boolean(op['x-beta']) || /beta/i.test(op.description || '');
 		const summary = String(op.summary || name).replace(/[^\x20-\x7E]/g, '').replace(/\s+/g, ' ').trim();
@@ -216,6 +232,7 @@ for (const [resource, def] of Object.entries(PICKS)) {
 			body,
 			contentType,
 			requiredKeys,
+			queryKeys,
 			beta,
 			summary,
 		});

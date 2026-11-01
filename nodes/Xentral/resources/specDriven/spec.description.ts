@@ -1,6 +1,7 @@
 import type { INodeProperties, INodePropertyOptions } from 'n8n-workflow';
 import { SPEC_CATALOG } from './spec.catalog';
 import type { SpecOperation, SpecResource } from './spec.types';
+import { acceptsQuery } from './spec.types';
 
 const BETA_NOTICE =
 	'Xentral marks this endpoint as beta. It may change without notice, so test it before you rely on it in production.';
@@ -118,7 +119,8 @@ export function specFields(resource: SpecResource): INodeProperties[] {
 		);
 	}
 
-	const getOps = resource.ops.filter((o) => o.method === 'GET').map((o) => o.value);
+	// GET operations, plus writes that declare query parameters (for example Report Execute Query preview).
+	const getOps = resource.ops.filter((o) => acceptsQuery(o)).map((o) => o.value);
 	if (getOps.length > 0) {
 		fields.push({
 			displayName: 'Query Parameters',

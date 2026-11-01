@@ -529,7 +529,7 @@ export const customerFields: INodeProperties[] = [
 				operation: ['search'],
 			},
 		},
-		description: 'Search by company name, customer name, or email',
+		description: 'Exact customer number, full name or email. Xentral matches these exactly, partial text is not supported by the customer API.',
 	},
 
 	// ----------------------------------

@@ -39,7 +39,7 @@ export const customerOperations: INodeProperties[] = [
 			{
 				name: 'Search',
 				value: 'search',
-				description: 'Search customers by name or company',
+				description: 'Find customers whose customer number, name or email matches exactly',
 				action: 'Search customers',
 			},
 			{

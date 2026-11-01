@@ -1,6 +1,7 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV1CursorGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
+import { runCustomerSearch } from './customer.search';
 
 export async function handleCustomer(
 	this: IExecuteFunctions,
@@ -303,11 +304,11 @@ export async function handleCustomer(
 		const returnAll = this.getNodeParameter('returnAll', itemIndex, false) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex, 50) as number);
 		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
-		return xentralV1CursorGetAll.call(this, 'customers', {
-			'filter[0][key]': 'name',
-			'filter[0][op]': 'contains',
-			'filter[0][value]': searchTerm,
-		}, limit, maxPages, 'v2');
+		return runCustomerSearch(
+			(query, pageLimit) => xentralV1CursorGetAll.call(this, 'customers', query, pageLimit, maxPages, 'v2'),
+			searchTerm,
+			limit,
+		);
 	}
 
 	throw new Error(`Unknown customer operation: ${operation}`);

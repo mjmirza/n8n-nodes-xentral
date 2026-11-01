@@ -25,9 +25,11 @@ It is for operations teams and automation builders who already run Xentral and w
 - **Stock you can act on.** Read and update products, prices, warehouses and storage locations, and book goods receipts against purchase orders or returns.
 - **Reactions within seconds.** The Xentral Trigger starts a workflow when an order is created, a delivery note is sent or a product changes, so nothing waits for a nightly export.
 - **Searches that find the right product.** Product search matches the article number, the EAN and the name, with article number matches first.
-- **Safe defaults.** HTTPS only, internal network addresses blocked, IDs validated before they reach a URL, and Xentral error details shown in the n8n UI.
+- **Customer lookup by exact value.** Customer Search finds a customer by its exact customer number, name or email. Xentral's customer API does not support partial matches, so the node does not pretend to.
+- **Safe defaults.** HTTPS only, internal network addresses blocked for every request including the credential test, IDs validated before they reach a URL, writes never retried after a gateway error, and Xentral error details shown in the n8n UI.
+- **Trigger that fails closed.** Every delivery is checked against its HMAC signature and must be no older than five minutes. Anything unverifiable is rejected with 401 and never starts the workflow.
 - **Every endpoint within reach.** Custom API Call sends any request in the Xentral API with your saved credential, so a rare accounting, tax or POS endpoint never needs a separate HTTP Request node.
-- **Works with AI agents.** Both nodes are marked as tools, so an n8n AI Agent can call Xentral operations directly.
+- **Works with AI agents.** The Xentral action node is marked as a tool, so an n8n AI Agent can call Xentral operations directly. The trigger starts workflows and is not a tool.
 
 ## From install to first result
 
