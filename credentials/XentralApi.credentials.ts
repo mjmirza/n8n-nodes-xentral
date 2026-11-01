@@ -55,6 +55,9 @@ export class XentralApi implements ICredentialType {
 			url: '/api/v1/products',
 			qs: { 'page[number]': 1, 'page[size]': 1 },
 			method: 'GET',
+			// A redirect could carry the token to plain http or an internal host, so it is never followed.
+			disableFollowRedirect: true,
+			maxRedirects: 0,
 		},
 	};
 }

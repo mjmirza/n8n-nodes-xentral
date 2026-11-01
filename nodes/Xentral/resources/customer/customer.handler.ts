@@ -12,6 +12,13 @@ function autoCreateDocumentsValue(fields: IDataObject): string | undefined {
 	return undefined;
 }
 
+// These fields are text inputs in the node, the API wants JSON booleans.
+function toBoolean(value: unknown): IDataObject[string] {
+	if (typeof value !== 'string') return value as IDataObject[string];
+	const v = value.trim().toLowerCase();
+	return v === 'true' ? true : v === 'false' ? false : value;
+}
+
 export async function handleCustomer(
 	this: IExecuteFunctions,
 	operation: string,
@@ -84,7 +91,7 @@ export async function handleCustomer(
 		if (additionalFields.paymentMethodId !== undefined) financials.paymentMethod = { id: additionalFields.paymentMethodId };
 		// financials.paymentTerms nested object
 		const paymentTerms: IDataObject = {};
-		if (additionalFields.fixedPaymentTerms !== undefined) paymentTerms.fixedPaymentTerms = additionalFields.fixedPaymentTerms;
+		if (additionalFields.fixedPaymentTerms !== undefined) paymentTerms.fixedPaymentTerms = toBoolean(additionalFields.fixedPaymentTerms);
 		if (additionalFields.paymentTargetDays !== undefined) paymentTerms.paymentTargetDays = additionalFields.paymentTargetDays;
 		if (additionalFields.paymentTargetDiscount !== undefined) paymentTerms.paymentTargetDiscount = additionalFields.paymentTargetDiscount;
 		if (additionalFields.paymentTargetDiscountDays !== undefined) paymentTerms.paymentTargetDiscountDays = additionalFields.paymentTargetDiscountDays;
@@ -118,10 +125,10 @@ export async function handleCustomer(
 		if (additionalFields.bankName !== undefined) primaryBankAccount.bankName = additionalFields.bankName;
 		// primaryBankAccount.sepa nested object
 		const sepa: IDataObject = {};
-		if (additionalFields.sepaCompanySepa !== undefined) sepa.companySepa = additionalFields.sepaCompanySepa;
-		if (additionalFields.sepaInitial !== undefined) sepa.initial = additionalFields.sepaInitial;
+		if (additionalFields.sepaCompanySepa !== undefined) sepa.companySepa = toBoolean(additionalFields.sepaCompanySepa);
+		if (additionalFields.sepaInitial !== undefined) sepa.initial = toBoolean(additionalFields.sepaInitial);
 		if (additionalFields.sepaMandateReference !== undefined) sepa.mandateReference = additionalFields.sepaMandateReference;
-		if (additionalFields.sepaMandateReferenceChange !== undefined) sepa.mandateReferenceChange = additionalFields.sepaMandateReferenceChange;
+		if (additionalFields.sepaMandateReferenceChange !== undefined) sepa.mandateReferenceChange = toBoolean(additionalFields.sepaMandateReferenceChange);
 		if (additionalFields.sepaMandateReferenceDate !== undefined) sepa.mandateReferenceDate = additionalFields.sepaMandateReferenceDate;
 		if (additionalFields.sepaRemark !== undefined) sepa.remark = additionalFields.sepaRemark;
 		if (additionalFields.sepaUsage !== undefined) sepa.usage = additionalFields.sepaUsage;
@@ -230,7 +237,7 @@ export async function handleCustomer(
 		if (updateFields.paymentMethodId !== undefined) financials.paymentMethod = { id: updateFields.paymentMethodId };
 		// financials.paymentTerms nested object
 		const paymentTerms: IDataObject = {};
-		if (updateFields.fixedPaymentTerms !== undefined) paymentTerms.fixedPaymentTerms = updateFields.fixedPaymentTerms;
+		if (updateFields.fixedPaymentTerms !== undefined) paymentTerms.fixedPaymentTerms = toBoolean(updateFields.fixedPaymentTerms);
 		if (updateFields.paymentTargetDays !== undefined) paymentTerms.paymentTargetDays = updateFields.paymentTargetDays;
 		if (updateFields.paymentTargetDiscount !== undefined) paymentTerms.paymentTargetDiscount = updateFields.paymentTargetDiscount;
 		if (updateFields.paymentTargetDiscountDays !== undefined) paymentTerms.paymentTargetDiscountDays = updateFields.paymentTargetDiscountDays;
@@ -264,10 +271,10 @@ export async function handleCustomer(
 		if (updateFields.bankName !== undefined) primaryBankAccount.bankName = updateFields.bankName;
 		// primaryBankAccount.sepa nested object
 		const sepa: IDataObject = {};
-		if (updateFields.sepaCompanySepa !== undefined) sepa.companySepa = updateFields.sepaCompanySepa;
-		if (updateFields.sepaInitial !== undefined) sepa.initial = updateFields.sepaInitial;
+		if (updateFields.sepaCompanySepa !== undefined) sepa.companySepa = toBoolean(updateFields.sepaCompanySepa);
+		if (updateFields.sepaInitial !== undefined) sepa.initial = toBoolean(updateFields.sepaInitial);
 		if (updateFields.sepaMandateReference !== undefined) sepa.mandateReference = updateFields.sepaMandateReference;
-		if (updateFields.sepaMandateReferenceChange !== undefined) sepa.mandateReferenceChange = updateFields.sepaMandateReferenceChange;
+		if (updateFields.sepaMandateReferenceChange !== undefined) sepa.mandateReferenceChange = toBoolean(updateFields.sepaMandateReferenceChange);
 		if (updateFields.sepaMandateReferenceDate !== undefined) sepa.mandateReferenceDate = updateFields.sepaMandateReferenceDate;
 		if (updateFields.sepaRemark !== undefined) sepa.remark = updateFields.sepaRemark;
 		if (updateFields.sepaUsage !== undefined) sepa.usage = updateFields.sepaUsage;

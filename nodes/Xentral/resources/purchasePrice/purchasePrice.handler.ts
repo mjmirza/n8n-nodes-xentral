@@ -21,7 +21,8 @@ function buildPurchasePriceBody(fields: IDataObject, isCreate = false): IDataObj
 	const priceCurrency = fields.priceCurrency as string | undefined;
 	if (priceAmount !== undefined || priceCurrency !== undefined) {
 		const price: IDataObject = {};
-		if (priceAmount !== undefined) price.amount = priceAmount;
+		// The v2 create schema declares price.amount as a string, the update schema as a number.
+		if (priceAmount !== undefined) price.amount = isCreate ? String(priceAmount) : priceAmount;
 		if (priceCurrency !== undefined) price.currency = priceCurrency;
 		// Default currency to EUR if only amount is provided
 		if (priceAmount !== undefined && priceCurrency === undefined && isCreate) {
