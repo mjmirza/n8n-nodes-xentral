@@ -40,7 +40,7 @@ function matrixOptions(parsed: unknown): unknown {
  * Handles object refs (project, category, manufacturer, standardSupplier, variantOf),
  * measurements object, tags array, freeFields JSON, and discount object.
  */
-function buildProductBody(node: INode, fields: IDataObject): IDataObject {
+function buildProductBody(node: INode, fields: IDataObject, isUpdate = false): IDataObject {
 	const body: IDataObject = {};
 
 	// Simple string/boolean/number fields that map 1:1 to the API
@@ -84,6 +84,14 @@ function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 	}
 	// Age Rating "None" is the empty value, which the API accepts and which clears the rating.
 	if (fields.ageRating === '') body.ageRating = '';
+	// On update an empty text field clears it, as the update schema allows. Country of origin has a pattern,
+	// so it is cleared with null.
+	if (isUpdate) {
+		for (const key of ['customsTariffNumber', 'description', 'disabledReason', 'ean', 'internalComment', 'regionOfOrigin', 'shortDescription']) {
+			if (fields[key] === '') body[key] = '';
+		}
+		if (fields.countryOfOrigin === '') body.countryOfOrigin = null;
+	}
 
 	// Object refs
 	if (fields.projectId !== undefined && fields.projectId !== '') {
@@ -283,7 +291,7 @@ export async function handleProduct(
 		assertSafeId(productId, 'productId');
 		const updateFields = this.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
 
-		const body = buildProductBody(this.getNode(), updateFields);
+		const body = buildProductBody(this.getNode(), updateFields, true);
 		assertNonEmptyBody(body, 'product update');
 		const target = productWriteTarget(body);
 		return xentralRequest.call(this, 'PATCH', `products/${productId}`, target.body, {}, target.version);

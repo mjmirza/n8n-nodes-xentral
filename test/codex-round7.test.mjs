@@ -530,3 +530,42 @@ test('[r7-23] nested validation errors keep their field path', async () => {
 		(error) => /positions\.0\.price: Must be non-negative/.test(`${error.message} ${error.description}`) && /General/.test(`${error.message} ${error.description}`),
 	);
 });
+
+// ---------- 10. fourth pre-release review ----------
+
+test('[r7-24] a webhook stored with its instance is deleted there even after the n8n URL changed, and never on another instance', async () => {
+	const same = { webhookId: '42', signatureKey: 'k'.repeat(32), webhookInstance: 'https://acme.xentral.com' };
+	const moved = createContext(same, undefined, 'https://old-n8n.example.com/webhook/x');
+	assert.equal(await new XentralTrigger().webhookMethods.default.delete.call(moved), true);
+	assert.deepEqual(moved.calls.map((c) => c.method), ['DELETE']);
+	assert.equal('webhookInstance' in same, false);
+	const other = { webhookId: '42', signatureKey: 'k'.repeat(32), webhookInstance: 'https://other.xentral.com' };
+	const otherCtx = createContext(other);
+	assert.equal(await new XentralTrigger().webhookMethods.default.delete.call(otherCtx), true);
+	assert.equal(otherCtx.calls.length, 0);
+	const created = {};
+	await new XentralTrigger().webhookMethods.default.create.call(createContext(created));
+	assert.equal(created.webhookInstance, 'https://acme.xentral.com');
+});
+
+test('[r7-25] a null address override still clears it, as in 1.4.4', async () => {
+	const ctx = context({ salesOrderId: '1', updateFields: { deviatingShipToAddress: { address: null } } });
+	await handleSalesOrder.call(ctx, 'update', 0);
+	assert.equal(ctx.calls[0].body.deviatingShipToAddress, null);
+	assert.ok('deviatingShipToAddress' in ctx.calls[0].body);
+});
+
+test('[r7-26] product update sends empty text fields to clear them', async () => {
+	const only = context({ productId: '5', updateFields: { description: '' } });
+	await handleProduct.call(only, 'update', 0);
+	assert.equal(only.calls[0].body.description, '');
+	const mixed = context({ productId: '5', updateFields: { name: 'New', description: '', ean: '', countryOfOrigin: '' } });
+	await handleProduct.call(mixed, 'update', 0);
+	assert.deepEqual(
+		{ name: mixed.calls[0].body.name, description: mixed.calls[0].body.description, ean: mixed.calls[0].body.ean, country: mixed.calls[0].body.countryOfOrigin },
+		{ name: 'New', description: '', ean: '', country: null },
+	);
+	const create = context({ name: 'Widget', projectId: '1', additionalFields: { description: '' } });
+	await handleProduct.call(create, 'create', 0);
+	assert.equal('description' in create.calls[0].body, false);
+});

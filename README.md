@@ -266,7 +266,7 @@ npm run lint    # n8n verification rule set, must report zero problems
 - Address overrides on documents leave Type out when it is empty. A set Type must be mrs, mr, company or other (any case). Any other value now stops the item with a clear error before the request, where Xentral used to reject it.
 - A line item update that sets only Price Currency now sends it. Before, it failed with "No fields provided" or the currency was dropped.
 - When the trigger cannot delete its webhook on deactivation (anything but 404 or 410), it keeps the webhook ID and signing key. The next activation adopts the webhook and the next deactivation retries the delete.
-- Deactivation reads the stored webhook back first and deletes it only if it still points at this node's URL, so it costs one extra request.
+- The trigger now remembers which Xentral instance it registered its webhook on, and only deletes it there. A webhook registered by an older version is read back first and deleted when it is still this trigger's registration.
 - On activation the trigger first removes a webhook it kept from such a failed delete. If that removal fails too, activation stops with an error rather than registering a second webhook.
 - An empty Country in an address override is left out. A set Country must be a two-letter code (any case).
 - An empty Delivery Date in an update now clears the date (sends `null`) on Invoice and Proforma Invoice, and on Offer, Invoice, Credit Note and Proforma Invoice line items.
@@ -276,6 +276,7 @@ npm run lint    # n8n verification rule set, must report zero problems
 - Product ID on a line item update and Product Number on a line item add or update are no longer sent, because Xentral V3 accepts neither and ignored them. To change a line item's product, delete it and add a new one.
 - The trigger ignores deliveries whose event type is not the one it is set to. Before, a webhook registered with extra events started the workflow for all of them.
 - To remove a price's Valid From or Expires At, use an expression that returns null.
+- Product Update sends an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason or Region of Origin to clear it, and an empty Country of Origin as null. Before, an empty value was dropped.
 - Custom API Call has a separate Body field for GET. Saved GET calls never send the Body field of the other methods, and an empty GET body is not sent, so they behave as before.
 
 ## Compatibility

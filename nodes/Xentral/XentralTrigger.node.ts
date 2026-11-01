@@ -10,7 +10,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
-import { xentralRequest, assertSafeId, errorStatus } from './transport';
+import { xentralRequest, assertSafeId, errorStatus, normalizeUrl } from './transport';
 import { resolveSigningKey, verifyXentralSignature } from './trigger.signature';
 
 /**
@@ -30,22 +30,44 @@ function generateSignatureKey(): string {
 	return randomBytes(24).toString('base64url').slice(0, 32);
 }
 
+/** The Xentral instance the credential points at, so a stored webhook ID is only ever used there. */
+async function currentInstance(this: IHookFunctions): Promise<string> {
+	const credentials = await this.getCredentials('xentralApi');
+	return normalizeUrl(String(credentials.instanceUrl ?? ''));
+}
+
 /**
- * Deletes the stored webhook only when it still points at this node's URL, so a stored ID never removes
- * another registration (for example after the credential moved to another instance). A 404 or 410
- * means it is already gone; any other failure is returned as the message.
+ * Deletes the stored webhook on the instance it was registered on, never on another one (for example after
+ * the credential moved). A webhook stored before 1.4.5 has no instance, so it is read back first and deleted
+ * when it is still this trigger's registration. A 404 or 410 means it is already gone.
  */
-async function deleteOwnWebhook(this: IHookFunctions, id: string): Promise<{ failed?: string }> {
+async function deleteOwnWebhook(this: IHookFunctions, id: string, webhookData: IDataObject): Promise<{ failed?: string }> {
 	const failure = (error: unknown) =>
 		[404, 410].includes(errorStatus(error) ?? 0) ? {} : { failed: (error as Error).message || 'unknown error' };
-	let remote: IDataObject;
-	try {
-		const response = await xentralRequest.call(this, 'GET', `webhooks/${id}`, {}, {}, 'v1');
-		remote = ((response?.data as IDataObject) ?? response ?? {}) as IDataObject;
-	} catch (error) {
-		return failure(error);
+	const storedInstance = webhookData.webhookInstance;
+	if (typeof storedInstance === 'string' && storedInstance !== '') {
+		let instance: string;
+		try {
+			instance = await currentInstance.call(this);
+		} catch (error) {
+			return failure(error);
+		}
+		if (instance !== storedInstance) return {};
+	} else {
+		let remote: IDataObject;
+		try {
+			const response = await xentralRequest.call(this, 'GET', `webhooks/${id}`, {}, {}, 'v1');
+			remote = ((response?.data as IDataObject) ?? response ?? {}) as IDataObject;
+		} catch (error) {
+			return failure(error);
+		}
+		const eventId = toEventId(String(this.getNodeParameter('event', '') ?? ''));
+		const events = Array.isArray(remote.events) ? (remote.events as IDataObject[]) : [];
+		const ours =
+			remote.url === this.getNodeWebhookUrl('default') ||
+			(String(remote.name ?? '').startsWith('n8n-') && events.some((e) => e?.id === eventId));
+		if (!ours) return {};
 	}
-	if (remote.url !== this.getNodeWebhookUrl('default')) return {};
 	try {
 		await xentralRequest.call(this, 'DELETE', `webhooks/${id}`, {}, {}, 'v1');
 	} catch (error) {
@@ -63,7 +85,7 @@ async function removeStoredWebhook(this: IHookFunctions, webhookData: IDataObjec
 	if (storedId === undefined || storedId === null || String(storedId) === '') return;
 	const id = String(storedId);
 	if (/^[a-zA-Z0-9_-]+$/.test(id)) {
-		const { failed } = await deleteOwnWebhook.call(this, id);
+		const { failed } = await deleteOwnWebhook.call(this, id, webhookData);
 		if (failed !== undefined) {
 			throw new NodeOperationError(
 				this.getNode(),
@@ -73,6 +95,7 @@ async function removeStoredWebhook(this: IHookFunctions, webhookData: IDataObjec
 	}
 	delete webhookData.webhookId;
 	delete webhookData.signatureKey;
+	delete webhookData.webhookInstance;
 }
 
 export class XentralTrigger implements INodeType {
@@ -331,9 +354,11 @@ export class XentralTrigger implements INodeType {
 								}
 								delete webhookData.webhookId;
 								delete webhookData.signatureKey;
+								delete webhookData.webhookInstance;
 								return false;
 							}
 							webhookData.webhookId = webhook.id;
+							webhookData.webhookInstance = await currentInstance.call(this);
 							return true;
 						}
 					}
@@ -371,6 +396,7 @@ export class XentralTrigger implements INodeType {
 				const response = await xentralRequest.call(this, 'POST', 'webhooks', body, {}, 'v1');
 				webhookData.webhookId = (response.data as IDataObject)?.id || response.id;
 				webhookData.signatureKey = signatureKey;
+				webhookData.webhookInstance = await currentInstance.call(this);
 				return true;
 			},
 
@@ -383,7 +409,7 @@ export class XentralTrigger implements INodeType {
 					this.logger.warn('Xentral: the stored webhook ID is not valid and was discarded.');
 				} else if (webhookId) {
 					// Gone or pointing elsewhere: nothing of ours is left to delete, so the state is cleared.
-					const { failed } = await deleteOwnWebhook.call(this, String(webhookId));
+					const { failed } = await deleteOwnWebhook.call(this, String(webhookId), webhookData);
 					if (failed !== undefined) {
 						// Keep the registration ID and signing key, so the next activation adopts the webhook
 						// and the next deactivation retries the delete instead of orphaning it.
@@ -394,6 +420,7 @@ export class XentralTrigger implements INodeType {
 
 				delete webhookData.webhookId;
 				delete webhookData.signatureKey;
+				delete webhookData.webhookInstance;
 				return true;
 			},
 		},

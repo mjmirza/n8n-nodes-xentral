@@ -8,7 +8,7 @@
 - Line item updates that set only Price Currency send it on Sales Order, Purchase Order, Offer, Invoice, Credit Note and Proforma Invoice. They failed with "No fields provided" or dropped the currency.
 - Product Create and Update send the calculated purchase price amount as a string and the currency in upper case, as the v1 Money schema declares.
 - The trigger keeps its webhook ID and signing key when the webhook delete fails, so a later deactivation can retry it. A 404 or 410 still clears them.
-- The trigger removes a webhook kept from a failed delete before it registers a new one, and only after reading it back and confirming it points at this node's URL, so a stored ID never removes another registration. If that removal fails (anything but 404 or 410), activation stops with a clear error instead of leaving two active registrations.
+- The trigger removes a webhook kept from a failed delete before it registers a new one, and only on the Xentral instance it was registered on, so a stored ID never removes another registration. A webhook stored by an older version is read back first and removed when it is still this trigger's registration. If that removal fails (anything but 404 or 410), activation stops with a clear error instead of leaving two active registrations.
 - Address overrides leave an empty Country out, and still send an explicit `null` to clear it on update. A set Country is upper-cased and must be a two-letter code, as the schema's `^[A-Z]{2}$` requires.
 - An empty Delivery Date on an Offer, Invoice, Credit Note or Proforma Invoice line item update, and on an Invoice or Proforma Invoice update, sends `null` and clears the date, as the field promises. It failed with "No fields provided" or was ignored.
 - Hand-written operations whose endpoint Xentral marks beta (Production, Proforma Invoice, Delivery Note, Return writes, Invoice Create From Sales Order) show the beta notice.
@@ -20,6 +20,8 @@
 - Line item updates on all eight documents no longer send Product ID or Product Number, and line item adds no longer send Product Number. The V3 schemas accept neither, so Xentral ignored them. The options stay, marked as ignored, and an update that sets only them returns `changed: false` with a note instead of a request.
 - Purchase Price and Sales Price send `null` for Valid From or Expires At when an expression returns null, so the boundary can be removed. 1.4.4 sent the text "null".
 - The trigger starts the workflow only for deliveries of its own event type. A delivery of another type is answered 200 and dropped. A delivery without a type still runs, as before.
+- Product Update clears Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason and Region of Origin when they are set empty, and Country of Origin with null. They were dropped.
+- An address override set to `null` by an expression clears it again, as in 1.4.4.
 - Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 
 ### Added

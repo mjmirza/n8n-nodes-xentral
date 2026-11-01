@@ -278,7 +278,11 @@ export const DOCUMENT_ADDRESS_TYPES = ['mrs', 'mr', 'company', 'other'];
  * A document address override as Xentral expects it. An empty Type or Country is left out,
  * a set Type must be mrs, mr, company or other, a set Country a two-letter code.
  */
-export function documentAddress(address: IDataObject): IDataObject {
+export function documentAddress(address: IDataObject): IDataObject;
+export function documentAddress(address: IDataObject | null): IDataObject | null;
+export function documentAddress(address: IDataObject | null): IDataObject | null {
+	// An explicit null clears the override on update, as the schema allows.
+	if (address === null) return null;
 	const result: IDataObject = { ...address };
 	const type = result.type;
 	if (type === null) {
