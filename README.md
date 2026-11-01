@@ -143,7 +143,8 @@ Xentral deprecated several V1 endpoints this node used. They now point at the cu
 |-----------|--------|-----|
 | Product Create, Update | `POST`, `PATCH /api/v1/products` | V2. The category field is sent as `categories`. A write that sets Shop Price Display stays on V1, because V2 has no such field |
 | Product Get, Get Many, Search | `/api/v1/products` | V2 for new nodes. Nodes saved before this release keep V1, because the V2 response has different fields |
-| Purchase Price Create, Get Many, Update | `/api/v1/purchasePrices` | `/api/v2/purchasePrices`, same fields |
+| Purchase Price Create, Update | `/api/v1/purchasePrices` | `/api/v2/purchasePrices`, same fields |
+| Purchase Price Get Many | `/api/v1/purchasePrices` | V2 for new nodes, which returns the amount as a string. Nodes saved before this release keep V1, which returns it as a number |
 
 Supplier Update still uses the deprecated V1 tag endpoint, because its only replacement is a Xentral beta endpoint.
 
