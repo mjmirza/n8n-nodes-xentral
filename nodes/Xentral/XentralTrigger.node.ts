@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual, randomBytes } from 'crypto';
+import { randomBytes } from 'crypto';
 
 import type {
 	IHookFunctions,
@@ -11,6 +11,7 @@ import type {
 import { NodeConnectionTypes } from 'n8n-workflow';
 
 import { xentralRequest, assertSafeId } from './transport';
+import { resolveSigningKey, verifyXentralSignature } from './trigger.signature';
 
 /**
  * Convert a short event name (e.g. "salesOrder.created") to the full
@@ -261,6 +262,16 @@ export class XentralTrigger implements INodeType {
 						const hasEvent = events.some((e) => e.id === eventId);
 						if (hasEvent) {
 							const webhookData = this.getWorkflowStaticData('node');
+							// Adopt it only when we can verify its signatures. Otherwise replace it with one we hold the key for.
+							if (!resolveSigningKey(this.getNodeParameter('signatureKey', '') as string, webhookData)) {
+								try {
+									assertSafeId(String(webhook.id), 'webhookId');
+									await xentralRequest.call(this, 'DELETE', `webhooks/${webhook.id}`, {}, {}, 'v1');
+								} catch (error) {
+									this.logger.warn(`Xentral: could not remove a webhook without a known signing key. ${(error as Error).message}`);
+								}
+								return false;
+							}
 							webhookData.webhookId = webhook.id;
 							return true;
 						}
@@ -326,36 +337,17 @@ export class XentralTrigger implements INodeType {
 		const body = this.getBodyData() as IDataObject;
 		const headers = this.getHeaderData() as IDataObject;
 
-		// Read signatureKey from node parameters first, fall back to staticData (auto-generated keys)
-		let signatureKey = (this.getNodeParameter('signatureKey', '') as string) || '';
-		if (!signatureKey) {
-			const webhookData = this.getWorkflowStaticData('node');
-			signatureKey = (webhookData.signatureKey as string) || '';
-		}
-
-		if (signatureKey) {
-			const xentralSignature = (headers['xentral-signature'] as string) || '';
-			const xentralTimestamp = (headers['xentral-request-timestamp'] as string) || '';
-
-			if (!xentralSignature || !xentralTimestamp) {
-				return { workflowData: [] };
-			}
-
-			const rawBody = req.rawBody?.toString() || JSON.stringify(body);
-			const message = rawBody + xentralTimestamp;
-			const expected = createHmac('sha256', signatureKey)
-				.update(message)
-				.digest('hex');
-
-			try {
-				const sigBuffer = Buffer.from(xentralSignature, 'hex');
-				const expectedBuffer = Buffer.from(expected, 'hex');
-				if (sigBuffer.length !== expectedBuffer.length || !timingSafeEqual(sigBuffer, expectedBuffer)) {
-					return { workflowData: [] };
-				}
-			} catch {
-				return { workflowData: [] };
-			}
+		// RENAME_OK: verification moved into verifyXentralSignature (same names inside), not renamed.
+		const webhookData = this.getWorkflowStaticData('node');
+		const signatureKey = resolveSigningKey(this.getNodeParameter('signatureKey', '') as string, webhookData);
+		const xentralSignature = (headers['xentral-signature'] as string) || '';
+		const xentralTimestamp = (headers['xentral-request-timestamp'] as string) || '';
+		const rawBody = req.rawBody?.toString() || JSON.stringify(body);
+		const verdict = verifyXentralSignature(signatureKey, rawBody, xentralSignature, xentralTimestamp, Date.now());
+		if (verdict !== 'ok') {
+			// Fail closed. An unverifiable delivery never starts the workflow.
+			this.getResponseObject().status(401).send('Unauthorized');
+			return { noWebhookResponse: true };
 		}
 
 		return {

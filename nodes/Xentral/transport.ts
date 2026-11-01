@@ -11,7 +11,7 @@ import { NodeApiError, sleep } from 'n8n-workflow';
 
 // ---------- helpers ----------
 
-function normalizeUrl(raw: string): string {
+export function normalizeUrl(raw: string): string {
 	let url = raw.trim().replace(/\/+$/, '');
 	// Enforce HTTPS: reject explicit http:// and auto-add https:// if missing
 	if (/^http:\/\//i.test(url)) {
@@ -63,29 +63,17 @@ async function getCredentials(ctx: IExecuteFunctions | ILoadOptionsFunctions | I
 }
 
 /**
- * Normalize a Xentral API token for maximum compatibility.
- * Xentral PATs use the Laravel Sanctum format: "<id>|<hash>" (e.g. "2|wQ5So...").
- * Users may paste the full token, just the hash, or include accidental extras.
- * This function handles all variations so users never have to manually edit the token.
+ * Normalize a Xentral API token. Must match the credential's authenticate expression.
+ * Strips quotes, a pasted "Bearer " prefix and whitespace. A Sanctum "<id>|<hash>" token
+ * is kept whole, Xentral accepts it. Leading digits are only removed when exactly a
+ * 40-character Sanctum hash remains, so a valid bare token that starts with a digit is untouched.
  */
-function normalizeToken(raw: string): string {
+export function normalizeToken(raw: string): string {
 	let token = raw.trim();
-	// Remove surrounding quotes (copy-paste from docs or JSON)
 	token = token.replace(/^["'`]+|["'`]+$/g, '');
-	// Strip accidental "Bearer " prefix (copy-paste from curl/docs)
 	token = token.replace(/^Bearer\s+/i, '');
-	// Remove all whitespace (spaces, newlines, tabs from copy-paste)
 	token = token.replace(/\s/g, '');
-	// Strip Laravel Sanctum "<id>|<hash>" prefix
-	// If pipe is present, strip everything before and including it
-	if (token.includes('|')) {
-		token = token.substring(token.indexOf('|') + 1);
-	} else {
-		// n8n silently strips "|" from credential values, so "2|wQ5So..." becomes "2wQ5So..."
-		// Sanctum hashes are exactly 40 chars ([a-zA-Z0-9]). Strip minimal leading digits.
-		// Only strip 1-4 leading digits (Sanctum IDs are small sequential integers)
-		token = token.replace(/^\d{1,4}(?=[a-zA-Z])/, '');
-	}
+	token = token.replace(/^\d{1,4}(?=[A-Za-z0-9]{40}$)/, '');
 	return token;
 }
 
@@ -232,21 +220,26 @@ export async function xentralRequest(
 		options.body = body;
 	}
 
-	// Retry loop for transient errors with exponential backoff + jitter
+	// Read Location so a create that answers with an empty body still yields its new id.
+	options.returnFullResponse = true;
+
+	// Retries. Safe methods retry on 429, 502, 503 and 504. A write (POST, PATCH, PUT) may already
+	// have been committed when a gateway fails, so it only retries on 429, where Xentral did not process it.
 	const maxRetries = 3;
-	const retryableStatuses = [429, 502, 503, 504];
+	const safeMethod = ['GET', 'HEAD', 'DELETE', 'OPTIONS'].includes(method);
+	const retryableStatuses = safeMethod ? [429, 502, 503, 504] : [429];
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
 		try {
 			const response = await this.helpers.httpRequest(options);
-			return response;
+			return unwrapResponse(method, response);
 		} catch (error: any) {
 			const statusCode = error.response?.statusCode || error.statusCode;
 			if (retryableStatuses.includes(statusCode) && attempt < maxRetries) {
 				const retryAfter = error.response?.headers?.['retry-after'];
-				const baseMs = retryAfter
-					? Math.min(parseInt(retryAfter, 10) * 1000, 30000)
+				const parsed = retryAfter ? parseInt(retryAfter, 10) : NaN;
+				const baseMs = Number.isFinite(parsed)
+					? Math.min(parsed * 1000, 30000)
 					: Math.min(1000 * Math.pow(2, attempt), 10000);
-				// Add jitter (0-25% of base) to prevent thundering herd
 				const jitter = Math.floor(Math.random() * baseMs * 0.25);
 				await sleep(baseMs + jitter);
 				continue;
@@ -254,6 +247,31 @@ export async function xentralRequest(
 			handleXentralError(this, error);
 		}
 	}
+}
+
+function isFullResponse(response: any): boolean {
+	return (
+		response !== null &&
+		typeof response === 'object' &&
+		'body' in response &&
+		'headers' in response &&
+		('statusCode' in response || 'status' in response)
+	);
+}
+
+/** Returns the body. For a create with an empty body, returns the id from the Location header. */
+export function unwrapResponse(method: string, response: any): any {
+	if (!isFullResponse(response)) return response;
+	const body = response.body;
+	const empty = body === undefined || body === null || body === '' || (typeof body === 'object' && Object.keys(body).length === 0);
+	if (method === 'POST' && empty) {
+		const location = response.headers?.location ?? response.headers?.Location;
+		if (typeof location === 'string' && location) {
+			const id = location.split('?')[0].replace(/\/+$/, '').split('/').pop();
+			return { success: true, id, location };
+		}
+	}
+	return body;
 }
 
 // ---------- V1 cursor pagination (customers) ----------
@@ -296,7 +314,7 @@ export async function xentralV1CursorGetAll(
 		}
 	} while (nextCursor && iterations < maxIterations);
 
-	if (iterations >= maxIterations) {
+	if (nextCursor && iterations >= maxIterations) {
 		throw new NodeApiError(
 			this.getNode(),
 			{ message: 'Pagination limit reached' } as JsonObject,
@@ -360,50 +378,30 @@ export async function xentralV1PageGetAll(
 	return limit ? returnData.slice(0, limit) : returnData;
 }
 
-// ---------- V3 file upload (multipart/form-data) ----------
+// ---------- file attachments (JSON with base64 content) ----------
 
+/**
+ * Attaches an n8n binary to a Xentral document. The /files (v3) and /documents (v1) endpoints
+ * take JSON with keyword, fileName and base64 fileContent, not multipart form data.
+ */
 export async function xentralFileUpload(
 	this: IExecuteFunctions,
 	endpoint: string,
 	binaryPropertyName: string,
 	itemIndex: number,
 	apiVersion: string = 'v3',
+	keyword: string = 'attachment',
+	title?: string,
 ): Promise<any> {
-	const credentials = await getCredentials(this);
-	const instanceUrl = credentials.instanceUrl as string;
-	const accessToken = normalizeToken(credentials.accessToken as string || '');
-	if (!accessToken) {
-		throw new NodeApiError(this.getNode(), { message: 'No access token configured' } as JsonObject, { message: 'Xentral access token is empty. Please configure your credentials.' });
-	}
-	const safeEndpoint = sanitizeEndpoint(endpoint);
-
 	const binaryData = this.helpers.assertBinaryData(itemIndex, binaryPropertyName);
 	const dataBuffer = await this.helpers.getBinaryDataBuffer(itemIndex, binaryPropertyName);
-
-	try {
-		const response = await this.helpers.httpRequest({
-			method: 'POST',
-			url: `${getBaseUrl(instanceUrl, apiVersion)}/${safeEndpoint}`,
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-				Accept: 'application/json',
-				'Content-Type': 'multipart/form-data',
-			},
-			body: {
-				file: {
-					value: dataBuffer,
-					options: {
-						filename: binaryData.fileName || 'file',
-						contentType: binaryData.mimeType || 'application/octet-stream',
-					},
-				},
-			},
-			json: true,
-		});
-		return response;
-	} catch (error: any) {
-		handleXentralError(this, error);
-	}
+	const body: IDataObject = {
+		keyword,
+		fileName: binaryData.fileName || 'file',
+		fileContent: dataBuffer.toString('base64'),
+	};
+	if (title) body.title = title;
+	return xentralRequest.call(this, 'POST', endpoint, body, {}, apiVersion);
 }
 
 // ---------- V3 page pagination (offers, invoices, etc) ----------

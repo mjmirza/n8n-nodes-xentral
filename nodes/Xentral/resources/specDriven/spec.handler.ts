@@ -9,6 +9,7 @@ import {
 } from '../../transport';
 import { SPEC_CATALOG } from './spec.catalog';
 import type { SpecOperation } from './spec.types';
+import { acceptsQuery } from './spec.types';
 
 export function findSpecOperation(resource: string, operation: string): SpecOperation | undefined {
 	return SPEC_CATALOG.find((r) => r.resource === resource)?.ops.find((o) => o.value === operation);
@@ -65,7 +66,7 @@ export async function runSpecOperation(
 	}
 
 	const query =
-		op.method === 'GET'
+		acceptsQuery(op)
 			? parseJsonParameter(this, this.getNodeParameter('queryParameters', itemIndex, '{}'), 'Query Parameters', itemIndex)
 			: {};
 
