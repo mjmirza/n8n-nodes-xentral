@@ -5,8 +5,12 @@ import { n8nCommunityNodesPlugin } from '@n8n/eslint-plugin-community-nodes';
 import n8nNodesPlugin from 'eslint-plugin-n8n-nodes-base';
 
 export default defineConfig(
-	{ ignores: ['node_modules/**', 'dist/**', 'test/**', 'scripts/**', 'eslint.config.mjs', 'package-lock.json'] },
-	n8nCommunityNodesPlugin.configs.recommended,
+	{ ignores: ['node_modules/**', 'dist/**', 'package-lock.json'] },
+	// The verification rules target shipped node code. Build scripts and tests run only in development.
+	{
+		files: ['package.json', 'nodes/**', 'credentials/**'],
+		extends: [n8nCommunityNodesPlugin.configs.recommended],
+	},
 	{ rules: { 'no-console': 'error' } },
 	{ plugins: { 'n8n-nodes-base': n8nNodesPlugin } },
 	{ files: ['package.json'], rules: { ...n8nNodesPlugin.configs.community.rules } },
