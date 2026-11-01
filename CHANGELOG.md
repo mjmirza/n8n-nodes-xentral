@@ -28,4 +28,24 @@
 ### Added
 
 - Unit tests for product search, run with `npm test`, and a CI workflow that builds and tests every push and pull request.
-- The source of the published 1.0.8 and 1.0.9 releases, which had not been pushed to this repository.
+- The source of the published 1.0.8 and 1.0.9 releases, which had not been pushed to this repository.## [1.2.0] - 2026-11-01
+
+### Added
+- Custom API Call resource. Calls any of the 573 operations in the Xentral public API with the saved credential, including retries and Xentral error details. Paths are checked against the resources in the Xentral specs, and full URLs, `..`, query strings in the path and unfilled placeholders are rejected.
+- Ten resources generated from the Xentral OpenAPI specs: Customer Address, Customer Delivery Address, Product Category, Product Free Field, Product Media, Product Merchandise Group, Product Option, Report, Supplier Invoice and User.
+- Product operations Get Purchase Prices, Get Sales Prices, Get Stock, Get Storage Locations and Get Texts.
+- 89 trigger events from the Xentral AsyncAPI catalogue, including offers, proforma invoices, liabilities, picklists, POS, shipments, tickets and DATEV export. The trigger now offers 162 events.
+- Endpoints Xentral marks as beta show a notice in the node.
+
+### Changed
+- Product Create and Update now use the V2 endpoints, because Xentral deprecated the V1 ones. The category field is sent as `categories`. A write that sets Shop Price Display stays on V1, because V2 has no such field.
+- Product Get, Get Many and Search use V2 on node version 2. Nodes saved before this release are version 1 and keep the V1 reads, because the V2 response has different fields.
+- Purchase Price Create, Get Many and Update moved from the deprecated V1 endpoints to V2, which takes the same fields.
+- The Xentral specs in `specs/` were refreshed to the public versions from 2026-10-26.
+- Dedicated operations now cover 244 of the 542 non-deprecated Xentral operations, up from 177. Custom API Call covers the rest.
+
+### Not changed
+- Supplier Update still uses the deprecated V1 tag endpoint. Its only replacement is a Xentral beta endpoint.
+- Every parameter name, operation value, default and option from 1.1.0 is unchanged, so saved workflows keep working.
+
+

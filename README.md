@@ -4,7 +4,7 @@
 
 # n8n-nodes-xentral
 
-Connect Xentral ERP to n8n. 30 resources, 196 operations, and a webhook trigger for 73 Xentral events.
+Connect Xentral ERP to n8n. 41 resources, 257 operations, a Custom API Call that reaches every Xentral endpoint, and a webhook trigger for 162 Xentral events.
 
 [![npm version](https://img.shields.io/npm/v/n8n-nodes-xentral?label=npm)](https://www.npmjs.com/package/n8n-nodes-xentral)
 [![npm downloads](https://img.shields.io/npm/dm/n8n-nodes-xentral?label=downloads)](https://www.npmjs.com/package/n8n-nodes-xentral)
@@ -26,6 +26,7 @@ It is for operations teams and automation builders who already run Xentral and w
 - **Reactions within seconds.** The Xentral Trigger starts a workflow when an order is created, a delivery note is sent or a product changes, so nothing waits for a nightly export.
 - **Searches that find the right product.** Product search matches the article number, the EAN and the name, with article number matches first.
 - **Safe defaults.** HTTPS only, internal network addresses blocked, IDs validated before they reach a URL, and Xentral error details shown in the n8n UI.
+- **Every endpoint within reach.** Custom API Call sends any request in the Xentral API with your saved credential, so a rare accounting, tax or POS endpoint never needs a separate HTTP Request node.
 - **Works with AI agents.** Both nodes are marked as tools, so an n8n AI Agent can call Xentral operations directly.
 
 ## From install to first result
@@ -40,8 +41,8 @@ It is for operations teams and automation builders who already run Xentral and w
 
 | Node | Type | What it does |
 |------|------|--------------|
-| Xentral | Action | Create, read, update and delete records across 30 resources |
-| Xentral Trigger | Webhook | Starts a workflow on 73 Xentral events and registers the webhook in Xentral for you |
+| Xentral | Action | Create, read, update and delete records across 41 resources, plus Custom API Call for any other endpoint |
+| Xentral Trigger | Webhook | Starts a workflow on 162 Xentral events and registers the webhook in Xentral for you |
 
 ## Resources and operations
 
@@ -50,7 +51,10 @@ It is for operations teams and automation builders who already run Xentral and w
 | Address | Create, Get Many, Update, Delete |
 | Contact | Create, Delete, Get, Get Many, Update |
 | Credit Note | Add Line Item, Attach File, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Set Write Protection, Update, Update Line Item |
+| Custom API Call | Make an API Call |
 | Customer | Create, Delete, Get, Get Many, Search, Update |
+| Customer Address | Create, Delete, Get, Get Many, Update |
+| Customer Delivery Address | Create, Delete, Get, Get Many, Update |
 | Delivery Note | Add Line Item, Attach File, Cancel, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
 | Delivery Term | Get Many |
 | Employee | Get Many |
@@ -60,12 +64,18 @@ It is for operations teams and automation builders who already run Xentral and w
 | Offer | Add Line Item, Attach File, Cancel, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
 | Payment Method | Get Many |
 | Payment Terms Group | Create, Get, Get Many |
-| Product | Create, Delete, Get, Get Many, Search, Update |
+| Product | Create, Delete, Get, Get Many, Get Purchase Prices, Get Sales Prices, Get Stock, Get Storage Locations, Get Texts, Search, Update |
+| Product Category | Create, Delete, Get, Get Many, Update |
+| Product Free Field | Get, Get Many, Update |
+| Product Media | Create, Get, Get Many |
+| Product Merchandise Group | Create, Delete, Get, Get Many, Update |
+| Product Option | Create, Create Values, Delete Value, Get Many, Get Value, Get Values, Update, Update Value |
 | Production | Attach File, Create, Delete, Get, Get Many, Log Activity, Release, Start |
 | Proforma Invoice | Add Line Item, Attach File, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Set Write Protection, Update, Update Line Item |
 | Project | Get Many |
 | Purchase Order | Add Line Item, Attach File, Cancel, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
 | Purchase Price | Create, Delete, Get, Get Many, Update |
+| Report | Create, Create Export, Delete, Execute Query, Get, Get Export, Get Exports, Get Many, Get Schedules, Update |
 | Return | Add Line Item, Attach File, Cancel, Create, Create From Delivery Note, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
 | Sales Channel | Get Many |
 | Sales Order | Add Line Item, Attach File, Cancel, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
@@ -74,31 +84,117 @@ It is for operations teams and automation builders who already run Xentral and w
 | Shipping Method | Create, Get, Get Many, Update |
 | Storage Location | Create, Get Many, Update, Delete |
 | Supplier | Get, Get Many, Search, Update |
+| Supplier Invoice | Add Line Item, Assign Purchase Order, Create, Get, Get Many |
 | Tag | Create, Get Many |
+| User | Create, Delete, Get, Get Many, Get Permissions, Update |
 | Warehouse | Create, Get Many, Update, Delete |
 | Webhook | Create, Delete, Get, Get Many, Update |
+
+Resources marked beta in Xentral (Customer Delivery Address, Supplier Invoice, and some User reads) show a notice in the node, because Xentral may change them without warning.
+
+### API coverage
+
+The Xentral public API (specs dated 2026-10-26) has 573 operations, 542 of them not deprecated. This release has dedicated operations for 244 of those 542, up from 177. Custom API Call reaches all 573. The specs the node was built against are in `specs/`.
+
+## Custom API Call
+
+Choose the **Custom API Call** resource to call any Xentral endpoint with your saved credential. Authentication, retries with backoff and Xentral error details work the same as in every other operation.
+
+| Field | Meaning |
+|-------|---------|
+| Method | GET, POST, PATCH, PUT or DELETE |
+| API Version | V1, V2 or V3. A path that starts with `/api/v2/` or similar sets the version |
+| Path | The part after `/api/<version>/`, for example `posJournals` |
+| Query Parameters | JSON, for example filters or pagination |
+| Body | JSON, shown for POST, PATCH and PUT |
+| Content Type | `application/json` by default. Some endpoints need a vendor type such as `application/vnd.xentral.minimal+json` |
+
+The path must be relative, must start with a resource that exists in the Xentral API, and must not contain `..`, a full URL, a query string or an unfilled `{placeholder}`. Anything else is rejected before a request is sent.
+
+Example, read POS journals, which have no dedicated operation.
+
+```text
+Method        GET
+API Version   V1
+Path          posJournals
+Query         {"page[number]": 1, "page[size]": 50}
+```
+
+Example, run a report query with a pasted V1 path and a report parameter.
+
+```text
+Method        POST
+Path          /api/v1/analytics/report/42/query
+Body          {"parameters": [{"name": "date", "type": "string", "defaultValue": "2026-01-01"}]}
+```
+
+## Deprecated endpoints migrated
+
+Xentral deprecated several V1 endpoints this node used. They now point at the current versions.
+
+| Operation | Before | Now |
+|-----------|--------|-----|
+| Product Create, Update | `POST`, `PATCH /api/v1/products` | V2. The category field is sent as `categories`. A write that sets Shop Price Display stays on V1, because V2 has no such field |
+| Product Get, Get Many, Search | `/api/v1/products` | V2 for new nodes. Nodes saved before this release keep V1, because the V2 response has different fields |
+| Purchase Price Create, Get Many, Update | `/api/v1/purchasePrices` | `/api/v2/purchasePrices`, same fields |
+
+Supplier Update still uses the deprecated V1 tag endpoint, because its only replacement is a Xentral beta endpoint.
+
+To move an existing Product node to V2 reads, delete it and add it again. The new node uses node version 2.
 
 ## Trigger events
 
 | Object | Events |
 |--------|--------|
-| Credit Note | Created (Unverified), Updated (Unverified) |
+| Analytics Document Extraction | Applied, Canceled |
+| Autoshipment | Dispatched |
+| Collective Bill | Created |
+| Credit Note | Archived, Canceled, Created (Unverified), Deleted, Protocol Created, Released, Sent, Updated (Unverified) |
 | Customer | Created, Deleted, Updated |
-| Delivery Note | Archived, Created, Released, Sent, Updated |
+| DATEV | Exported |
+| Delivery Note | Archived, Canceled, Created, Deleted, Protocol Created, Released, Sent, Updated |
+| Dispatch Center | Order Processed |
+| Dropshipping Supplier | Order Created |
+| Dropshipping Warehouse | Order Created |
+| Dunning | Started |
+| Exporter | Executed |
+| Extended Order Proposal | Executed |
 | Goods Receipt | Completed, Created, Deleted, Updated |
-| Invoice | Created (Unverified), Sent (Unverified), Updated (Unverified) |
+| Importer | Executed |
+| Incoming Payments | Live Import |
+| Invoice | Archived, Canceled, Created (Unverified), Deleted, Protocol Created, Released, Sent (Unverified), Updated (Unverified) |
+| Liability | Canceled, Created, Deleted, Protocol Created, Released, Updated |
+| Offer | Archived, Canceled, Created, Deleted, Protocol Created, Released, Sent, Updated |
+| Order | Fetched |
+| Order Proposal | Executed |
+| Outgoing Payment | Created, Executed |
+| Payment List | Imported |
+| Picklist | Created, Generated |
+| POS | Card Payment Captured, Order Created, Transaction Created |
+| Product | Created, Deleted, Exported, Imported, Properties Created, Properties Deleted, Properties Updated, Pseudo Stock Updated, Sync Started, Tags Replaced, Updated, Variant Created |
 | Product Category | Created, Deleted, Updated |
-| Product | Created, Deleted, Properties Created, Properties Deleted, Properties Updated, Sync Started, Tags Replaced, Updated, Variant Created |
-| Production | Canceled, Completed, Created, Deleted, Released, Started, Updated |
-| Purchase Order | Archived, Canceled, Created, Deleted, Protocol Created, Released, Sent, Updated |
+| Product Cross Selling | Created, Deleted, Updated |
+| Product Media | Created, Deleted, Updated |
+| Product Parts List Position | Created, Deleted, Updated |
+| Production | Canceled, Completed, Created, Deleted, Protocol Created, Released, Sent, Started, Updated |
+| Proforma Invoice | Archived, Canceled, Created, Deleted, Protocol Created, Released, Sent, Updated |
+| Project | Created |
+| Purchase Order | Archived, Canceled, Created, Deleted, Goods Received, Protocol Created, Released, Sent, Updated |
 | Purchase Price | Created, Deleted, Updated |
-| Return | Archived, Canceled, Created, Released, Sent, Updated |
+| Report | Exported, Viewed |
+| Reservation | Changed |
+| Return | Archived, Canceled, Created, Deleted, Goods Received, Protocol Created, Released, Sent, Updated |
+| Sales Order | Archived, Created, Deleted, Dispatched, Imported, Protocol Created, Released, Sent, Updated |
 | Sales Order Position | Created, Deleted, Delivered, Updated |
 | Sales Order Reservation | Confirmed, Created, Deleted, Updated |
-| Sales Order | Archived, Created, Deleted, Dispatched, Imported, Protocol Created, Released, Sent, Updated |
 | Sales Price | Created, Deleted, Updated |
+| Shipment | Created, Label Created |
+| Stock | Synchronized |
+| Storage Item | Movement |
+| Ticket | Received, Reply Sent |
+| Transfer | Job Error, Job Successful |
 
-Events marked Unverified are listed in the Xentral event catalogue but have not been observed firing on a live instance yet.
+Events marked Unverified are listed in the Xentral event catalogue but have not been observed firing on a live instance yet. The event list follows the Xentral AsyncAPI catalogue from 2026-10-26.
 
 ## Credentials
 
@@ -121,7 +217,7 @@ Creating a token needs admin rights in Xentral. The [Xentral authentication guid
 | Pagination | Cursor, page number and V3 pages, handled per endpoint |
 | Errors | Xentral problem details (RFC 9457) surfaced through `NodeApiError` |
 | Retries | 429, 502, 503 and 504 retried with exponential backoff, jitter and `Retry-After` |
-| Lint | The same rule set n8n uses to verify community packages |
+| Lint | The same rule set n8n uses to verify community packages. Every release passes the n8n verification scanner |
 | Release | Signed npm provenance from GitHub Actions |
 
 ### Project structure
@@ -133,7 +229,11 @@ nodes/Xentral/
   XentralTrigger.node.ts  webhook trigger with signature checks
   transport.ts            HTTP, pagination, retries, URL and ID validation
   resources/<name>/       operations, fields and handler per resource
+  resources/specDriven/   operations generated from the Xentral specs
+  resources/customApiCall/  Custom API Call and its path checks
 scripts/copy-assets.mjs icon copy step for the build
+scripts/gen-spec-catalog.mjs  regenerates the spec driven operations from specs/
+specs/                Xentral OpenAPI specs the node is built against
 test/                 node test runner suites
 docs/assets/          images for this README
 ```
@@ -160,7 +260,7 @@ npm run lint    # n8n verification rule set, must report zero problems
 
 | Item | Status |
 |------|--------|
-| n8n | Built and type checked against `n8n-workflow` 2.45.4, the n8n stable line |
+| n8n | Built and type checked against `n8n-workflow` 2.45.4, the n8n stable line. Node versions 1 and 2 |
 | Self-hosted n8n | Supported |
 | n8n Cloud | Available once n8n verifies the package. It passes the n8n community package scanner |
 | Node.js | 22 or newer |

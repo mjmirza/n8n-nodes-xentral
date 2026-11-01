@@ -75,7 +75,7 @@ export async function handlePurchasePrice(
 			...additionalFields,
 		});
 
-		return xentralRequest.call(this, 'POST', 'purchasePrices', body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'POST', 'purchasePrices', body as IDataObject, {}, 'v2');
 	}
 
 	if (operation === 'get') {
@@ -88,7 +88,7 @@ export async function handlePurchasePrice(
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
 		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
-		return xentralV1PageGetAll.call(this, 'purchasePrices', {}, limit, maxPages);
+		return xentralV1PageGetAll.call(this, 'purchasePrices', {}, limit, maxPages, 'v2');
 	}
 
 	if (operation === 'update') {
@@ -98,7 +98,7 @@ export async function handlePurchasePrice(
 
 		const body = buildPurchasePriceBody(updateFields);
 		assertNonEmptyBody(body, 'purchase price update');
-		return xentralRequest.call(this, 'PATCH', `purchasePrices/${purchasePriceId}`, body as IDataObject, {}, 'v1');
+		return xentralRequest.call(this, 'PATCH', `purchasePrices/${purchasePriceId}`, body as IDataObject, {}, 'v2');
 	}
 
 	if (operation === 'delete') {

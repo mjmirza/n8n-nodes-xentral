@@ -2,6 +2,26 @@ import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { xentralRequest, xentralV1PageGetAll, assertSafeId, assertNonEmpty, assertNonEmptyBody } from '../../transport';
 import { runProductSearch } from './product.search';
+import { findSpecOperation, runSpecOperation } from '../specDriven/spec.handler';
+
+/** Node version 1 keeps the v1 read paths so saved workflows see the same output. Version 2 reads from v2. */
+function readVersion(ctx: IExecuteFunctions): string {
+	return ctx.getNode().typeVersion >= 2 ? 'v2' : 'v1';
+}
+
+/**
+ * Picks the write endpoint. v1 product writes are deprecated, v2 takes the same body except that
+ * category became categories and shopPriceDisplay is gone. Only a body with shopPriceDisplay stays on v1.
+ */
+export function productWriteTarget(body: IDataObject): { version: string; body: IDataObject } {
+	if (body.shopPriceDisplay !== undefined) return { version: 'v1', body };
+	const v2: IDataObject = { ...body };
+	if (v2.category !== undefined) {
+		v2.categories = [v2.category];
+		delete v2.category;
+	}
+	return { version: 'v2', body: v2 };
+}
 
 /**
  * Build the product body from a flat field map (used for both create and update).
@@ -223,21 +243,21 @@ export async function handleProduct(
 		const projectId = assertNonEmpty(this.getNodeParameter('projectId', itemIndex) as string, 'Project ID');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
-		const body = buildProductBody(this.getNode(), { name, projectId, ...additionalFields });
-		return xentralRequest.call(this, 'POST', 'products', body as IDataObject, {}, 'v1');
+		const target = productWriteTarget(buildProductBody(this.getNode(), { name, projectId, ...additionalFields }));
+		return xentralRequest.call(this, 'POST', 'products', target.body, {}, target.version);
 	}
 
 	if (operation === 'get') {
 		const productId = this.getNodeParameter('productId', itemIndex) as string;
 		assertSafeId(productId, 'productId');
-		return xentralRequest.call(this, 'GET', `products/${productId}`, {}, {}, 'v1');
+		return xentralRequest.call(this, 'GET', `products/${productId}`, {}, {}, readVersion(this));
 	}
 
 	if (operation === 'getAll') {
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
 		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
-		return xentralV1PageGetAll.call(this, 'products', {}, limit, maxPages);
+		return xentralV1PageGetAll.call(this, 'products', {}, limit, maxPages, readVersion(this));
 	}
 
 	if (operation === 'update') {
@@ -247,7 +267,8 @@ export async function handleProduct(
 
 		const body = buildProductBody(this.getNode(), updateFields);
 		assertNonEmptyBody(body, 'product update');
-		return xentralRequest.call(this, 'PATCH', `products/${productId}`, body as IDataObject, {}, 'v1');
+		const target = productWriteTarget(body);
+		return xentralRequest.call(this, 'PATCH', `products/${productId}`, target.body, {}, target.version);
 	}
 
 	if (operation === 'delete') {
@@ -265,11 +286,16 @@ export async function handleProduct(
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex, 50) as number);
 		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
 		// Matches article number, EAN and name, as the field description promises.
+		const version = readVersion(this);
 		return runProductSearch(
-			(query, pageLimit) => xentralV1PageGetAll.call(this, 'products', query, pageLimit, maxPages),
+			(query, pageLimit) => xentralV1PageGetAll.call(this, 'products', query, pageLimit, maxPages, version),
 			searchTerm,
 			limit,
 		);
+	}
+
+	if (findSpecOperation('product', operation)) {
+		return runSpecOperation.call(this, 'product', operation, itemIndex);
 	}
 
 	throw new Error(`Unknown product operation: ${operation}`);
