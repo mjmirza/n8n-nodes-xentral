@@ -949,6 +949,13 @@ export const purchaseOrderFields: INodeProperties[] = [
 				description: 'Product/item name',
 			},
 			{
+				displayName: 'Position After Line Item ID',
+				name: 'afterLineItemId',
+				type: 'string',
+				default: '',
+				description: 'Place this line item directly after the line item with this ID (Xentral position.afterLineItem)',
+			},
+			{
 				displayName: 'Price Amount',
 				name: 'priceAmount',
 				type: 'number',
@@ -981,7 +988,7 @@ export const purchaseOrderFields: INodeProperties[] = [
 				name: 'sort',
 				type: 'number',
 				default: 0,
-				description: 'Sort order (integer) of the line item in the document',
+				description: 'Deprecated. Xentral V3 ignores a numeric sort and this value is not sent. Use Position After Line Item ID.',
 			},
 			{
 				displayName: 'Tax Legal Notice',

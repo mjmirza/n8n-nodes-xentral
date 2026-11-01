@@ -262,14 +262,23 @@ export class XentralTrigger implements INodeType {
 						const hasEvent = events.some((e) => e.id === eventId);
 						if (hasEvent) {
 							const webhookData = this.getWorkflowStaticData('node');
-							// Adopt it only when we can verify its signatures. Otherwise replace it with one we hold the key for.
-							if (!resolveSigningKey(this.getNodeParameter('signatureKey', '') as string, webhookData)) {
+							// Adopt it only when the stored key was issued for this exact webhook id. A key saved for an
+							// older or different registration would make every delivery fail, so replace the webhook instead.
+							const storedKey = typeof webhookData.signatureKey === 'string' ? webhookData.signatureKey : '';
+							const ownsWebhook =
+								storedKey.length >= 20 &&
+								webhookData.webhookId !== undefined &&
+								webhookData.webhookId !== null &&
+								String(webhookData.webhookId) === String(webhook.id);
+							if (!ownsWebhook) {
 								try {
 									assertSafeId(String(webhook.id), 'webhookId');
 									await xentralRequest.call(this, 'DELETE', `webhooks/${webhook.id}`, {}, {}, 'v1');
 								} catch (error) {
 									this.logger.warn(`Xentral: could not remove a webhook without a known signing key. ${(error as Error).message}`);
 								}
+								delete webhookData.webhookId;
+								delete webhookData.signatureKey;
 								return false;
 							}
 							webhookData.webhookId = webhook.id;

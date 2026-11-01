@@ -1,6 +1,6 @@
 import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for credit note create/update.
@@ -92,7 +92,7 @@ function buildLineItemBody(fields: IDataObject): IDataObject {
 	// Numeric fields that can be 0
 	if (fields.discount !== undefined) body.discount = fields.discount;
 	if (fields.quantity !== undefined) body.quantity = fields.quantity;
-	if (fields.sort !== undefined) body.sort = fields.sort;
+	applyLineItemPosition(body, fields);
 
 	// Boolean fields
 	if (fields.hiddenOnPdf !== undefined) body.hiddenOnPdf = fields.hiddenOnPdf;
@@ -149,14 +149,14 @@ export async function handleCreditNote(
 			filterIndex++;
 		}
 		if (filters.customerId !== undefined && filters.customerId !== '') {
-			query[`filter[${filterIndex}][key]`] = 'customerId';
+			query[`filter[${filterIndex}][key]`] = 'address.id';
 			query[`filter[${filterIndex}][op]`] = 'equals';
 			query[`filter[${filterIndex}][value]`] = filters.customerId;
 			filterIndex++;
 		}
 		if (filters.createdAfter !== undefined && filters.createdAfter !== '') {
-			query[`filter[${filterIndex}][key]`] = 'createdAfter';
-			query[`filter[${filterIndex}][op]`] = 'gte';
+			query[`filter[${filterIndex}][key]`] = 'createdAt';
+			query[`filter[${filterIndex}][op]`] = 'greaterThanOrEquals';
 			query[`filter[${filterIndex}][value]`] = filters.createdAfter;
 			filterIndex++;
 		}

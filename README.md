@@ -26,7 +26,7 @@ It is for operations teams and automation builders who already run Xentral and w
 - **Reactions within seconds.** The Xentral Trigger starts a workflow when an order is created, a delivery note is sent or a product changes, so nothing waits for a nightly export.
 - **Searches that find the right product.** Product search matches the article number, the EAN and the name, with article number matches first.
 - **Customer lookup by exact value.** Customer Search finds a customer by its exact customer number, name or email. Xentral's customer API does not support partial matches, so the node does not pretend to.
-- **Safe defaults.** HTTPS only, internal network addresses blocked for every request including the credential test, IDs validated before they reach a URL, writes never retried after a gateway error, and Xentral error details shown in the n8n UI.
+- **Safe defaults.** HTTPS only, literal internal addresses (localhost, private, loopback and link-local IPs in any decimal, hex or octal spelling, and IPv6 literals) blocked for every request including the credential test, IDs validated before they reach a URL, writes never retried after a gateway error, and Xentral error details shown in the n8n UI. The node does not resolve DNS, so a public hostname that points at an internal address is not caught here. Use your n8n instance's egress or network policy for that.
 - **Trigger that fails closed.** Every delivery is checked against its HMAC signature and must be no older than five minutes. Anything unverifiable is rejected with 401 and never starts the workflow.
 - **Every endpoint within reach.** Custom API Call sends any request in the Xentral API with your saved credential, so a rare accounting, tax or POS endpoint never needs a separate HTTP Request node.
 - **Works with AI agents.** The Xentral action node is marked as a tool, so an n8n AI Agent can call Xentral operations directly. The trigger starts workflows and is not a tool.
@@ -96,7 +96,7 @@ Resources marked beta in Xentral (Customer Delivery Address, Supplier Invoice, a
 
 ### API coverage
 
-The Xentral public API (specs dated 2026-10-26) has 573 operations, 542 of them not deprecated. This release has dedicated operations for 244 of those 542, up from 177. Custom API Call reaches all 573. The specs the node was built against are in `specs/`.
+The Xentral public API (specs dated 2026-10-26) has 573 operations, 542 of them not deprecated. This release has dedicated operations for 244 of those 542, up from 177. Custom API Call reaches all 573, which a test checks against every documented path, including parameterized ones such as `/api/v2/salesOrders/{id}/files` and `/api/v2/productsTagAssignments`. The specs the node was built against are in `specs/`.
 
 ## Custom API Call
 
@@ -110,6 +110,7 @@ Choose the **Custom API Call** resource to call any Xentral endpoint with your s
 | Query Parameters | JSON, for example filters or pagination |
 | Body | JSON, shown for POST, PATCH and PUT |
 | Content Type | `application/json` by default. Some endpoints need a vendor type such as `application/vnd.xentral.minimal+json` |
+| Response Format | JSON by default. Text returns the body in `data`. File keeps a download such as a CSV or ZIP export as binary data in the field you name |
 
 The path must be relative, must start with a resource that exists in the Xentral API, and must not contain `..`, a full URL, a query string or an unfilled `{placeholder}`. Anything else is rejected before a request is sent.
 

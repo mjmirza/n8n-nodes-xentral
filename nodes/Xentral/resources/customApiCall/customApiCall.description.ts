@@ -84,4 +84,26 @@ export const customApiCallFields: INodeProperties[] = [
 		displayOptions: show,
 		description: 'Content-Type header. Some Xentral endpoints need a vendor type such as application/vnd.xentral.minimal+JSON.',
 	},
+	{
+		displayName: 'Response Format',
+		name: 'responseFormat',
+		type: 'options',
+		options: [
+			{ name: 'File', value: 'file', description: 'Keep the response as binary data, for example a CSV or ZIP export' },
+			{ name: 'JSON', value: 'json', description: 'Parse the response as JSON' },
+			{ name: 'Text', value: 'text', description: 'Return the response body as text in the data field' },
+		],
+		default: 'json',
+		displayOptions: show,
+		description: 'How to read the response. Use File for downloads such as accounting exports.',
+	},
+	{
+		displayName: 'Put Output File in Field',
+		name: 'binaryPropertyName',
+		type: 'string',
+		default: 'data',
+		required: true,
+		displayOptions: { show: { resource: ['customApiCall'], operation: ['request'], responseFormat: ['file'] } },
+		hint: 'The name of the output binary field to put the file in',
+	},
 ];

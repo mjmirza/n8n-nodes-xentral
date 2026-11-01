@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition } from '../../transport';
 
 export async function handleSalesOrder(
 	this: IExecuteFunctions,
@@ -86,14 +86,14 @@ export async function handleSalesOrder(
 			filterIndex++;
 		}
 		if (filters.customerId !== undefined && filters.customerId !== '') {
-			query[`filter[${filterIndex}][key]`] = 'customerId';
+			query[`filter[${filterIndex}][key]`] = 'address.id';
 			query[`filter[${filterIndex}][op]`] = 'equals';
 			query[`filter[${filterIndex}][value]`] = filters.customerId;
 			filterIndex++;
 		}
 		if (filters.createdAfter !== undefined && filters.createdAfter !== '') {
-			query[`filter[${filterIndex}][key]`] = 'createdAfter';
-			query[`filter[${filterIndex}][op]`] = 'gte';
+			query[`filter[${filterIndex}][key]`] = 'createdAt';
+			query[`filter[${filterIndex}][op]`] = 'greaterThanOrEquals';
 			query[`filter[${filterIndex}][value]`] = filters.createdAfter;
 			filterIndex++;
 		}
@@ -216,7 +216,7 @@ export async function handleSalesOrder(
 		if (updateFields.externalNumber !== undefined) body.externalNumber = updateFields.externalNumber;
 		if (updateFields.name !== undefined) body.name = updateFields.name;
 		if (updateFields.quantity !== undefined) body.quantity = updateFields.quantity;
-		if (updateFields.sort !== undefined) body.sort = updateFields.sort;
+		applyLineItemPosition(body, updateFields);
 		if (updateFields.taxLegalNotice !== undefined) body.taxLegalNotice = updateFields.taxLegalNotice;
 		if (updateFields.hiddenOnPdf !== undefined) body.hiddenOnPdf = updateFields.hiddenOnPdf;
 		if (updateFields.productId) body.product = { id: updateFields.productId };

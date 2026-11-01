@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for document create/update.
@@ -40,7 +40,6 @@ function buildOfferBody(fields: IDataObject): IDataObject {
 	}
 	if (fields.preferredWarehouseId) body.preferredWarehouse = { id: fields.preferredWarehouseId };
 	if (fields.shippingMethodId) body.shippingMethod = { id: fields.shippingMethodId };
-	if (fields.paymentMethodId) body.paymentMethod = { id: fields.paymentMethodId };
 
 	// Sales: { id: "..." }
 	if (fields.salesId) {
@@ -51,6 +50,7 @@ function buildOfferBody(fields: IDataObject): IDataObject {
 	const financials: IDataObject = {};
 	if (fields.currency) financials.currency = fields.currency;
 	if (fields.taxation) financials.tax = { taxation: fields.taxation };
+	if (fields.paymentMethodId) financials.paymentMethod = { id: fields.paymentMethodId };
 	if (Object.keys(financials).length > 0) body.financials = financials;
 
 	// Document address (fixedCollection)
@@ -101,7 +101,7 @@ function buildLineItemBody(fields: IDataObject): IDataObject {
 	// Numeric fields (can be 0, so check undefined only)
 	if (fields.discount !== undefined) body.discount = fields.discount;
 	if (fields.quantity !== undefined) body.quantity = fields.quantity;
-	if (fields.sort !== undefined) body.sort = fields.sort;
+	applyLineItemPosition(body, fields);
 
 	// Boolean fields
 	if (fields.deliveryDateAsCalendarWeek !== undefined) {
@@ -163,14 +163,14 @@ export async function handleOffer(
 			filterIndex++;
 		}
 		if (filters.customerId !== undefined && filters.customerId !== '') {
-			query[`filter[${filterIndex}][key]`] = 'customerId';
+			query[`filter[${filterIndex}][key]`] = 'address.id';
 			query[`filter[${filterIndex}][op]`] = 'equals';
 			query[`filter[${filterIndex}][value]`] = filters.customerId;
 			filterIndex++;
 		}
 		if (filters.createdAfter !== undefined && filters.createdAfter !== '') {
-			query[`filter[${filterIndex}][key]`] = 'createdAfter';
-			query[`filter[${filterIndex}][op]`] = 'gte';
+			query[`filter[${filterIndex}][key]`] = 'createdAt';
+			query[`filter[${filterIndex}][op]`] = 'greaterThanOrEquals';
 			query[`filter[${filterIndex}][value]`] = filters.createdAfter;
 			filterIndex++;
 		}
