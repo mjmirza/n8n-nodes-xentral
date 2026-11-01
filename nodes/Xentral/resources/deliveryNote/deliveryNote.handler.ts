@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates, documentAddress } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates, documentAddress, lineItemAddBody } from '../../transport';
 
 export async function handleDeliveryNote(
 	this: IExecuteFunctions,
@@ -174,7 +174,7 @@ export async function handleDeliveryNote(
 		if (lineItemOptions.number !== undefined) body.number = lineItemOptions.number;
 		applyLineItemHidden(body, lineItemOptions);
 
-		return xentralRequest.call(this, 'POST', `deliveryNotes/${deliveryNoteId}/lineItems`, apiDates(body as IDataObject), {}, 'v3');
+		return xentralRequest.call(this, 'POST', `deliveryNotes/${deliveryNoteId}/lineItems`, apiDates(lineItemAddBody(body as IDataObject)), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {

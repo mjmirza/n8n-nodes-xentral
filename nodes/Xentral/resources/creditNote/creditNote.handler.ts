@@ -1,6 +1,6 @@
 import type { INode, IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice, lineItemAddBody } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for credit note create/update.
@@ -194,7 +194,7 @@ export async function handleCreditNote(
 		body.product = { id: productId };
 		body.quantity = quantity;
 
-		return xentralRequest.call(this, 'POST', `creditNotes/${creditNoteId}/lineItems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `creditNotes/${creditNoteId}/lineItems`, lineItemAddBody(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {

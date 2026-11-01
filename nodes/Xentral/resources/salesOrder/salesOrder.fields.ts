@@ -622,7 +622,7 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'number',
 				type: 'string',
 				default: '',
-				description: 'Product number override',
+				description: 'Ignored. Xentral V3 does not accept a product number on a line item and uses the number of the product.',
 			},
 			{
 				displayName: 'Price Amount',
@@ -1269,6 +1269,7 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'productId',
 				type: 'string',
 				default: '',
+				description: 'Ignored. Xentral V3 cannot change the product of an existing line item. Delete the line item and add a new one.',
 			},
 			{
 				displayName: 'Quantity',

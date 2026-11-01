@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice, lineItemAddBody } from '../../transport';
 
 export async function handleProformaInvoice(
 	this: IExecuteFunctions,
@@ -225,7 +225,7 @@ export async function handleProformaInvoice(
 			};
 		}
 
-		return xentralRequest.call(this, 'POST', `proformaInvoices/${proformaInvoiceId}/lineItems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `proformaInvoices/${proformaInvoiceId}/lineItems`, lineItemAddBody(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {

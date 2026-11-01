@@ -17,6 +17,10 @@
 - Product Age Rating None sends the empty rating, which the API accepts, so it clears an existing rating.
 - Product Options turns a plain text option value into `{"name": value}`, as the schema requires. The Free Fields and Options help text now shows the shapes Xentral accepts.
 - Liability Status no longer offers Cancelled, which Xentral does not have and which always failed. A saved Cancelled still fails with the same clear message.
+- Line item updates on all eight documents no longer send Product ID or Product Number, and line item adds no longer send Product Number. The V3 schemas accept neither, so Xentral ignored them. The options stay, marked as ignored, and an update that sets only them returns `changed: false` with a note instead of a request.
+- Purchase Price and Sales Price send `null` for Valid From or Expires At when an expression returns null, so the boundary can be removed. 1.4.4 sent the text "null".
+- The trigger starts the workflow only for deliveries of its own event type. A delivery of another type is answered 200 and dropped. A delivery without a type still runs, as before.
+- Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 
 ### Added
 - Custom API Call has an Accept option, for example `application/pdf` to download a document PDF in File mode.

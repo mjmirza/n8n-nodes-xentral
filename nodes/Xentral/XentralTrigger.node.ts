@@ -417,6 +417,14 @@ export class XentralTrigger implements INodeType {
 			return { noWebhookResponse: true };
 		}
 
+		// A registration can carry more events than this trigger listens to, so other events are acknowledged
+		// and dropped. A delivery without a type is still passed on, as before.
+		const event = this.getNodeParameter('event', '') as string;
+		if (event && typeof body?.type === 'string' && body.type !== toEventId(event)) {
+			this.getResponseObject().status(200).send('Ignored');
+			return { noWebhookResponse: true };
+		}
+
 		return {
 			workflowData: [this.helpers.returnJsonArray(body)],
 		};

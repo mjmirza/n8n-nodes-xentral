@@ -208,6 +208,7 @@ export const purchasePriceFields: INodeProperties[] = [
 				name: 'expiresAt',
 				type: 'dateTime',
 				default: '',
+				description: 'Expiration date for this price. An expression that returns null removes it.',
 			},
 			{
 				displayName: 'From Quantity',
@@ -265,6 +266,7 @@ export const purchasePriceFields: INodeProperties[] = [
 				name: 'validFrom',
 				type: 'dateTime',
 				default: '',
+				description: 'Start date for this price. An expression that returns null removes it.',
 			},
 		],
 	},

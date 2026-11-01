@@ -495,7 +495,7 @@ export const creditNoteFields: INodeProperties[] = [
 				name: 'number',
 				type: 'string',
 				default: '',
-				description: 'Override the product number for this line item',
+				description: 'Ignored. Xentral V3 does not accept a product number on a line item and uses the number of the product.',
 			},
 			{
 				displayName: 'Price Amount (Net)',
@@ -873,7 +873,7 @@ export const creditNoteFields: INodeProperties[] = [
 				name: 'productId',
 				type: 'string',
 				default: '',
-				description: 'ID of the product to change this line item to',
+				description: 'Ignored. Xentral V3 cannot change the product of an existing line item. Delete the line item and add a new one.',
 			},
 			{
 				displayName: 'Quantity',

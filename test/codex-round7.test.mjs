@@ -444,3 +444,89 @@ test('[r7-17] deactivation deletes the stored webhook when it still points at th
 	assert.deepEqual(ctx.calls.map((c) => c.method), ['GET', 'DELETE']);
 	assert.equal('webhookId' in stored, false);
 });
+
+// ---------- 9. third pre-release review ----------
+
+const { handlePurchasePrice } = require('../dist/nodes/Xentral/resources/purchasePrice/purchasePrice.handler.js');
+const { handleSalesPrice } = require('../dist/nodes/Xentral/resources/salesPrice/salesPrice.handler.js');
+const transport7 = require('../dist/nodes/Xentral/transport.js');
+const { createHmac } = require('node:crypto');
+
+test('[r7-19] line item updates never send product or product number, which the V3 schemas do not accept', async () => {
+	for (const [handler, ids, param] of LINE_ITEMS) {
+		const mixed = context({ ...ids, lineItemId: '2', [param]: { productId: '8', number: 'SKU-1', quantity: 2 } });
+		await handler.call(mixed, 'updateLineItem', 0);
+		assert.equal('product' in mixed.calls[0].body, false, handler.name);
+		assert.equal('number' in mixed.calls[0].body, false, handler.name);
+		assert.equal(mixed.calls[0].body.quantity, 2);
+		const only = context({ ...ids, lineItemId: '2', [param]: { productId: '8' } });
+		const result = await handler.call(only, 'updateLineItem', 0);
+		assert.equal(only.calls.length, 0, handler.name);
+		assert.equal(result.changed, false);
+		assert.match(result.message, /Product ID/);
+	}
+	const props = docSpec.components.schemas.UpdateProductLineItemData.properties;
+	assert.equal('product' in props || 'number' in props, false);
+});
+
+test('[r7-20] line item adds never send a product number, which the V3 create schemas do not accept', async () => {
+	const adds = [
+		[handleOffer, { offerId: '1' }], [handleInvoice, { invoiceId: '1' }], [handleCreditNote, { creditNoteId: '1' }],
+		[handleSalesOrder, { salesOrderId: '1' }], [handlePurchaseOrder, { purchaseOrderId: '1' }],
+		[handleProformaInvoice, { proformaInvoiceId: '1' }], [handleDeliveryNote, { deliveryNoteId: '1' }], [handleReturn, { returnId: '1' }],
+	];
+	for (const [handler, ids] of adds) {
+		const ctx = context({ ...ids, productId: '5', quantity: 1, lineItemOptions: { number: 'SKU-1' }, additionalFields: { number: 'SKU-1' } });
+		await handler.call(ctx, 'addLineItem', 0);
+		assert.equal('number' in ctx.calls[0].body, false, handler.name);
+		assert.deepEqual(ctx.calls[0].body.product, { id: '5' });
+	}
+});
+
+test('[r7-21] a null validity date clears it on purchase and sales prices', async () => {
+	const purchase = context({ purchasePriceId: '1', updateFields: { expiresAt: null, validFrom: null } });
+	await handlePurchasePrice.call(purchase, 'update', 0);
+	assert.equal(purchase.calls[0].body.expiresAt, null);
+	assert.equal(purchase.calls[0].body.validFrom, null);
+	const sales = context({ salesPriceId: '1', updateFields: { expiresAt: null } });
+	await handleSalesPrice.call(sales, 'update', 0);
+	assert.equal(sales.calls[0].body.expiresAt, null);
+	const empty = context({ salesPriceId: '1', updateFields: { expiresAt: '', remark: 'x' } });
+	await handleSalesPrice.call(empty, 'update', 0);
+	assert.equal('expiresAt' in empty.calls[0].body, false);
+});
+
+test('[r7-22] the trigger starts the workflow only for its own event type', async () => {
+	const key = 'k'.repeat(32);
+	const run = async (type) => {
+		const body = JSON.stringify(type === undefined ? { id: 1 } : { type, body: { id: 1 } });
+		const ts = String(Math.floor(Date.now() / 1000));
+		const sent = {};
+		const ctx = {
+			getRequestObject: () => ({ rawBody: Buffer.from(body) }),
+			getBodyData: () => JSON.parse(body),
+			getHeaderData: () => ({ 'xentral-signature': createHmac('sha256', key).update(body + ts).digest('hex'), 'xentral-request-timestamp': ts }),
+			getNodeParameter: (name, fallback) => (name === 'event' ? 'salesOrder.created' : name === 'signatureKey' ? '' : fallback),
+			getWorkflowStaticData: () => ({ signatureKey: key }),
+			getResponseObject: () => ({ status: (code) => ({ send: (msg) => { sent.code = code; sent.msg = msg; } }) }),
+			helpers: { returnJsonArray: (b) => [{ json: b }] },
+		};
+		return { result: await new XentralTrigger().webhook.call(ctx), sent };
+	};
+	const other = await run('com.xentral.customer.deleted.v1');
+	assert.equal(other.result.workflowData, undefined);
+	assert.equal(other.sent.code, 200);
+	assert.ok((await run('com.xentral.salesOrder.created.v1')).result.workflowData);
+	assert.ok((await run(undefined)).result.workflowData);
+});
+
+test('[r7-23] nested validation errors keep their field path', async () => {
+	const ctx = context({});
+	ctx.helpers.httpRequest = async () => {
+		throw Object.assign(new Error('422'), { response: { status: 422, data: { title: 'Invalid', violations: { positions: [{ price: ['Must be non-negative'] }], _: ['General'] } } } });
+	};
+	await assert.rejects(
+		() => transport7.xentralRequest.call(ctx, 'POST', 'salesOrders', { a: 1 }, {}, 'v3'),
+		(error) => /positions\.0\.price: Must be non-negative/.test(`${error.message} ${error.description}`) && /General/.test(`${error.message} ${error.description}`),
+	);
+});

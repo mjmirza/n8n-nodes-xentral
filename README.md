@@ -273,6 +273,9 @@ npm run lint    # n8n verification rule set, must report zero problems
 - The trigger also stops activation when a webhook for the same URL and event that it does not own cannot be deleted.
 - Product Age Rating None now clears the rating instead of being ignored.
 - Liability Status no longer lists Cancelled. Xentral has no such status and a saved Cancelled always failed. It still fails, with the same message, so pick Pending or Paid.
+- Product ID on a line item update and Product Number on a line item add or update are no longer sent, because Xentral V3 accepts neither and ignored them. To change a line item's product, delete it and add a new one.
+- The trigger ignores deliveries whose event type is not the one it is set to. Before, a webhook registered with extra events started the workflow for all of them.
+- To remove a price's Valid From or Expires At, use an expression that returns null.
 - Custom API Call has a separate Body field for GET. Saved GET calls never send the Body field of the other methods, and an empty GET body is not sent, so they behave as before.
 
 ## Compatibility

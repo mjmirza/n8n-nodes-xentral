@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemUpdatePrice, lineItemAddBody } from '../../transport';
 
 /**
  * Build the nested body structure from flat n8n fields for document create/update.
@@ -208,7 +208,7 @@ export async function handleOffer(
 		body.product = { id: productId };
 		body.quantity = quantity;
 
-		return xentralRequest.call(this, 'POST', `offers/${offerId}/lineItems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `offers/${offerId}/lineItems`, lineItemAddBody(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {

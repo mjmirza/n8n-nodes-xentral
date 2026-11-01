@@ -173,6 +173,33 @@ function handleXentralError(
 	});
 }
 
+/**
+ * Field messages at any depth, as "path: message". Nested objects and arrays keep their path, for example
+ * positions.0.price: Must be non-negative. A "_" key means a message without a field.
+ */
+function flattenMessages(value: unknown, path: string, parts: string[], depth = 0): void {
+	if (value === undefined || value === null) return;
+	if (depth > 8) {
+		parts.push(path ? `${path}: ${JSON.stringify(value)}` : JSON.stringify(value));
+		return;
+	}
+	if (Array.isArray(value)) {
+		value.forEach((item, index) => {
+			const nested = item !== null && typeof item === 'object';
+			flattenMessages(item, nested ? (path ? `${path}.${index}` : String(index)) : path, parts, depth + 1);
+		});
+		return;
+	}
+	if (typeof value === 'object') {
+		for (const [key, inner] of Object.entries(value as Record<string, unknown>)) {
+			const next = key === '_' ? path : path ? `${path}.${key}` : key;
+			flattenMessages(inner, next, parts, depth + 1);
+		}
+		return;
+	}
+	parts.push(path ? `${path}: ${String(value)}` : String(value));
+}
+
 function parseXentralError(responseBody: any): string {
 	if (!responseBody) return 'Unknown Xentral API error';
 	if (typeof responseBody === 'string') return responseBody;
@@ -181,36 +208,8 @@ function parseXentralError(responseBody: any): string {
 	if (responseBody.detail) parts.push(responseBody.detail);
 	if (responseBody.message && !responseBody.title) parts.push(responseBody.message);
 	if (responseBody.error) parts.push(String(responseBody.error));
-	if (responseBody.violations) {
-		const v = responseBody.violations;
-		if (typeof v === 'object') {
-			for (const [key, msgs] of Object.entries(v)) {
-				if (Array.isArray(msgs)) {
-					for (const msg of msgs) {
-						parts.push(key === '_' ? String(msg) : `${key}: ${msg}`);
-					}
-				}
-			}
-		}
-	}
-	if (responseBody.errors) {
-		const e = responseBody.errors;
-		if (Array.isArray(e)) {
-			parts.push(...e.map(String));
-		} else if (typeof e === 'object') {
-			for (const [key, msgs] of Object.entries(e)) {
-				const msgStr = Array.isArray(msgs) ? msgs.join(', ') : String(msgs);
-				parts.push(`${key}: ${msgStr}`);
-			}
-		}
-	}
-	if (responseBody.messages && Array.isArray(responseBody.messages)) {
-		parts.push(...responseBody.messages.map(String));
-	} else if (responseBody.messages && typeof responseBody.messages === 'object') {
-		for (const [key, msgs] of Object.entries(responseBody.messages)) {
-			const list = Array.isArray(msgs) ? msgs : [msgs];
-			for (const msg of list) parts.push(key === '_' ? String(msg) : `${key}: ${String(msg)}`);
-		}
+	for (const key of ['violations', 'errors', 'messages']) {
+		if (responseBody[key] !== undefined && responseBody[key] !== null) flattenMessages(responseBody[key], '', parts);
 	}
 	return parts.length > 0 ? parts.join(' | ') : JSON.stringify(responseBody);
 }
@@ -310,15 +309,33 @@ export function documentAddress(address: IDataObject): IDataObject {
 }
 
 /**
- * A saved line item update that only sets the legacy Sort option. Xentral V3 ignores a numeric
- * sort, so nothing is sent, and the workflow keeps running as it did before Sort was dropped.
+ * A V3 line item create has no product number field, so a saved Product Number option is not sent.
+ */
+export function lineItemAddBody(body: IDataObject): IDataObject {
+	delete body.number;
+	return body;
+}
+
+/**
+ * A V3 line item update cannot change the product or the product number, and ignores a numeric Sort.
+ * Those saved options are left out. When nothing else was set, nothing is sent and the item says why.
  */
 export function sortOnlyLineItemUpdate(body: IDataObject, fields: IDataObject): IDataObject | undefined {
-	if (Object.keys(body).length > 0 || fields.sort === undefined) return undefined;
+	delete body.product;
+	delete body.number;
+	if (Object.keys(body).length > 0) return undefined;
+	const ignored: string[] = [];
+	if (fields.sort !== undefined) ignored.push('Sort');
+	if (fields.productId !== undefined && fields.productId !== '') ignored.push('Product ID');
+	if (fields.number !== undefined && fields.number !== '') ignored.push('Product Number');
+	if (ignored.length === 0) return undefined;
+	const notes: string[] = [];
+	if (ignored.includes('Sort')) notes.push('Use Position After Line Item ID to move a line item.');
+	if (ignored.includes('Product ID')) notes.push('To change the product, delete the line item and add a new one.');
 	return {
 		success: true,
 		changed: false,
-		message: 'Sort is ignored by Xentral V3, so nothing was sent. Use Position After Line Item ID to move a line item.',
+		message: `${ignored.join(', ')} ${ignored.length > 1 ? 'are' : 'is'} not accepted by Xentral V3 on a line item update, so nothing was sent. ${notes.join(' ')}`.trim(),
 	};
 }
 

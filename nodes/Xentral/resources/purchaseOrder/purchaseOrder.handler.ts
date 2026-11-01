@@ -1,5 +1,5 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates, documentAddress, lineItemUpdatePrice } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, apiDates, documentAddress, lineItemUpdatePrice, lineItemAddBody } from '../../transport';
 
 export async function handlePurchaseOrder(
 	this: IExecuteFunctions,
@@ -178,7 +178,7 @@ export async function handlePurchaseOrder(
 			body.price = { net: { amount: lineItemOptions.priceAmount, currency } };
 		}
 
-		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/lineItems`, apiDates(body as IDataObject), {}, 'v3');
+		return xentralRequest.call(this, 'POST', `purchaseOrders/${purchaseOrderId}/lineItems`, apiDates(lineItemAddBody(body as IDataObject)), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {

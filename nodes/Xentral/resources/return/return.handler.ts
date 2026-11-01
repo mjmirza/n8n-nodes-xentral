@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress } from '../../transport';
+import { xentralRequest, xentralV3GetAll, xentralFileUpload, assertSafeId, assertNonEmptyBody, applyLineItemPosition, applyLineItemHidden, sortOnlyLineItemUpdate, documentAddress, lineItemAddBody } from '../../transport';
 
 // Xentral takes returnReason as { id } or null. Saved values may be an id, a number, JSON or "null".
 function returnReasonRef(value: unknown): IDataObject | null {
@@ -258,7 +258,7 @@ export async function handleReturn(
 			body.returnReason = returnReasonRef(lineItemOptions.returnReason);
 		}
 
-		return xentralRequest.call(this, 'POST', `returnOrders/${returnId}/lineItems`, body as IDataObject, {}, 'v3');
+		return xentralRequest.call(this, 'POST', `returnOrders/${returnId}/lineItems`, lineItemAddBody(body as IDataObject), {}, 'v3');
 	}
 
 	if (operation === 'updateLineItem') {
