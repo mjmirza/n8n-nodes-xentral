@@ -152,10 +152,9 @@ export const liabilityFields: INodeProperties[] = [
 					{ name: 'Pending', value: 'PENDING' },
 					{ name: 'Paid', value: 'PAID' },
 					{ name: 'Partially Paid', value: 'PARTIALLY_PAID' },
-					{ name: 'Cancelled', value: 'CANCELLED' },
 				],
 				default: 'PENDING',
-				description: 'Status of the liability',
+				description: 'Status of the liability. Xentral accepts open or paid, so Partially Paid is sent as open.',
 			},
 			{
 				displayName: 'Supplier Invoice Number',

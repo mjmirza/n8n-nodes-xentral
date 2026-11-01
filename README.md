@@ -269,6 +269,9 @@ npm run lint    # n8n verification rule set, must report zero problems
 - On activation the trigger first removes a webhook it kept from such a failed delete. If that removal fails too, activation stops with an error rather than registering a second webhook.
 - An empty Country in an address override is left out. A set Country must be a two-letter code (any case).
 - An empty Delivery Date in an update now clears the date (sends `null`) on Invoice and Proforma Invoice, and on Offer, Invoice, Credit Note and Proforma Invoice line items.
+- The trigger also stops activation when a webhook for the same URL and event that it does not own cannot be deleted.
+- Product Age Rating None now clears the rating instead of being ignored.
+- Liability Status no longer lists Cancelled. Xentral has no such status and a saved Cancelled always failed. It still fails, with the same message, so pick Pending or Paid.
 - Custom API Call shows Body for GET too. An empty body is still not sent, so saved GET calls behave as before.
 
 ## Compatibility

@@ -352,3 +352,62 @@ test('[r7-12] every hand-written operation on a Xentral beta endpoint shows the 
 	}
 	assert.ok(found.proformaInvoice?.has('getAll') && found.production?.has('create'));
 });
+
+// ---------- 8. second pre-release review ----------
+
+const { handleLiability } = require('../dist/nodes/Xentral/resources/liability/liability.handler.js');
+
+test('[r7-13] a matching webhook that cannot be replaced stops activation instead of adding a second one', async () => {
+	const stored = {};
+	const calls = [];
+	const ctx = {
+		getNodeWebhookUrl: () => 'https://n8n.example.com/webhook/x',
+		getNodeParameter: (name, fallback) => (name === 'event' ? 'salesOrder.created' : fallback),
+		getWorkflowStaticData: () => stored,
+		getNode: () => ({ name: 'Trigger' }),
+		getCredentials: async () => ({ instanceUrl: 'acme.xentral.com', accessToken: '2|token' }),
+		logger: { warn: () => {} },
+		helpers: {
+			httpRequest: async (options) => {
+				calls.push(options);
+				if (options.method === 'GET') return { data: [{ id: '77', url: 'https://n8n.example.com/webhook/x', events: [{ id: 'com.xentral.salesOrder.created.v1' }] }] };
+				throw httpError(403);
+			},
+		},
+	};
+	await assert.rejects(() => new XentralTrigger().webhookMethods.default.checkExists.call(ctx), /could not be replaced/);
+	assert.deepEqual(calls.map((c) => c.method), ['GET', 'DELETE']);
+});
+
+test('[r7-14] Age Rating None sends an empty rating, which clears it, alone or with other fields', async () => {
+	const only = context({ productId: '5', updateFields: { ageRating: '' } });
+	await handleProduct.call(only, 'update', 0);
+	assert.equal(only.calls[0].body.ageRating, '');
+	const enumValues = JSON.stringify(v1Spec).includes('"ageRating":{"type":"string","enum":["",') || JSON.stringify(v1Spec).match(/"ageRating":\{[^}]*"enum":\["",/);
+	assert.ok(enumValues, 'the spec lists the empty rating');
+	const mixed = context({ productId: '5', updateFields: { ageRating: '', name: 'Neu' } });
+	await handleProduct.call(mixed, 'update', 0);
+	assert.equal(mixed.calls[0].body.ageRating, '');
+});
+
+test('[r7-15] the liability status offers only values Xentral accepts, a saved Cancelled still fails clearly', async () => {
+	const { Xentral } = require('../dist/nodes/Xentral/Xentral.node.js');
+	const status = new Xentral().description.properties
+		.find((p) => p.name === 'additionalFields' && p.displayOptions?.show?.resource?.includes('liability'))
+		.options.find((o) => o.name === 'status');
+	assert.deepEqual(status.options.map((o) => o.value).sort(), ['PAID', 'PARTIALLY_PAID', 'PENDING']);
+	const saved = context({ supplierId: '3', additionalFields: { status: 'CANCELLED' } });
+	await assert.rejects(() => handleLiability.call(saved, 'create', 0), /open or paid/);
+});
+
+test('[r7-16] product option examples match the schema, plain text option values become {name}', async () => {
+	const { Xentral } = require('../dist/nodes/Xentral/Xentral.node.js');
+	const props = new Xentral().description.properties.filter((p) => p.displayOptions?.show?.resource?.includes('product'));
+	const descriptions = props.flatMap((p) => (p.options ?? []).map((o) => `${o.name}: ${o.description ?? ''}`));
+	const free = descriptions.filter((x) => x.startsWith('freeFields'));
+	assert.equal(free.length, 2);
+	for (const d of free) assert.match(d, /free field ID and its value/);
+	const ctx = context({ productId: '5', updateFields: { options: '[{"name":"Color","values":["Red",{"name":"Blue","sort":2}]}]' } });
+	await handleProduct.call(ctx, 'update', 0);
+	assert.deepEqual(ctx.calls[0].body.options, [{ name: 'Color', values: [{ name: 'Red' }, { name: 'Blue', sort: 2 }] }]);
+});

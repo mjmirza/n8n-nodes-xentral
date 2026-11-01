@@ -23,6 +23,18 @@ export function productWriteTarget(body: IDataObject): { version: string; body: 
 	return { version: 'v2', body: v2 };
 }
 
+/** Option values are objects with a name. A plain text value, as the old example showed, becomes {name}. */
+function matrixOptions(parsed: unknown): unknown {
+	if (!Array.isArray(parsed)) return parsed;
+	return parsed.map((option) => {
+		if (!option || typeof option !== 'object' || !Array.isArray((option as IDataObject).values)) return option;
+		const values = ((option as IDataObject).values as unknown[]).map((value) =>
+			typeof value === 'string' || typeof value === 'number' ? { name: String(value) } : value,
+		);
+		return { ...(option as IDataObject), values };
+	});
+}
+
 /**
  * Build the product body from a flat field map (used for both create and update).
  * Handles object refs (project, category, manufacturer, standardSupplier, variantOf),
@@ -70,6 +82,8 @@ function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 			body[key] = fields[key];
 		}
 	}
+	// Age Rating "None" is the empty value, which the API accepts and which clears the rating.
+	if (fields.ageRating === '') body.ageRating = '';
 
 	// Object refs
 	if (fields.projectId !== undefined && fields.projectId !== '') {
@@ -210,7 +224,7 @@ function buildProductBody(node: INode, fields: IDataObject): IDataObject {
 	// Options: JSON string to array (matrix product options)
 	if (fields.options !== undefined && fields.options !== '') {
 		try {
-			body.options = JSON.parse(fields.options as string);
+			body.options = matrixOptions(JSON.parse(fields.options as string)) as IDataObject[];
 		} catch {
 			throw new NodeOperationError(node, 'Options must be valid JSON (expected an array)');
 		}

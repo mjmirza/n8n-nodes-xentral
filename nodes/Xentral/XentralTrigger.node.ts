@@ -296,11 +296,18 @@ export class XentralTrigger implements INodeType {
 								webhookData.webhookId !== null &&
 								String(webhookData.webhookId) === String(webhook.id);
 							if (!ownsWebhook) {
+								assertSafeId(String(webhook.id), 'webhookId');
 								try {
-									assertSafeId(String(webhook.id), 'webhookId');
 									await xentralRequest.call(this, 'DELETE', `webhooks/${webhook.id}`, {}, {}, 'v1');
 								} catch (error) {
-									this.logger.warn(`Xentral: could not remove a webhook without a known signing key. ${(error as Error).message}`);
+									const status = errorStatus(error);
+									// A webhook that survives here would run beside the new one, so activation stops instead.
+									if (status !== 404 && status !== 410) {
+										throw new NodeOperationError(
+											this.getNode(),
+											`Xentral webhook ${String(webhook.id)} for this URL and event could not be replaced, so no second one was created. ${(error as Error).message || ''}`.trim(),
+										);
+									}
 								}
 								delete webhookData.webhookId;
 								delete webhookData.signatureKey;
@@ -311,6 +318,8 @@ export class XentralTrigger implements INodeType {
 						}
 					}
 				} catch (error) {
+					// A webhook that could not be replaced must stop activation, not fall through to a new one.
+					if (error instanceof NodeOperationError) throw new NodeOperationError(this.getNode(), error.message);
 					// Listing can fail (missing scope, transient error). Treat as not existing so n8n creates it.
 					this.logger.warn(`Xentral: could not list webhooks, a new one will be created. ${(error as Error).message}`);
 				}
