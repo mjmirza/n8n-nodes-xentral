@@ -61,11 +61,10 @@ export async function handleCustomApiCall(
 		throw new NodeOperationError(this.getNode(), (error as Error).message, { itemIndex });
 	}
 	const query = parseJsonParameter(this, this.getNodeParameter('queryParameters', itemIndex, '{}'), 'Query Parameters', itemIndex);
-	// GET reads its own Body field, so a Body kept from another method in a saved workflow is never sent.
-	const body =
-		method === 'GET'
-			? parseJsonParameter(this, this.getNodeParameter('getBody', itemIndex, '{}'), 'Body', itemIndex)
-			: parseJsonParameter(this, this.getNodeParameter('body', itemIndex, '{}'), 'Body', itemIndex);
+	// n8n's HTTP helper drops a GET body, so GET never reads one and a saved Body is not parsed.
+	const body = ['DELETE', 'PATCH', 'POST', 'PUT'].includes(method)
+		? parseJsonParameter(this, this.getNodeParameter('body', itemIndex, '{}'), 'Body', itemIndex)
+		: {};
 	const contentType = String(this.getNodeParameter('contentType', itemIndex, 'application/json') || '').trim();
 	if (contentType && !/^[a-z]+\/[a-z0-9.+-]+$/i.test(contentType)) {
 		throw new NodeOperationError(this.getNode(), `Invalid content type: ${contentType}`, { itemIndex });

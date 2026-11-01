@@ -301,21 +301,16 @@ test('[r7-10] Custom API Call sends the Accept header it is given, so File mode 
 	await assert.rejects(() => handleCustomApiCall.call(bad, 'request', 0), /Invalid accept type/);
 });
 
-test('[r7-11] Custom API Call sends a non-empty GET body, an empty one is not sent', async () => {
-	const ctx = apiCallContext({ method: 'GET', apiVersion: 'v1', path: 'products/5/printLabel', getBody: '{"printingLabel":"3","quantity":2}' });
-	await handleCustomApiCall.call(ctx, 'request', 0);
-	assert.deepEqual(ctx.calls[0].body, { printingLabel: '3', quantity: 2 });
-	const empty = apiCallContext({ method: 'GET', apiVersion: 'v1', path: 'products/5' });
-	await handleCustomApiCall.call(empty, 'request', 0);
-	assert.equal('body' in empty.calls[0], false);
-	const props = new Xentral().description.properties;
-	const bodyField = props.find((p) => p.name === 'body' && p.displayOptions?.show?.resource?.includes('customApiCall'));
-	assert.equal(bodyField.displayOptions.show.method.includes('GET'), false);
-	assert.deepEqual(props.find((p) => p.name === 'getBody').displayOptions.show.method, ['GET']);
-	// A Body kept from another method in a saved GET call is neither parsed nor sent.
+test('[r7-11] Custom API Call never reads or sends a GET body, which the n8n HTTP helper drops', async () => {
 	const saved = apiCallContext({ method: 'GET', apiVersion: 'v1', path: 'products/5', body: 'not json' });
 	await handleCustomApiCall.call(saved, 'request', 0);
 	assert.equal('body' in saved.calls[0], false);
+	const props = new Xentral().description.properties;
+	const bodyField = props.find((p) => p.name === 'body' && p.displayOptions?.show?.resource?.includes('customApiCall'));
+	assert.equal(bodyField.displayOptions.show.method.includes('GET'), false);
+	assert.equal(props.some((p) => p.name === 'getBody'), false);
+	const readme = fs.readFileSync(new URL('../README.md', import.meta.url), 'utf8');
+	assert.match(readme, /never sends a body with GET/);
 });
 
 test('[r7-12] every hand-written operation on a Xentral beta endpoint shows the beta notice', async () => {
@@ -620,4 +615,45 @@ test('[r7-29] an Offer update with a null ship-to override clears it', async () 
 	const ctx = context({ offerId: '1', updateFields: { deviatingShipToAddress: { address: null } } });
 	await handleOffer.call(ctx, 'update', 0);
 	assert.equal(ctx.calls[0].body.deviatingShipToAddress, null);
+});
+
+// ---------- 12. sixth pre-release review ----------
+
+test('[r7-30] with several registrations for this URL and event, the owned one is adopted and the rest removed', async () => {
+	const stored = { webhookId: '2', signatureKey: 'k'.repeat(32), webhookInstance: 'https://acme.xentral.com' };
+	const calls = [];
+	const ctx = {
+		getNodeWebhookUrl: () => 'https://n8n.example.com/webhook/x',
+		getNodeParameter: (name, fallback) => (name === 'event' ? 'salesOrder.created' : fallback),
+		getWorkflowStaticData: () => stored,
+		getNode: () => ({ name: 'Trigger' }),
+		getCredentials: async () => ({ instanceUrl: 'acme.xentral.com', accessToken: '2|token' }),
+		logger: { warn: () => {} },
+		helpers: {
+			httpRequest: async (options) => {
+				calls.push(options);
+				if (options.method === 'GET') {
+					const hook = (id) => ({ id, url: 'https://n8n.example.com/webhook/x', events: [{ id: 'com.xentral.salesOrder.created.v1' }] });
+					return { data: [hook('1'), hook('2')] };
+				}
+				return {};
+			},
+		},
+	};
+	assert.equal(await new XentralTrigger().webhookMethods.default.checkExists.call(ctx), true);
+	assert.deepEqual(calls.filter((c) => c.method === 'DELETE').map((c) => c.url.split('/').pop()), ['1']);
+	assert.equal(stored.webhookId, '2');
+	assert.equal(stored.signatureKey, 'k'.repeat(32));
+});
+
+test('[r7-31] the Sent filter on Sales Order and Return uses isDocumentSent, which their status enum lacks', async () => {
+	for (const handler of [handleSalesOrder, handleReturn]) {
+		const ctx = context({ returnAll: false, limit: 5, filters: { status: 'sent' } }, { response: { data: [] } });
+		await handler.call(ctx, 'getAll', 0);
+		assert.equal(ctx.calls[0].qs['filter[0][key]'], 'isDocumentSent', handler.name);
+		assert.equal(ctx.calls[0].qs['filter[0][value]'], 'true');
+		const released = context({ returnAll: false, limit: 5, filters: { status: 'released' } }, { response: { data: [] } });
+		await handler.call(released, 'getAll', 0);
+		assert.equal(released.calls[0].qs['filter[0][key]'], 'status');
+	}
 });

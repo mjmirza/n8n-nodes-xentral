@@ -22,11 +22,12 @@
 - The trigger starts the workflow only for deliveries of its own event type. A delivery of another type is answered 200 and dropped. A delivery without a type still runs, as before.
 - Product Update clears Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason and Region of Origin when they are set empty, and Country of Origin with null. They were dropped.
 - An address override set to `null` by an expression clears it again, as in 1.4.4. Offer Update clears its ship-to override the same way.
+- The trigger adopts the registration it owns when several exist for its URL and event, and removes the others. Before, it could delete its own registration's sibling, forget its own, and create a third.
+- The Sent filter on Sales Order and Return uses `isDocumentSent`, because their status has no `sent` value.
 - Xentral validation errors keep nested field paths, for example `positions.0.price: Must be non-negative`, instead of `[object Object]`.
 
 ### Added
 - Custom API Call has an Accept option, for example `application/pdf` to download a document PDF in File mode.
-- Custom API Call has a Body field for GET, sent only when not empty, for endpoints such as the product label download that read one. The Body of the other methods is still never sent on GET.
 
 ### Release
 - The publish workflow packs the tarball, runs n8n's community package scanner on it and on the source, and only then publishes that same tarball. CI runs the same preflight on every push and pull request. The post-publish scan stays for the provenance check.

@@ -77,14 +77,6 @@ export const customApiCallFields: INodeProperties[] = [
 		description: 'JSON request body. For DELETE it is sent only when not empty, for example the ID list of a bulk delete.',
 	},
 	{
-		displayName: 'Body',
-		name: 'getBody',
-		type: 'json',
-		default: '{}',
-		displayOptions: { show: { resource: ['customApiCall'], operation: ['request'], method: ['GET'] } },
-		description: 'JSON request body for a GET, sent only when not empty, for example the label options of a product label download',
-	},
-	{
 		displayName: 'Content Type',
 		name: 'contentType',
 		type: 'string',

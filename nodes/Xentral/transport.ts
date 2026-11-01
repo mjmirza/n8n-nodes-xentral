@@ -441,8 +441,7 @@ export async function xentralRequest(
 	}
 
 	const hasBody = Array.isArray(body) ? body.length > 0 : body !== null && typeof body === 'object' && Object.keys(body).length > 0;
-	// GET and DELETE carry a body only when one was given, for example the product label download options.
-	if ((['POST', 'PATCH', 'PUT'].includes(method) && body) || ((method === 'DELETE' || method === 'GET') && hasBody)) {
+	if ((['POST', 'PATCH', 'PUT'].includes(method) && body) || (method === 'DELETE' && hasBody)) {
 		options.body = body;
 	}
 

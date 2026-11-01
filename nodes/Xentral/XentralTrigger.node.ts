@@ -318,48 +318,49 @@ export class XentralTrigger implements INodeType {
 					const response = await xentralRequest.call(this, 'GET', 'webhooks', {}, {}, 'v1');
 					const webhooks = (response.data as IDataObject[]) || [];
 
-					for (const webhook of webhooks) {
-						if (webhook.url !== webhookUrl) continue;
-						// Check if the webhook's events array contains our event
-						const events = (webhook.events as IDataObject[]) || [];
-						const hasEvent = events.some((e) => e.id === eventId);
-						if (hasEvent) {
-							const webhookData = this.getWorkflowStaticData('node');
-							// Adopt it only when the stored key was issued for this exact webhook id. A key saved for an
-							// older or different registration would make every delivery fail, so replace the webhook instead.
-							const storedKey = typeof webhookData.signatureKey === 'string' ? webhookData.signatureKey : '';
-							// A key stored for another instance belongs to a different registration, even with the same ID.
-							const storedInstance = typeof webhookData.webhookInstance === 'string' ? webhookData.webhookInstance : '';
-							const sameInstance = storedInstance === '' || storedInstance === (await currentInstance.call(this));
-							const ownsWebhook =
-								sameInstance &&
-								storedKey.length >= 20 &&
-								webhookData.webhookId !== undefined &&
-								webhookData.webhookId !== null &&
-								String(webhookData.webhookId) === String(webhook.id);
-							if (!ownsWebhook) {
-								assertSafeId(String(webhook.id), 'webhookId');
-								try {
-									await xentralRequest.call(this, 'DELETE', `webhooks/${webhook.id}`, {}, {}, 'v1');
-								} catch (error) {
-									const status = errorStatus(error);
-									// A webhook that survives here would run beside the new one, so activation stops instead.
-									if (status !== 404 && status !== 410) {
-										throw new NodeOperationError(
-											this.getNode(),
-											`Xentral webhook ${String(webhook.id)} for this URL and event could not be replaced, so no second one was created. ${(error as Error).message || ''}`.trim(),
-										);
-									}
+					// Every registration for this URL and event. The one this trigger owns is adopted, the rest are
+					// removed, so no second registration keeps delivering beside it.
+					const matches = webhooks.filter(
+						(webhook) =>
+							webhook.url === webhookUrl &&
+							((webhook.events as IDataObject[]) || []).some((e) => e.id === eventId),
+					);
+					if (matches.length > 0) {
+						const webhookData = this.getWorkflowStaticData('node');
+						// Adopt only when the stored key was issued for this exact webhook id on this instance. A key saved
+						// for an older, different or other-instance registration would make every delivery fail.
+						const storedKey = typeof webhookData.signatureKey === 'string' ? webhookData.signatureKey : '';
+						const storedInstance = typeof webhookData.webhookInstance === 'string' ? webhookData.webhookInstance : '';
+						const sameInstance = storedInstance === '' || storedInstance === (await currentInstance.call(this));
+						const owned =
+							sameInstance && storedKey.length >= 20 && webhookData.webhookId !== undefined && webhookData.webhookId !== null
+								? matches.find((webhook) => String(webhook.id) === String(webhookData.webhookId))
+								: undefined;
+						for (const webhook of matches) {
+							if (webhook === owned) continue;
+							assertSafeId(String(webhook.id), 'webhookId');
+							try {
+								await xentralRequest.call(this, 'DELETE', `webhooks/${webhook.id}`, {}, {}, 'v1');
+							} catch (error) {
+								const status = errorStatus(error);
+								// A webhook that survives here would run beside ours, so activation stops instead.
+								if (status !== 404 && status !== 410) {
+									throw new NodeOperationError(
+										this.getNode(),
+										`Xentral webhook ${String(webhook.id)} for this URL and event could not be replaced, so no second one was created. ${(error as Error).message || ''}`.trim(),
+									);
 								}
-								delete webhookData.webhookId;
-								delete webhookData.signatureKey;
-								delete webhookData.webhookInstance;
-								return false;
 							}
-							webhookData.webhookId = webhook.id;
+						}
+						if (owned) {
+							webhookData.webhookId = owned.id;
 							webhookData.webhookInstance = await currentInstance.call(this);
 							return true;
 						}
+						delete webhookData.webhookId;
+						delete webhookData.signatureKey;
+						delete webhookData.webhookInstance;
+						return false;
 					}
 				} catch (error) {
 					// A webhook that could not be replaced must stop activation, not fall through to a new one.

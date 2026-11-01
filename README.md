@@ -92,6 +92,8 @@ It is for operations teams and automation builders who already run Xentral and w
 | Warehouse | Create, Get Many, Update, Delete |
 | Webhook | Create, Delete, Get, Get Many, Update |
 
+Design decisions behind a few deliberate limits are in [docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md).
+
 Operations whose endpoint Xentral marks beta show a notice in the node, because Xentral may change them without warning. That covers Customer Delivery Address, Supplier Invoice and some User reads, Production Create, Get and Get Many, Proforma Invoice Create, Get, Get Many, Update and its line item writes, Delivery Note and Return creates, updates and line item writes, Return Create From Delivery Note, and Invoice Create From Sales Order.
 
 ### API coverage
@@ -108,7 +110,7 @@ Choose the **Custom API Call** resource to call any Xentral endpoint with your s
 | API Version | V1, V2 or V3. A path that starts with `/api/v2/` or similar sets the version |
 | Path | The part after `/api/<version>/`, for example `posJournals` |
 | Query Parameters | JSON, for example filters or pagination |
-| Body | JSON. A DELETE sends it only when it is not empty, for bulk deletes. GET has its own Body field, sent only when not empty, for example product label options |
+| Body | JSON, shown for POST, PATCH, PUT and DELETE. A DELETE sends it only when it is not empty, for bulk deletes. n8n's HTTP helper never sends a body with GET, so a GET endpoint that reads one (the product label download options) runs with its defaults |
 | Content Type | `application/json` by default. Some endpoints need a vendor type such as `application/vnd.xentral.minimal+json` |
 | Accept | Empty by default, which asks for JSON, or any type in Text and File mode. Set `application/pdf` to download a document such as an invoice as PDF |
 | Response Format | JSON by default. Text returns the body in `data`. File keeps a download such as a CSV or ZIP export as binary data in the field you name |
@@ -274,10 +276,10 @@ npm run lint    # n8n verification rule set, must report zero problems
 - Product Age Rating None now clears the rating instead of being ignored.
 - Liability Status no longer lists Cancelled. Xentral has no such status and a saved Cancelled always failed. It still fails, with the same message, so pick Pending or Paid.
 - Product ID on a line item update and Product Number on a line item add or update are no longer sent, because Xentral V3 accepts neither and ignored them. To change a line item's product, delete it and add a new one.
+- Sales Order and Return Get Many with the Sent filter now return documents marked as sent (`isDocumentSent`). Before, the filter asked for a status Xentral does not have.
 - The trigger ignores deliveries whose event type is not the one it is set to. Before, a webhook registered with extra events started the workflow for all of them.
 - To remove a price's Valid From or Expires At, use an expression that returns null.
 - Product Update sends an empty Description, Short Description, Internal Comment, EAN, Customs Tariff Number, Disabled Reason or Region of Origin to clear it, and an empty Country of Origin as null. Before, an empty value was dropped.
-- Custom API Call has a separate Body field for GET. Saved GET calls never send the Body field of the other methods, and an empty GET body is not sent, so they behave as before.
 
 ## Compatibility
 

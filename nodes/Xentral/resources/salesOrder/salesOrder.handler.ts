@@ -83,7 +83,13 @@ export async function handleSalesOrder(
 		const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 		const query: IDataObject = {};
 		let filterIndex = 0;
-		if (filters.status !== undefined && filters.status !== '') {
+		if (filters.status === 'sent') {
+			// Sent is not a status here, Xentral tracks it as isDocumentSent.
+			query[`filter[${filterIndex}][key]`] = 'isDocumentSent';
+			query[`filter[${filterIndex}][op]`] = 'equals';
+			query[`filter[${filterIndex}][value]`] = 'true';
+			filterIndex++;
+		} else if (filters.status !== undefined && filters.status !== '') {
 			query[`filter[${filterIndex}][key]`] = 'status';
 			query[`filter[${filterIndex}][op]`] = 'equals';
 			query[`filter[${filterIndex}][value]`] = filters.status;
