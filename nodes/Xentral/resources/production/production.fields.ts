@@ -16,7 +16,7 @@ export const productionFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The ID of the product to produce. Used as produceProduct.id in the API.',
+		description: 'The ID of the product to produce. Sent to the API as the produced product reference.',
 	},
 	{
 		displayName: 'Quantity (to Produce)',
@@ -119,6 +119,29 @@ export const productionFields: INodeProperties[] = [
 				description: 'ID of the preferred warehouse',
 			},
 			{
+				displayName: 'Print Settings',
+				name: 'printSettings',
+				type: 'fixedCollection',
+				default: {},
+				placeholder: 'Add Print Setting',
+				options: [
+					{
+						displayName: 'Settings',
+						name: 'settings',
+						values: [
+							{
+								displayName: 'Show Task Description',
+								name: 'showTaskDescription',
+								type: 'boolean',
+								default: false,
+								description: 'Whether to show the task description on the production order',
+							},
+						],
+					},
+				],
+				description: 'Print settings for the document',
+			},
+			{
 				displayName: 'Production End Date',
 				name: 'productionEndDate',
 				type: 'string',
@@ -173,29 +196,6 @@ export const productionFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'Date for stock retrieval (ISO 8601)',
-			},
-			{
-				displayName: 'Print Settings',
-				name: 'printSettings',
-				type: 'fixedCollection',
-				default: {},
-				placeholder: 'Add Print Setting',
-				options: [
-					{
-						displayName: 'Settings',
-						name: 'settings',
-						values: [
-							{
-								displayName: 'Show Task Description',
-								name: 'showTaskDescription',
-								type: 'boolean',
-								default: false,
-								description: 'Whether to show the task description on the production order',
-							},
-						],
-					},
-				],
-				description: 'Print settings for the document',
 			},
 			{
 				displayName: 'Tags',

@@ -39,18 +39,18 @@ export const salesPriceFields: INodeProperties[] = [
 				description: 'The quantity/amount for this price entry',
 			},
 			{
-				displayName: 'Customer ID',
-				name: 'customerId',
-				type: 'string',
-				default: '',
-				description: 'The ID of a specific customer for this price (nullable)',
-			},
-			{
 				displayName: 'Customer Group ID',
 				name: 'customerGroupId',
 				type: 'string',
 				default: '',
 				description: 'The ID of the customer group for this price (nullable)',
+			},
+			{
+				displayName: 'Customer ID',
+				name: 'customerId',
+				type: 'string',
+				default: '',
+				description: 'The ID of a specific customer for this price (nullable)',
 			},
 			{
 				displayName: 'Customer Product Number',
@@ -193,18 +193,18 @@ export const salesPriceFields: INodeProperties[] = [
 				description: 'The quantity/amount for this price entry',
 			},
 			{
-				displayName: 'Customer ID',
-				name: 'customerId',
-				type: 'string',
-				default: '',
-				description: 'The ID of a specific customer (set empty to clear)',
-			},
-			{
 				displayName: 'Customer Group ID',
 				name: 'customerGroupId',
 				type: 'string',
 				default: '',
 				description: 'The ID of the customer group (set empty to clear)',
+			},
+			{
+				displayName: 'Customer ID',
+				name: 'customerId',
+				type: 'string',
+				default: '',
+				description: 'The ID of a specific customer (set empty to clear)',
 			},
 			{
 				displayName: 'Customer Product Number',

@@ -1,183 +1,178 @@
 <p align="center">
-  <img src="https://unpkg.com/n8n-nodes-xentral@1.0.0/dist/nodes/Xentral/xentral.svg" alt="Xentral" width="80" />
+  <img src="https://raw.githubusercontent.com/mjmirza/n8n-nodes-xentral/master/docs/assets/xentral-icon.png" alt="Xentral node icon" width="80" height="80" />
 </p>
 
-<h1 align="center">n8n-nodes-xentral</h1>
+# n8n-nodes-xentral
 
-<p align="center">
-  <strong>The most comprehensive n8n community node for Xentral ERP</strong><br/>
-  Built, maintained, and owned by <a href="https://next8n.com">next8n</a>
-</p>
+Connect Xentral ERP to n8n. 30 resources, 196 operations, and a webhook trigger for 73 Xentral events.
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/n8n-nodes-xentral"><img src="https://img.shields.io/npm/v/n8n-nodes-xentral?style=for-the-badge&color=CB3837&label=npm" alt="npm version" /></a>
-  <a href="https://www.npmjs.com/package/n8n-nodes-xentral"><img src="https://img.shields.io/npm/dt/n8n-nodes-xentral?style=for-the-badge&color=blue&label=downloads" alt="npm downloads" /></a>
-  <a href="#license"><img src="https://img.shields.io/badge/license-FUCL-orange?style=for-the-badge" alt="License" /></a>
-  <img src="https://img.shields.io/badge/Xentral-ERP-00C4B4?style=for-the-badge" alt="Xentral ERP" />
-  <img src="https://img.shields.io/badge/n8n-Community_Node-FF6D5A?style=for-the-badge" alt="n8n Community Node" />
-  <img src="https://img.shields.io/badge/API-V1_+_V2_+_V3-7B61FF?style=for-the-badge" alt="API V1 + V2 + V3" />
-  <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/AI_Agent-Compatible-10A37F?style=for-the-badge" alt="AI Agent Compatible" />
-  <img src="https://img.shields.io/badge/Resources-30-success?style=for-the-badge" alt="30 Resources" />
-  <img src="https://img.shields.io/badge/Operations-196-success?style=for-the-badge" alt="196 Operations" />
-  <img src="https://img.shields.io/badge/Webhook_Events-58-success?style=for-the-badge" alt="73 Webhook Events" />
-  <img src="https://img.shields.io/badge/API_Audit-Verified-brightgreen?style=for-the-badge" alt="API Audit Verified" />
-  <img src="https://img.shields.io/badge/Maintained-Active-brightgreen?style=for-the-badge" alt="Actively Maintained" />
-  <img src="https://img.shields.io/badge/Built_on-Official_Xentral_API-00C4B4?style=for-the-badge" alt="Official Xentral API" />
-</p>
+[![npm version](https://img.shields.io/npm/v/n8n-nodes-xentral?label=npm)](https://www.npmjs.com/package/n8n-nodes-xentral)
+[![npm downloads](https://img.shields.io/npm/dm/n8n-nodes-xentral?label=downloads)](https://www.npmjs.com/package/n8n-nodes-xentral)
+[![CI](https://img.shields.io/github/actions/workflow/status/mjmirza/n8n-nodes-xentral/ci.yml?branch=master&label=CI)](https://github.com/mjmirza/n8n-nodes-xentral/actions/workflows/ci.yml)
+[![License MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Signed with npm provenance](https://img.shields.io/badge/npm-provenance%20signed-2ea44f)](https://www.npmjs.com/package/n8n-nodes-xentral#provenance)
 
----
+## What is this?
 
-## We automate Xentral. For a living.
+Xentral is an ERP used by e-commerce, wholesale and manufacturing teams to run orders, invoices, stock and shipping. This package adds two nodes to n8n so those records can move between Xentral and every other tool you use, without writing code.
 
-We have successfully delivered Xentral + n8n automation for numerous clients across **e-commerce**, **manufacturing**, **wholesale**, and **3PL**. From email-to-offer generation to full order-to-cash pipelines - we build production-ready workflows that run 24/7.
-
-**This node exists because we needed it for real client projects. We built it from the official Xentral API documentation, we maintain it, and we own the intellectual property.**
-
-If you're using Xentral and looking to automate your business processes - offers, orders, invoices, warehouse, shipping, customer management - we've done it before and would be happy to do it for you.
-
-<p align="center">
-  <a href="https://services.next8n.com"><img src="https://img.shields.io/badge/Book_a_Free_Consultation-services.next8n.com-FF6D5A?style=for-the-badge&logoColor=white" alt="Book a consultation" /></a>
-</p>
-
-<p align="center">
-  <a href="https://next8n.com"><strong>next8n.com</strong></a> &nbsp;|&nbsp; <a href="https://services.next8n.com"><strong>Schedule a call</strong></a>
-</p>
-
----
+It is for operations teams and automation builders who already run Xentral and want orders, documents and stock to flow on their own.
 
 ## What you get
 
+- **Orders that create themselves.** A web shop order, a form or an email turns into a Xentral sales order, offer or invoice without anyone typing it in.
+- **Documents that leave on time.** Release and send offers, invoices, delivery notes and purchase orders the moment the data is complete, with line items and attachments.
+- **Stock you can act on.** Read and update products, prices, warehouses and storage locations, and book goods receipts against purchase orders or returns.
+- **Reactions within seconds.** The Xentral Trigger starts a workflow when an order is created, a delivery note is sent or a product changes, so nothing waits for a nightly export.
+- **Searches that find the right product.** Product search matches the article number, the EAN and the name, with article number matches first.
+- **Safe defaults.** HTTPS only, internal network addresses blocked, IDs validated before they reach a URL, and Xentral error details shown in the n8n UI.
+- **Works with AI agents.** Both nodes are marked as tools, so an n8n AI Agent can call Xentral operations directly.
+
+## From install to first result
+
+1. In n8n open **Settings**, then **Community Nodes**, click **Install**, and enter `n8n-nodes-xentral`.
+2. In Xentral create a Personal Access Token under **Administration**, **Account settings**, **Developer Settings**, **Personal Access Tokens** (admin rights required, see the [Xentral authentication guide](https://developer.xentral.com/reference/authentication)).
+3. In n8n add a **Xentral API** credential with your instance URL, for example `https://yourcompany.xentral.com`, and paste the token exactly as Xentral shows it. Click **Test** to confirm the connection.
+4. Add a **Xentral** node to a workflow, choose **Product** and **Get Many**, and run it.
+5. Your Xentral products appear as items in the output panel, and you can filter them, map them or pass them to any other node.
+
+## Nodes
+
 | Node | Type | What it does |
-|------|------|-------------|
-| **Xentral** | Action Node | Full CRUD across 30 resources with 196 operations - customers, products, offers, orders, invoices, warehouse, shipping, and more |
-| **Xentral Trigger** | Webhook Node | Real-time event listener for 73 Xentral event types - orders, products, customers, invoices, delivery notes, returns |
+|------|------|--------------|
+| Xentral | Action | Create, read, update and delete records across 30 resources |
+| Xentral Trigger | Webhook | Starts a workflow on 73 Xentral events and registers the webhook in Xentral for you |
 
-**AI Agent ready** - Both nodes work with `usableAsTool: true`, so you can plug them directly into n8n AI Agent workflows for intelligent automation.
+## Resources and operations
 
----
+| Resource | Operations |
+|----------|------------|
+| Address | Create, Get Many, Update, Delete |
+| Contact | Create, Delete, Get, Get Many, Update |
+| Credit Note | Add Line Item, Attach File, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Set Write Protection, Update, Update Line Item |
+| Customer | Create, Delete, Get, Get Many, Search, Update |
+| Delivery Note | Add Line Item, Attach File, Cancel, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
+| Delivery Term | Get Many |
+| Employee | Get Many |
+| Goods Receipt | Create for Purchase Order, Create for Return |
+| Invoice | Add Line Item, Attach File, Create, Create From Sales Order, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
+| Liability | Create, Get, Get Many, Release, Upload Document |
+| Offer | Add Line Item, Attach File, Cancel, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
+| Payment Method | Get Many |
+| Payment Terms Group | Create, Get, Get Many |
+| Product | Create, Delete, Get, Get Many, Search, Update |
+| Production | Attach File, Create, Delete, Get, Get Many, Log Activity, Release, Start |
+| Proforma Invoice | Add Line Item, Attach File, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Set Write Protection, Update, Update Line Item |
+| Project | Get Many |
+| Purchase Order | Add Line Item, Attach File, Cancel, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
+| Purchase Price | Create, Delete, Get, Get Many, Update |
+| Return | Add Line Item, Attach File, Cancel, Create, Create From Delivery Note, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
+| Sales Channel | Get Many |
+| Sales Order | Add Line Item, Attach File, Cancel, Create, Delete, Delete Line Item, Get, Get Many, Log Activity, Release, Remove Write Protection, Send, Set Write Protection, Update, Update Line Item |
+| Sales Price | Create, Delete, Get, Get Many, Update |
+| Shipment | Create, Get |
+| Shipping Method | Create, Get, Get Many, Update |
+| Storage Location | Create, Get Many, Update, Delete |
+| Supplier | Get, Get Many, Search, Update |
+| Tag | Create, Get Many |
+| Warehouse | Create, Get Many, Update, Delete |
+| Webhook | Create, Delete, Get, Get Many, Update |
 
-## Supported Resources (30)
+## Trigger events
 
-### CRM & Contacts
-Customer, Supplier, Address, Contact Person, Employee
+| Object | Events |
+|--------|--------|
+| Credit Note | Created (Unverified), Updated (Unverified) |
+| Customer | Created, Deleted, Updated |
+| Delivery Note | Archived, Created, Released, Sent, Updated |
+| Goods Receipt | Completed, Created, Deleted, Updated |
+| Invoice | Created (Unverified), Sent (Unverified), Updated (Unverified) |
+| Product Category | Created, Deleted, Updated |
+| Product | Created, Deleted, Properties Created, Properties Deleted, Properties Updated, Sync Started, Tags Replaced, Updated, Variant Created |
+| Production | Canceled, Completed, Created, Deleted, Released, Started, Updated |
+| Purchase Order | Archived, Canceled, Created, Deleted, Protocol Created, Released, Sent, Updated |
+| Purchase Price | Created, Deleted, Updated |
+| Return | Archived, Canceled, Created, Released, Sent, Updated |
+| Sales Order Position | Created, Deleted, Delivered, Updated |
+| Sales Order Reservation | Confirmed, Created, Deleted, Updated |
+| Sales Order | Archived, Created, Deleted, Dispatched, Imported, Protocol Created, Released, Sent, Updated |
+| Sales Price | Created, Deleted, Updated |
 
-### Products & Pricing
-Product, Sales Price, Purchase Price, Sales Channel
+Events marked Unverified are listed in the Xentral event catalogue but have not been observed firing on a live instance yet.
 
-### Business Documents (Full Lifecycle)
-**Offer** (Angebot), **Sales Order** (Auftrag), **Invoice** (Rechnung), **Credit Note** (Gutschrift), **Delivery Note** (Lieferschein), **Proforma Invoice**, **Purchase Order** (Bestellung), **Return** (Retoure)
+## Credentials
 
-Each document supports operations like: Create, Get, Get Many, Update, Delete, Add/Update/Delete Line Items, Release, Send, Cancel, Log Activity, Write Protection, Attach File (varies per document type)
+The **Xentral API** credential needs two values.
 
-### Warehouse & Logistics
-Warehouse, Storage Location, Goods Receipt, Shipment, Production
+| Field | Where to find it |
+|-------|------------------|
+| Instance URL | The address you use to open Xentral, for example `https://yourcompany.xentral.com`. HTTPS is required. |
+| Access Token | A Personal Access Token from **Administration**, **Account settings**, **Developer Settings**, **Personal Access Tokens**. Paste the full token (`2|abc...`) or only the part after the pipe, both work. |
 
-### Finance & Settings
-Liability, Payment Method, Payment Terms Group, Shipping Method, Delivery Terms, Tag, Project, Webhook
+Creating a token needs admin rights in Xentral. The [Xentral authentication guide](https://developer.xentral.com/reference/authentication) shows each step. The token stays in the n8n credential store and is only sent to your own Xentral instance.
 
----
+## Technical overview
 
-## 73 Webhook Trigger Events
+| Area | Choice |
+|------|--------|
+| Language | TypeScript, strict mode |
+| Runtime dependencies | None. `n8n-workflow` is a peer dependency provided by n8n |
+| Xentral APIs | V1, V2 and V3, chosen per operation |
+| Pagination | Cursor, page number and V3 pages, handled per endpoint |
+| Errors | Xentral problem details (RFC 9457) surfaced through `NodeApiError` |
+| Retries | 429, 502, 503 and 504 retried with exponential backoff, jitter and `Retry-After` |
+| Lint | The same rule set n8n uses to verify community packages |
+| Release | Signed npm provenance from GitHub Actions |
 
-Real-time notifications for: Sales Orders, Products, Customers, Purchase Orders, Returns, Delivery Notes, Invoices, Credit Notes, Sales/Purchase Prices, **Goods Receipts, Production, Sales Order Reservations** - including created, updated, deleted, released, sent, dispatched, archived, started, completed, confirmed, and more.
+### Project structure
 
----
-
-## API Audit Verified
-
-Every single endpoint in this node has been tested against the live Xentral API:
-
-- **All 196 operations** verified to point to existing, working API routes
-- **Zero 404 "Route not found" errors** on any non-feature-flag endpoint
-- **Correct field structures** validated for all create/update operations
-- **Security hardened** - ID sanitization, SSRF protection, endpoint validation
-
----
-
-## Installation
-
-### From n8n (Recommended)
-1. Go to **Settings > Community Nodes**
-2. Enter `n8n-nodes-xentral`
-3. Click **Install**
-
-### Manual
-```bash
-cd ~/.n8n/nodes
-npm install n8n-nodes-xentral
+```text
+credentials/          Xentral API credential, icons, credential test
+nodes/Xentral/
+  Xentral.node.ts         action node and resource routing
+  XentralTrigger.node.ts  webhook trigger with signature checks
+  transport.ts            HTTP, pagination, retries, URL and ID validation
+  resources/<name>/       operations, fields and handler per resource
+scripts/copy-assets.mjs icon copy step for the build
+test/                 node test runner suites
+docs/assets/          images for this README
 ```
 
----
+### Build, test and lint
 
-## Quick Setup
+Requires Node.js 22 or newer.
 
-1. Install the node in n8n
-2. Create a **Personal Access Token** in Xentral: *Administration > Account Settings > Developer Settings > Personal Access Tokens*
-3. Add **Xentral API** credentials in n8n with your instance URL and token - just paste the token exactly as Xentral shows it (e.g. `2|abc...xyz`), the node handles the rest automatically
-4. Start building workflows
+```bash
+npm ci
+npm run build   # compile TypeScript and copy icons into dist/
+npm test        # build, then run the unit tests
+npm run lint    # n8n verification rule set, must report zero problems
+```
 
----
+### Release flow
 
-## Why this node?
+1. Bump `version` in `package.json` and add a `CHANGELOG.md` entry on a branch.
+2. Open a pull request. CI builds, lints and tests it.
+3. After merge, tag the merge commit with `v<version>` and push the tag.
+4. The Publish workflow checks that the tag matches `package.json`, runs the tests, and publishes to npm with `--provenance`, which signs the package against that exact commit.
 
-- **API audit verified** - every endpoint tested against the live Xentral API
-- **Built from the official Xentral API documentation** - not a wrapper around an outdated legacy API
-- **Triple API support** - Seamlessly routes operations to V1, V2, or V3 depending on what works best
-- **Three pagination strategies** handled automatically - cursor-based, page-number, and V3 pagination
-- **Security hardened** - ID sanitization, SSRF protection, endpoint regex validation
-- **Full TypeScript** with strict typing
-- **RFC 9457 error parsing** - clear, actionable error messages from Xentral
-- **Production-tested** - used in real client automation workflows
-- **Actively maintained** by the team that built it
+## Compatibility
 
----
+| Item | Status |
+|------|--------|
+| n8n | Built and type checked against `n8n-workflow` 2.45.4, the n8n stable line |
+| Self-hosted n8n | Supported |
+| n8n Cloud | Available once n8n verifies the package. It passes the n8n community package scanner |
+| Node.js | 22 or newer |
 
-## Need more than a node?
+## Support
 
-This community node covers the core Xentral operations. But if you need:
-
-- **Custom workflow design** - email-to-offer, order-to-invoice, warehouse automation
-- **Xentral + Shopify / WooCommerce** sync workflows
-- **AI-powered** document classification, data extraction, automated responses
-- **Advanced integrations** - carrier APIs, accounting exports, analytics pipelines
-- **Ongoing maintenance** and monitoring of your automation
-
-We've delivered all of this for our clients and would be happy to discuss your specific requirements.
-
-<p align="center">
-  <a href="https://services.next8n.com"><img src="https://img.shields.io/badge/Book_a_Free_Consultation-services.next8n.com-FF6D5A?style=for-the-badge&logoColor=white" alt="Book a consultation" /></a>
-</p>
-
----
+- Bugs and feature requests go to [GitHub issues](https://github.com/mjmirza/n8n-nodes-xentral/issues).
+- Other questions, custom workflows or Xentral automation projects go to support@next8n.com.
+- More about the maintainers is at [next8n.com](https://next8n.com).
 
 ## License
 
-**Fair Use Code License (FUCL)**
+[MIT](LICENSE). Copyright (c) 2026 Mirza Iqbal.
 
-Copyright (c) 2026 Mirza Iqbal / [next8n](https://next8n.com). All rights reserved.
-
-This node is published as an n8n community node for the benefit of the Xentral + n8n ecosystem. However, the intellectual property, source code, and all associated rights are owned exclusively by the copyright holder.
-
-**Permitted:**
-- Install and use this node for your own internal workflows and business automation
-
-**Prohibited without explicit written consent:**
-- Copying, forking, or reproducing the source code in any form
-- Commercial redistribution, resale, sublicensing, or white-labeling
-- Creating derivative works or competing products based on this code
-- Public redistribution of modified or unmodified versions
-- Using the Software as part of a commercial service offering
-- Removing or altering copyright notices or attribution
-
-**Attribution:** This node was developed and is actively maintained by [next8n](https://next8n.com). Attribution must be preserved in all copies.
-
-This software is provided "as is", without warranty of any kind, express or implied.
-
-**We built it. We maintain it. We own the rights to the code.**
-
-**Trademark & legal notice:** "Xentral" and the Xentral logo are trademarks of Xentral ERP Software GmbH. We do not claim ownership of the Xentral brand or logo. This node was developed independently using publicly available API documentation for the purpose of interoperability, as permitted under EU Directive 2009/24/EC (Software Directive, Article 6) and applicable law. No Xentral proprietary code is included -- all interactions use publicly documented REST API endpoints. This is an original, independently authored work; the entire source code is the intellectual property of the copyright holder. The use of third-party APIs for interoperability purposes does not constitute infringement under EU or international law (see also Google LLC v. Oracle America, Inc., 593 U.S. 1 (2021) on API fair use).
-
-Interested in collaborating or contributing? We're open to partnerships. Let's talk.
-
-For commercial licensing, partnership, or custom development: [services.next8n.com](https://services.next8n.com)
+"Xentral" and the Xentral logo are trademarks of Xentral ERP Software GmbH. This project is independent and is not affiliated with or endorsed by Xentral ERP Software GmbH. It talks to Xentral only through the publicly documented REST API.

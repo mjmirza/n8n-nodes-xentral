@@ -19,6 +19,12 @@ export const contactOperations: INodeProperties[] = [
 				action: 'Create a contact',
 			},
 			{
+				name: 'Delete',
+				value: 'delete',
+				description: 'Delete a contact',
+				action: 'Delete a contact',
+			},
+			{
 				name: 'Get',
 				value: 'get',
 				description: 'Get a contact by ID',
@@ -35,12 +41,6 @@ export const contactOperations: INodeProperties[] = [
 				value: 'update',
 				description: 'Update a contact',
 				action: 'Update a contact',
-			},
-			{
-				name: 'Delete',
-				value: 'delete',
-				description: 'Delete a contact',
-				action: 'Delete a contact',
 			},
 		],
 		default: 'getAll',

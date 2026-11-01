@@ -19,6 +19,12 @@ export const purchasePriceOperations: INodeProperties[] = [
 				action: 'Create a purchase price',
 			},
 			{
+				name: 'Delete',
+				value: 'delete',
+				description: 'Delete a purchase price',
+				action: 'Delete a purchase price',
+			},
+			{
 				name: 'Get',
 				value: 'get',
 				description: 'Get a purchase price by ID',
@@ -35,12 +41,6 @@ export const purchasePriceOperations: INodeProperties[] = [
 				value: 'update',
 				description: 'Update a purchase price',
 				action: 'Update a purchase price',
-			},
-			{
-				name: 'Delete',
-				value: 'delete',
-				description: 'Delete a purchase price',
-				action: 'Delete a purchase price',
 			},
 		],
 		default: 'getAll',

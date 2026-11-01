@@ -117,13 +117,6 @@ export const purchasePriceFields: INodeProperties[] = [
 				description: 'The package amount for this price',
 			},
 			{
-				displayName: 'Supplier ID',
-				name: 'supplierId',
-				type: 'string',
-				default: '',
-				description: 'The ID of the supplier',
-			},
-			{
 				displayName: 'Supplier Designation',
 				name: 'supplierDesignation',
 				type: 'string',
@@ -131,11 +124,17 @@ export const purchasePriceFields: INodeProperties[] = [
 				description: 'The supplier designation for this product',
 			},
 			{
+				displayName: 'Supplier ID',
+				name: 'supplierId',
+				type: 'string',
+				default: '',
+				description: 'The ID of the supplier',
+			},
+			{
 				displayName: 'Supplier Item Number',
 				name: 'supplierItemNumber',
 				type: 'string',
 				default: '',
-				description: 'The supplier item number',
 			},
 		],
 	},

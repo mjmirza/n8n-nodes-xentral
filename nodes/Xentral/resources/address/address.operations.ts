@@ -21,7 +21,7 @@ export const addressOperations: INodeProperties[] = [
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				description: 'Get all addresses for a customer',
+				description: 'Get many addresses for a customer',
 				action: 'Get many addresses',
 			},
 			{

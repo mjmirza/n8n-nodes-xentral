@@ -33,7 +33,7 @@ export class XentralTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Xentral Trigger',
 		name: 'xentralTrigger',
-		icon: 'file:xentral.svg',
+		icon: { light: 'file:xentral.svg', dark: 'file:xentral.dark.svg' },
 		group: ['trigger'],
 		version: 1,
 		subtitle: '={{$parameter["event"]}}',
@@ -66,92 +66,92 @@ export class XentralTrigger implements INodeType {
 				default: 'salesOrder.created',
 				options: [
 					// Sales Order events
-					{ name: 'Sales Order - Created', value: 'salesOrder.created' },
-					{ name: 'Sales Order - Updated', value: 'salesOrder.updated' },
-					{ name: 'Sales Order - Deleted', value: 'salesOrder.deleted' },
-					{ name: 'Sales Order - Sent', value: 'salesOrder.sent' },
-					{ name: 'Sales Order - Imported', value: 'salesOrder.imported' },
-					{ name: 'Sales Order - Released', value: 'salesOrder.released' },
-					{ name: 'Sales Order - Dispatched', value: 'salesOrder.dispatched' },
-					{ name: 'Sales Order - Archived', value: 'salesOrder.archived' },
-					{ name: 'Sales Order - Protocol Created', value: 'salesOrder.protocolCreated' },
-					// Sales Order Position events
-					{ name: 'Sales Order Position - Created', value: 'salesOrderPosition.created' },
-					{ name: 'Sales Order Position - Updated', value: 'salesOrderPosition.updated' },
-					{ name: 'Sales Order Position - Deleted', value: 'salesOrderPosition.deleted' },
-					{ name: 'Sales Order Position - Delivered', value: 'salesOrderPosition.delivered' },
-					// Product events
-					{ name: 'Product - Created', value: 'product.created' },
-					{ name: 'Product - Updated', value: 'product.updated' },
-					{ name: 'Product - Deleted', value: 'product.deleted' },
-					{ name: 'Product - Properties Created', value: 'product.propertiesCreated' },
-					{ name: 'Product - Properties Updated', value: 'product.propertiesUpdated' },
-					{ name: 'Product - Properties Deleted', value: 'product.propertiesDeleted' },
-					{ name: 'Product - Tags Replaced', value: 'product.tagsReplaced' },
-					{ name: 'Product - Variant Created', value: 'product.variantCreated' },
-					{ name: 'Product - Sync Started', value: 'product.syncStarted' },
-					// Product Category events
-					{ name: 'Product Category - Created', value: 'productCategory.created' },
-					{ name: 'Product Category - Updated', value: 'productCategory.updated' },
-					{ name: 'Product Category - Deleted', value: 'productCategory.deleted' },
-					// Price events
-					{ name: 'Sales Price - Created', value: 'salesPrice.created' },
-					{ name: 'Sales Price - Updated', value: 'salesPrice.updated' },
-					{ name: 'Sales Price - Deleted', value: 'salesPrice.deleted' },
-					{ name: 'Purchase Price - Created', value: 'purchasePrice.created' },
-					{ name: 'Purchase Price - Updated', value: 'purchasePrice.updated' },
-					{ name: 'Purchase Price - Deleted', value: 'purchasePrice.deleted' },
-					// Customer events
+					{ name: 'Credit Note - Created (Unverified)', value: 'creditNote.created' },
+					{ name: 'Credit Note - Updated (Unverified)', value: 'creditNote.updated' },
 					{ name: 'Customer - Created', value: 'customer.created' },
-					{ name: 'Customer - Updated', value: 'customer.updated' },
 					{ name: 'Customer - Deleted', value: 'customer.deleted' },
-					// Purchase Order events
-					{ name: 'Purchase Order - Created', value: 'purchaseOrder.created' },
-					{ name: 'Purchase Order - Updated', value: 'purchaseOrder.updated' },
-					{ name: 'Purchase Order - Sent', value: 'purchaseOrder.sent' },
-					{ name: 'Purchase Order - Released', value: 'purchaseOrder.released' },
-					{ name: 'Purchase Order - Canceled', value: 'purchaseOrder.canceled' },
-					{ name: 'Purchase Order - Archived', value: 'purchaseOrder.archived' },
-					{ name: 'Purchase Order - Deleted', value: 'purchaseOrder.deleted' },
-					{ name: 'Purchase Order - Protocol Created', value: 'purchaseOrder.protocolCreated' },
-					// Return events
-					{ name: 'Return - Created', value: 'return.created' },
-					{ name: 'Return - Updated', value: 'return.updated' },
-					{ name: 'Return - Released', value: 'return.released' },
-					{ name: 'Return - Sent', value: 'return.sent' },
-					{ name: 'Return - Archived', value: 'return.archived' },
-					{ name: 'Return - Canceled', value: 'return.canceled' },
-					// Delivery Note events
+					{ name: 'Customer - Updated', value: 'customer.updated' },
+					{ name: 'Delivery Note - Archived', value: 'deliveryNote.archived' },
 					{ name: 'Delivery Note - Created', value: 'deliveryNote.created' },
-					{ name: 'Delivery Note - Updated', value: 'deliveryNote.updated' },
 					{ name: 'Delivery Note - Released', value: 'deliveryNote.released' },
 					{ name: 'Delivery Note - Sent', value: 'deliveryNote.sent' },
-					{ name: 'Delivery Note - Archived', value: 'deliveryNote.archived' },
-					// Invoice events (unverified - may not be supported by all Xentral instances)
-					{ name: 'Invoice - Created (unverified)', value: 'invoice.created' },
-					{ name: 'Invoice - Updated (unverified)', value: 'invoice.updated' },
-					{ name: 'Invoice - Sent (unverified)', value: 'invoice.sent' },
-					// Credit Note events (unverified - may not be supported by all Xentral instances)
-					{ name: 'Credit Note - Created (unverified)', value: 'creditNote.created' },
-					{ name: 'Credit Note - Updated (unverified)', value: 'creditNote.updated' },
-					// Goods Receipt events (added 2026-03-18 — Xentral API update)
-					{ name: 'Goods Receipt - Created', value: 'goodsReceipt.created' },
-					{ name: 'Goods Receipt - Updated', value: 'goodsReceipt.updated' },
-					{ name: 'Goods Receipt - Deleted', value: 'goodsReceipt.deleted' },
+					// Sales Order Position events
+					{ name: 'Delivery Note - Updated', value: 'deliveryNote.updated' },
 					{ name: 'Goods Receipt - Completed', value: 'goodsReceipt.completed' },
-					// Production events (added 2026-03-18 — Xentral API update)
+					{ name: 'Goods Receipt - Created', value: 'goodsReceipt.created' },
+					{ name: 'Goods Receipt - Deleted', value: 'goodsReceipt.deleted' },
+					// Product events
+					{ name: 'Goods Receipt - Updated', value: 'goodsReceipt.updated' },
+					{ name: 'Invoice - Created (Unverified)', value: 'invoice.created' },
+					{ name: 'Invoice - Sent (Unverified)', value: 'invoice.sent' },
+					{ name: 'Invoice - Updated (Unverified)', value: 'invoice.updated' },
+					{ name: 'Product - Created', value: 'product.created' },
+					{ name: 'Product - Deleted', value: 'product.deleted' },
+					{ name: 'Product - Properties Created', value: 'product.propertiesCreated' },
+					{ name: 'Product - Properties Deleted', value: 'product.propertiesDeleted' },
+					{ name: 'Product - Properties Updated', value: 'product.propertiesUpdated' },
+					// Product Category events
+					{ name: 'Product - Sync Started', value: 'product.syncStarted' },
+					{ name: 'Product - Tags Replaced', value: 'product.tagsReplaced' },
+					{ name: 'Product - Updated', value: 'product.updated' },
+					// Price events
+					{ name: 'Product - Variant Created', value: 'product.variantCreated' },
+					{ name: 'Product Category - Created', value: 'productCategory.created' },
+					{ name: 'Product Category - Deleted', value: 'productCategory.deleted' },
+					{ name: 'Product Category - Updated', value: 'productCategory.updated' },
+					{ name: 'Production - Canceled', value: 'production.canceled' },
+					{ name: 'Production - Completed', value: 'production.completed' },
+					// Customer events
 					{ name: 'Production - Created', value: 'production.created' },
-					{ name: 'Production - Updated', value: 'production.updated' },
 					{ name: 'Production - Deleted', value: 'production.deleted' },
 					{ name: 'Production - Released', value: 'production.released' },
+					// Purchase Order events
 					{ name: 'Production - Started', value: 'production.started' },
-					{ name: 'Production - Completed', value: 'production.completed' },
-					{ name: 'Production - Canceled', value: 'production.canceled' },
-					// Customer Order Reservation events (added 2026-03-18 — Xentral API update)
-					{ name: 'Sales Order Reservation - Created', value: 'salesOrderReservation.created' },
-					{ name: 'Sales Order Reservation - Updated', value: 'salesOrderReservation.updated' },
-					{ name: 'Sales Order Reservation - Deleted', value: 'salesOrderReservation.deleted' },
+					{ name: 'Production - Updated', value: 'production.updated' },
+					{ name: 'Purchase Order - Archived', value: 'purchaseOrder.archived' },
+					{ name: 'Purchase Order - Canceled', value: 'purchaseOrder.canceled' },
+					{ name: 'Purchase Order - Created', value: 'purchaseOrder.created' },
+					{ name: 'Purchase Order - Deleted', value: 'purchaseOrder.deleted' },
+					{ name: 'Purchase Order - Protocol Created', value: 'purchaseOrder.protocolCreated' },
+					{ name: 'Purchase Order - Released', value: 'purchaseOrder.released' },
+					// Return events
+					{ name: 'Purchase Order - Sent', value: 'purchaseOrder.sent' },
+					{ name: 'Purchase Order - Updated', value: 'purchaseOrder.updated' },
+					{ name: 'Purchase Price - Created', value: 'purchasePrice.created' },
+					{ name: 'Purchase Price - Deleted', value: 'purchasePrice.deleted' },
+					{ name: 'Purchase Price - Updated', value: 'purchasePrice.updated' },
+					{ name: 'Return - Archived', value: 'return.archived' },
+					// Delivery Note events
+					{ name: 'Return - Canceled', value: 'return.canceled' },
+					{ name: 'Return - Created', value: 'return.created' },
+					{ name: 'Return - Released', value: 'return.released' },
+					{ name: 'Return - Sent', value: 'return.sent' },
+					{ name: 'Return - Updated', value: 'return.updated' },
+					// Invoice events (unverified - may not be supported by all Xentral instances)
+					{ name: 'Sales Order - Archived', value: 'salesOrder.archived' },
+					{ name: 'Sales Order - Created', value: 'salesOrder.created' },
+					{ name: 'Sales Order - Deleted', value: 'salesOrder.deleted' },
+					// Credit Note events (unverified - may not be supported by all Xentral instances)
+					{ name: 'Sales Order - Dispatched', value: 'salesOrder.dispatched' },
+					{ name: 'Sales Order - Imported', value: 'salesOrder.imported' },
+					// Goods Receipt events (added 2026-03-18 — Xentral API update)
+					{ name: 'Sales Order - Protocol Created', value: 'salesOrder.protocolCreated' },
+					{ name: 'Sales Order - Released', value: 'salesOrder.released' },
+					{ name: 'Sales Order - Sent', value: 'salesOrder.sent' },
+					{ name: 'Sales Order - Updated', value: 'salesOrder.updated' },
+					// Production events (added 2026-03-18 — Xentral API update)
+					{ name: 'Sales Order Position - Created', value: 'salesOrderPosition.created' },
+					{ name: 'Sales Order Position - Deleted', value: 'salesOrderPosition.deleted' },
+					{ name: 'Sales Order Position - Delivered', value: 'salesOrderPosition.delivered' },
+					{ name: 'Sales Order Position - Updated', value: 'salesOrderPosition.updated' },
 					{ name: 'Sales Order Reservation - Confirmed', value: 'salesOrderReservation.confirmed' },
+					{ name: 'Sales Order Reservation - Created', value: 'salesOrderReservation.created' },
+					{ name: 'Sales Order Reservation - Deleted', value: 'salesOrderReservation.deleted' },
+					// Customer Order Reservation events (added 2026-03-18 — Xentral API update)
+					{ name: 'Sales Order Reservation - Updated', value: 'salesOrderReservation.updated' },
+					{ name: 'Sales Price - Created', value: 'salesPrice.created' },
+					{ name: 'Sales Price - Deleted', value: 'salesPrice.deleted' },
+					{ name: 'Sales Price - Updated', value: 'salesPrice.updated' },
 				],
 				description: 'The Xentral event to listen for',
 			},
@@ -190,8 +190,9 @@ export class XentralTrigger implements INodeType {
 							return true;
 						}
 					}
-				} catch (error: any) {
-					// Webhook listing may fail, treat as not existing
+				} catch (error) {
+					// Listing can fail (missing scope, transient error). Treat as not existing so n8n creates it.
+					this.logger.warn(`Xentral: could not list webhooks, a new one will be created. ${(error as Error).message}`);
 				}
 
 				return false;
@@ -230,9 +231,11 @@ export class XentralTrigger implements INodeType {
 					try {
 						assertSafeId(webhookId, 'webhookId');
 						await xentralRequest.call(this, 'DELETE', `webhooks/${webhookId}`, {}, {}, 'v1');
-					} catch (error: any) {
-						// Log but don't fail - webhook may have been already deleted on Xentral side
-						console.warn(`[Xentral] Failed to delete webhook ${webhookId}: ${error.message || 'unknown error'}`);
+					} catch (error) {
+						// The webhook may already be gone on the Xentral side, so deactivation must not fail.
+						this.logger.warn(
+							`Xentral: failed to delete webhook ${webhookId}. ${(error as Error).message || 'unknown error'}`,
+						);
 					}
 				}
 

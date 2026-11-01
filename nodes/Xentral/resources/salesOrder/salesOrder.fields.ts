@@ -145,6 +145,7 @@ export const salesOrderFields: INodeProperties[] = [
 								displayName: 'Email',
 								name: 'email',
 								type: 'string',
+								placeholder: 'name@email.com',
 								default: '',
 							},
 							{
@@ -269,6 +270,7 @@ export const salesOrderFields: INodeProperties[] = [
 								displayName: 'Email',
 								name: 'email',
 								type: 'string',
+								placeholder: 'name@email.com',
 								default: '',
 							},
 							{
@@ -374,20 +376,6 @@ export const salesOrderFields: INodeProperties[] = [
 				description: 'ID of the preferred warehouse',
 			},
 			{
-				displayName: 'Project ID',
-				name: 'projectId',
-				type: 'string',
-				default: '',
-				description: 'ID of the project this sales order belongs to',
-			},
-			{
-				displayName: 'Sales Representative ID',
-				name: 'salesId',
-				type: 'string',
-				default: '',
-				description: 'ID of the sales representative',
-			},
-			{
 				displayName: 'Print Settings',
 				name: 'printSettings',
 				type: 'fixedCollection',
@@ -416,6 +404,20 @@ export const salesOrderFields: INodeProperties[] = [
 					},
 				],
 				description: 'Print settings for the document',
+			},
+			{
+				displayName: 'Project ID',
+				name: 'projectId',
+				type: 'string',
+				default: '',
+				description: 'ID of the project this sales order belongs to',
+			},
+			{
+				displayName: 'Sales Representative ID',
+				name: 'salesId',
+				type: 'string',
+				default: '',
+				description: 'ID of the sales representative',
 			},
 			{
 				displayName: 'Tags',
@@ -770,7 +772,6 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'deliveryTerms',
 				type: 'string',
 				default: '',
-				description: 'Delivery terms',
 			},
 			{
 				displayName: 'Deviating Ship-To Address',
@@ -842,6 +843,7 @@ export const salesOrderFields: INodeProperties[] = [
 								displayName: 'Email',
 								name: 'email',
 								type: 'string',
+								placeholder: 'name@email.com',
 								default: '',
 							},
 							{
@@ -966,6 +968,7 @@ export const salesOrderFields: INodeProperties[] = [
 								displayName: 'Email',
 								name: 'email',
 								type: 'string',
+								placeholder: 'name@email.com',
 								default: '',
 							},
 							{
@@ -1047,7 +1050,6 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'internalDesignation',
 				type: 'string',
 				default: '',
-				description: 'Internal designation',
 			},
 			{
 				displayName: 'Language',
@@ -1069,20 +1071,6 @@ export const salesOrderFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'ID of preferred warehouse',
-			},
-			{
-				displayName: 'Project ID',
-				name: 'projectId',
-				type: 'string',
-				default: '',
-				description: 'Project ID',
-			},
-			{
-				displayName: 'Sales Representative ID',
-				name: 'salesId',
-				type: 'string',
-				default: '',
-				description: 'Sales representative ID',
 			},
 			{
 				displayName: 'Print Settings',
@@ -1113,6 +1101,18 @@ export const salesOrderFields: INodeProperties[] = [
 					},
 				],
 				description: 'Print settings for the document',
+			},
+			{
+				displayName: 'Project ID',
+				name: 'projectId',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Sales Representative ID',
+				name: 'salesId',
+				type: 'string',
+				default: '',
 			},
 			{
 				displayName: 'Tags',
@@ -1244,14 +1244,12 @@ export const salesOrderFields: INodeProperties[] = [
 				name: 'productId',
 				type: 'string',
 				default: '',
-				description: 'Product ID',
 			},
 			{
 				displayName: 'Quantity',
 				name: 'quantity',
 				type: 'number',
 				default: 1,
-				description: 'Quantity',
 				typeOptions: { minValue: 1 },
 			},
 			{

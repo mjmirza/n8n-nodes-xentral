@@ -70,6 +70,7 @@ const postalAddressValues: INodeProperties[] = [
 		displayName: 'Email',
 		name: 'email',
 		type: 'string',
+		placeholder: 'name@email.com',
 		default: '',
 		description: 'Email address',
 	},
@@ -147,7 +148,7 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The ID of the customer (business contact). Used as address.id in the API.',
+		description: 'The ID of the customer (business contact). Sent to the API as the document address reference.',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -179,11 +180,17 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				description: 'Text shown at the bottom of the proforma invoice document body',
 			},
 			{
+				displayName: 'Currency',
+				name: 'currency',
+				type: 'string',
+				default: '',
+				description: 'Currency code for the financials object (e.g. EUR, USD)',
+			},
+			{
 				displayName: 'Customer Order Number',
 				name: 'customerOrderNumber',
 				type: 'string',
 				default: '',
-				description: 'The customer order number',
 			},
 			{
 				displayName: 'Delivery Date',
@@ -228,13 +235,6 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				description: 'ID of the editor (employee) for this proforma invoice',
 			},
 			{
-				displayName: 'Currency',
-				name: 'currency',
-				type: 'string',
-				default: '',
-				description: 'Currency code for the financials object (e.g. EUR, USD)',
-			},
-			{
 				displayName: 'Internal Comment',
 				name: 'internalComment',
 				type: 'string',
@@ -255,20 +255,6 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'ISO 639-1 language code for the document (e.g. de, en)',
-			},
-			{
-				displayName: 'Project ID',
-				name: 'projectId',
-				type: 'string',
-				default: '',
-				description: 'ID of the associated project',
-			},
-			{
-				displayName: 'Sales Order ID',
-				name: 'salesOrderId',
-				type: 'string',
-				default: '',
-				description: 'ID of the related sales order',
 			},
 			{
 				displayName: 'Print Settings',
@@ -299,6 +285,20 @@ export const proformaInvoiceFields: INodeProperties[] = [
 					},
 				],
 				description: 'Print settings for the document',
+			},
+			{
+				displayName: 'Project ID',
+				name: 'projectId',
+				type: 'string',
+				default: '',
+				description: 'ID of the associated project',
+			},
+			{
+				displayName: 'Sales Order ID',
+				name: 'salesOrderId',
+				type: 'string',
+				default: '',
+				description: 'ID of the related sales order',
 			},
 			{
 				displayName: 'Sales Representative ID',
@@ -626,11 +626,17 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				description: 'Text shown at the bottom of the document body',
 			},
 			{
+				displayName: 'Currency',
+				name: 'currency',
+				type: 'string',
+				default: '',
+				description: 'Currency code for the financials object (e.g. EUR, USD)',
+			},
+			{
 				displayName: 'Customer Order Number',
 				name: 'customerOrderNumber',
 				type: 'string',
 				default: '',
-				description: 'The customer order number',
 			},
 			{
 				displayName: 'Delivery Date',
@@ -675,13 +681,6 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				description: 'ID of the editor (employee)',
 			},
 			{
-				displayName: 'Currency',
-				name: 'currency',
-				type: 'string',
-				default: '',
-				description: 'Currency code for the financials object (e.g. EUR, USD)',
-			},
-			{
 				displayName: 'Internal Comment',
 				name: 'internalComment',
 				type: 'string',
@@ -694,7 +693,6 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				name: 'internalDesignation',
 				type: 'string',
 				default: '',
-				description: 'Internal designation',
 			},
 			{
 				displayName: 'Language',
@@ -702,13 +700,6 @@ export const proformaInvoiceFields: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description: 'ISO 639-1 language code (e.g. de, en)',
-			},
-			{
-				displayName: 'Project ID',
-				name: 'projectId',
-				type: 'string',
-				default: '',
-				description: 'ID of the associated project',
 			},
 			{
 				displayName: 'Print Settings',
@@ -739,6 +730,13 @@ export const proformaInvoiceFields: INodeProperties[] = [
 					},
 				],
 				description: 'Print settings for the document',
+			},
+			{
+				displayName: 'Project ID',
+				name: 'projectId',
+				type: 'string',
+				default: '',
+				description: 'ID of the associated project',
 			},
 			{
 				displayName: 'Sales Representative ID',

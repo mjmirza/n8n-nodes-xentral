@@ -70,6 +70,7 @@ const postalAddressValues: INodeProperties[] = [
 		displayName: 'Email',
 		name: 'email',
 		type: 'string',
+		placeholder: 'name@email.com',
 		default: '',
 		description: 'Email address',
 	},
@@ -147,7 +148,7 @@ export const offerFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'The ID of the customer (business contact). Used as address.id in the API.',
+		description: 'The ID of the customer (business contact). Sent to the API as the document address reference.',
 	},
 	{
 		displayName: 'Additional Fields',
@@ -313,13 +314,6 @@ export const offerFields: INodeProperties[] = [
 				description: 'ID of the preferred warehouse',
 			},
 			{
-				displayName: 'Project ID',
-				name: 'projectId',
-				type: 'string',
-				default: '',
-				description: 'ID of the associated project',
-			},
-			{
 				displayName: 'Print Settings',
 				name: 'printSettings',
 				type: 'fixedCollection',
@@ -355,6 +349,13 @@ export const offerFields: INodeProperties[] = [
 					},
 				],
 				description: 'Print settings for the document',
+			},
+			{
+				displayName: 'Project ID',
+				name: 'projectId',
+				type: 'string',
+				default: '',
+				description: 'ID of the associated project',
 			},
 			{
 				displayName: 'Sales Representative ID',
@@ -517,13 +518,6 @@ export const offerFields: INodeProperties[] = [
 				description: 'Delivery date for this line item (ISO 8601 date string)',
 			},
 			{
-				displayName: 'Hidden on PDF',
-				name: 'hiddenOnPdf',
-				type: 'boolean',
-				default: false,
-				description: 'Whether to hide this line item when printing the document',
-			},
-			{
 				displayName: 'Delivery Date as Calendar Week',
 				name: 'deliveryDateAsCalendarWeek',
 				type: 'boolean',
@@ -544,6 +538,13 @@ export const offerFields: INodeProperties[] = [
 				default: 0,
 				typeOptions: { numberPrecision: 2 },
 				description: 'Discount percentage for this line item',
+			},
+			{
+				displayName: 'Hidden on PDF',
+				name: 'hiddenOnPdf',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to hide this line item when printing the document',
 			},
 			{
 				displayName: 'HS Code',
@@ -832,13 +833,6 @@ export const offerFields: INodeProperties[] = [
 				description: 'ID of the preferred warehouse',
 			},
 			{
-				displayName: 'Project ID',
-				name: 'projectId',
-				type: 'string',
-				default: '',
-				description: 'ID of the associated project. Set empty to remove.',
-			},
-			{
 				displayName: 'Print Settings',
 				name: 'printSettings',
 				type: 'fixedCollection',
@@ -874,6 +868,13 @@ export const offerFields: INodeProperties[] = [
 					},
 				],
 				description: 'Print settings for the document',
+			},
+			{
+				displayName: 'Project ID',
+				name: 'projectId',
+				type: 'string',
+				default: '',
+				description: 'ID of the associated project. Set empty to remove.',
 			},
 			{
 				displayName: 'Sales Representative ID',
