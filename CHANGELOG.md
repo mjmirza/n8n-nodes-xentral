@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.4.2] - 2026-11-01
+
+### Security
+- The instance URL may not contain user info (`@`), backslashes or whitespace. `https://127.0.0.1\@acme.xentral.com` passed the 1.4.1 credential test, which read the host after the `@` while the HTTP client went to 127.0.0.1. Both the credential test and every request refuse such URLs.
+
+### Fixed
+- Sales Order Commission Consignment Warehouse ID sends `commissionConsignmentWarehouse` again, as up to 1.4.0. 1.4.1 sent it as a storage location id, which changed the meaning of saved values. The new Commission Consignment Storage Location ID field sends `commissionConsignmentStorageLocation`, the field the Sales Order API declares.
+- Liability status is sent as `open` or `paid`, the only values Xentral accepts. Saved values map: Pending and Partially Paid to open, Paid to paid. Cancelled has no Xentral equivalent and now fails with a clear message instead of an invalid request.
+- Customer Auto-Create Documents sends `both` when on, instead of a boolean the API rejects. The new Auto-Create Documents Type field (both, delivery_note, invoice) picks one and overrides it.
+- Contact groups are sent as a list of id strings (`["17","22"]`), as the API requires, instead of `[{"id":"17"}]`.
+- Sales Price Valid From and Expires At are sent as YYYY-MM-DD.
+- Employee and Webhook Get Many make one request without page parameters. Those endpoints are not paginated, so the old pager repeated the same list.
+- A Retry-After of up to 120 seconds is honoured (HTTP date too), instead of being cut to 30 seconds. Retries stay bounded at three.
+- Validation errors whose `messages` is an object of arrays show each field message, in the error message and as its description.
+
 ## [1.4.1] - 2026-11-01
 
 ### Security

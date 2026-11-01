@@ -48,11 +48,18 @@ export const salesOrderFields: INodeProperties[] = [
 				description: 'Closing text shown at the bottom of the document',
 			},
 			{
+				displayName: 'Commission Consignment Storage Location ID',
+				name: 'commissionConsignmentStorageLocationId',
+				type: 'string',
+				default: '',
+				description: 'ID of the commission consignment storage location (commissionConsignmentStorageLocation in the Sales Order API)',
+			},
+			{
 				displayName: 'Commission Consignment Warehouse ID',
 				name: 'commissionConsignmentWarehouseId',
 				type: 'string',
 				default: '',
-				description: 'ID of the commission consignment warehouse',
+				description: 'Sent as commissionConsignmentWarehouse, as in earlier versions. The Sales Order API declares the storage location field instead.',
 			},
 			{
 				displayName: 'Cost Center',
@@ -747,11 +754,18 @@ export const salesOrderFields: INodeProperties[] = [
 				description: 'Closing text shown at the bottom of the document',
 			},
 			{
+				displayName: 'Commission Consignment Storage Location ID',
+				name: 'commissionConsignmentStorageLocationId',
+				type: 'string',
+				default: '',
+				description: 'ID of the commission consignment storage location (commissionConsignmentStorageLocation in the Sales Order API)',
+			},
+			{
 				displayName: 'Commission Consignment Warehouse ID',
 				name: 'commissionConsignmentWarehouseId',
 				type: 'string',
 				default: '',
-				description: 'ID of the commission consignment warehouse',
+				description: 'Sent as commissionConsignmentWarehouse, as in earlier versions. The Sales Order API declares the storage location field instead.',
 			},
 			{
 				displayName: 'Cost Center',
