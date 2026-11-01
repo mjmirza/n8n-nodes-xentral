@@ -38,18 +38,18 @@ export async function handleAddress(
 			: assertNonEmpty(this.getNodeParameter('name', itemIndex) as string, 'Name');
 		const street = assertNonEmpty(this.getNodeParameter('street', itemIndex) as string, 'Street');
 		const city = assertNonEmpty(this.getNodeParameter('city', itemIndex) as string, 'City');
-		const zip = assertNonEmpty(this.getNodeParameter('zip', itemIndex) as string, 'ZIP Code');
+		const zip = String(this.getNodeParameter('zip', itemIndex, '') ?? '').trim();
 		const country = assertNonEmpty(this.getNodeParameter('country', itemIndex) as string, 'Country');
 		const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
 		const body: IDataObject = {
 			street,
 			city,
-			zip,
 			country,
 			type,
 		};
 		if (name !== undefined) body.name = name;
+		if (zip) body.zip = zip;
 
 		for (const field of ADDRESS_DIRECT_FIELDS) {
 			if (additionalFields[field] !== undefined) {
@@ -116,8 +116,9 @@ export async function handleAddress(
 		if (updateFields.zip !== undefined) body.zip = updateFields.zip;
 		if (updateFields.country !== undefined) body.country = updateFields.country;
 
+		// No PATCH schema accepts type, so it is ignored on update.
 		for (const field of ADDRESS_DIRECT_FIELDS) {
-			if (updateFields[field] !== undefined) {
+			if (field !== 'type' && updateFields[field] !== undefined) {
 				body[field] = updateFields[field];
 			}
 		}

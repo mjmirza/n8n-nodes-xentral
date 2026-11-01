@@ -50,7 +50,7 @@ export const tagFields: INodeProperties[] = [
 				name: 'color',
 				type: 'color',
 				default: '',
-				description: 'Hex color code without the # prefix (e.g. "ff0000" for red)',
+				description: 'Hex color as #RRGGBB, for example #ff0000 for red. A bare six digit value gets the # added.',
 			},
 			{
 				displayName: 'Group',

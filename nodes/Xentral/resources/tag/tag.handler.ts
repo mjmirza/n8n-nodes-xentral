@@ -1,5 +1,11 @@
 import type { IExecuteFunctions, IDataObject } from 'n8n-workflow';
-import { xentralRequest, assertNonEmpty } from '../../transport';
+import { xentralRequest, assertNonEmpty, xentralV1PageGetAll } from '../../transport';
+
+// The API wants #RRGGBB. A bare six digit hex value gets the # added.
+function tagColor(value: unknown): string {
+	const v = String(value).trim();
+	return /^[0-9A-Fa-f]{6}$/.test(v) ? `#${v}` : v;
+}
 
 export async function handleTag(
 	this: IExecuteFunctions,
@@ -16,7 +22,7 @@ export async function handleTag(
 			type,
 		};
 
-		if (additionalFields.color !== undefined) body.color = additionalFields.color;
+		if (additionalFields.color !== undefined && additionalFields.color !== '') body.color = tagColor(additionalFields.color);
 		if (additionalFields.group !== undefined) body.group = additionalFields.group;
 
 		return xentralRequest.call(this, 'POST', 'tags', body, {}, 'v2');
@@ -26,9 +32,8 @@ export async function handleTag(
 		const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 		const limit = returnAll ? undefined : (this.getNodeParameter('limit', itemIndex) as number);
 
-		const response = await xentralRequest.call(this, 'GET', 'tags', {}, {}, 'v2');
-		const items = (Array.isArray(response) ? response : (response as IDataObject).data || []) as IDataObject[];
-		return limit ? items.slice(0, limit) : items;
+		const maxPages = returnAll ? (this.getNodeParameter('maxPages', itemIndex, 1000) as number) : undefined;
+		return xentralV1PageGetAll.call(this, 'tags', {}, limit, maxPages, 'v2');
 	}
 
 	throw new Error(`Unknown tag operation: ${operation}`);
