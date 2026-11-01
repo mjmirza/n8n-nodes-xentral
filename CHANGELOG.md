@@ -4,7 +4,7 @@
 
 ### Fixed
 - Production Create leaves empty Production Start Date, Production End Date, Stock Provisioning Date and Stock Retrieval Date out of the request, as the v3 schema requires. Set dates are still sent unchanged.
-- Example workflows use the supported Company customer type, put Address Type at the top level, and add offer line items with Product ID and Price Amount. The example instructions explain how to choose existing products.
+- Example workflows use the supported Company customer type, put Address Type at the top level, and add offer line items with Product ID and Price Amount. Workflow 2 runs linearly through Create Offer, Add Line Item 1, Add Line Item 2, Verify and Release, and removes Delete Offer after release because only drafts can be deleted. The example instructions explain how to choose existing products and use a test instance for the released offer left behind.
 
 ## [1.4.5] - 2026-11-01
 

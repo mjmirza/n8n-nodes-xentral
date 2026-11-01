@@ -107,3 +107,38 @@ test('[r8-2] every example Xentral parameter and option matches its resource/ope
 	assert.ok(checked > 0, 'Xentral example nodes were checked');
 	assert.deepEqual(errors, []);
 });
+
+test('[r8-3] examples avoid parallel main targets and offer deletion downstream of release', () => {
+	const errors = [];
+	const directory = new URL('../examples/', import.meta.url);
+	const files = fs.readdirSync(directory).filter((name) => name.endsWith('.json'));
+	assert.ok(files.length > 0, 'Example workflows exist');
+	assert.ok(files.includes('workflow-2-offer-lifecycle.json'), 'Offer lifecycle example exists');
+	for (const file of files) {
+		const workflow = JSON.parse(fs.readFileSync(new URL(file, directory)));
+		const nodes = new Map(workflow.nodes.map((node) => [node.name, node]));
+		const targets = (name) => (workflow.connections[name]?.main ?? []).flat().map((connection) => connection.node);
+		for (const node of workflow.nodes) {
+			if (!['n8n-nodes-base.if', 'n8n-nodes-base.switch'].includes(node.type) && targets(node.name).length > 1) {
+				errors.push(`${file}: ${node.name} has multiple outgoing main targets`);
+			}
+		}
+		if (file !== 'workflow-2-offer-lifecycle.json') continue;
+		for (const release of workflow.nodes.filter((node) => node.parameters.resource === 'offer' && node.parameters.operation === 'release')) {
+			const pending = [...targets(release.name)];
+			const visited = new Set();
+			while (pending.length > 0) {
+				const name = pending.pop();
+				if (visited.has(name)) continue;
+				visited.add(name);
+				const node = nodes.get(name);
+				assert.ok(node, `${file}: connection target ${name} exists`);
+				if (node.parameters.resource === 'offer' && node.parameters.operation === 'delete') {
+					errors.push(`${file}: ${name} deletes an offer downstream of ${release.name}`);
+				}
+				pending.push(...targets(name));
+			}
+		}
+	}
+	assert.deepEqual(errors, []);
+});
